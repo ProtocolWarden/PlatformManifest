@@ -205,10 +205,11 @@ class RepoGraph:
         """Repos that consume assets (kits/crates/pallets/etc.) from `repo_id`
         via BUNDLES_ASSETS_FROM.
 
-        Answers operational questions like 'what breaks if Warehouse changes
-        its asset format?' or 'who'd need to update their crates if the
-        publishing pipeline changes?'. The asset semantics (bundle / kit /
-        crate / artifact format) are operator-defined per edge — the graph
+        Answers operational questions like 'what breaks if our asset
+        publisher changes its bundle format?' or 'who'd need to update
+        their crates if the publishing pipeline changes?'. The asset
+        semantics (bundle / kit / crate / artifact format) are
+        operator-defined per edge — the graph
         only records the dependency relationship.
 
         Returned in stable canonical-name order. Raises ``KeyError`` on
