@@ -683,7 +683,7 @@ Repo graph must have at least one real consumer proving value.
 * Contract repo change impact summary includes public/private counts.
 * Platform-only graph does not report private project nodes.
 * Configured project graph reports private impact when appropriate.
-* `who_consumes_assets_of` returns the right consumers from a synthetic graph. Note: no real `bundles_assets_from` edge is currently authored in any tracked manifest — the edge type stands for when a real producer/consumer asset relationship surfaces. (Earlier drafts used VideoFoundry → Warehouse as the example; that was retracted because Warehouse is developer/operator tooling, not a runtime artifact provider.)
+* `who_consumes_assets_of` returns the right consumers from a synthetic graph. Note: no real `bundles_assets_from` edge is currently authored in any tracked manifest — the edge type stands for when a real producer/consumer asset relationship surfaces.
 
 ---
 
