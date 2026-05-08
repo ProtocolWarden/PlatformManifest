@@ -46,7 +46,17 @@ graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
 platform-manifest list
 platform-manifest resolve ControlPlane
 platform-manifest impact cxrp
+
+# Validate a manifest against its JSON schema + loader rules.
+# Auto-detects manifest_kind; pass --expected to enforce the slot.
+# Project manifests are validated in composition with the bundled
+# platform base (override with --against PATH).
+platform-manifest validate path/to/project_manifest.yaml --expected project
+platform-manifest validate path/to/local_manifest.yaml --json   # CI-friendly
 ```
+
+CI-friendly: exit 0 = clean, 1 = validation failed, 2 = bad invocation.
+Pass `--json` to get a structured report consumable by automation.
 
 ## Install
 

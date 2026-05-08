@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "platform-manifest"
-version = "0.3.0"
+version = "0.4.0"
 description = "Canonical platform repo map: identity, legacy aliases, and edges between repos"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,6 +13,7 @@ dependencies = [
   "typer>=0.12",
   "rich>=13.0",
   "packaging>=23.0",
+  "jsonschema>=4.20",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +26,7 @@ dev = [
 platform-manifest = "platform_manifest.cli:app"
 
 [tool.setuptools.package-data]
-platform_manifest = ["data/*.yaml"]
+platform_manifest = ["data/*.yaml", "schemas/*.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
