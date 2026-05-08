@@ -1,0 +1,10 @@
+# Per-machine local annotations for the single-project example.
+# Copy to local_manifest.yaml (gitignored) and fill in real paths.
+
+manifest_kind: local
+manifest_version: "1.0.0"
+
+repos:
+  my_product_api:
+    local_path: /home/dev/src/MyProductAPI
+    local_port: 8080
