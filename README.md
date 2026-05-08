@@ -41,6 +41,30 @@ graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
 graph.who_dispatches_to("executor_runtime") # → [OperationsCenter]
 ```
 
+## Multi-repo project shell (v0.8+)
+
+A project manifest may include other project manifests:
+
+```yaml
+manifest_kind: project
+manifest_version: "1.0.0"
+
+includes:
+  - name: VideoFoundry
+    project_manifest_path: ../VideoFoundry/topology/project_manifest.yaml
+  - name: Warehouse
+    project_manifest_path: ../Warehouse/topology/project_manifest.yaml
+
+repos: []   # the shell may also declare its own repos
+edges: []   # cross-suite edges go here
+```
+
+The loader recurses sub-projects and applies their nodes/edges
+before the shell's own. Collisions (duplicate repo_id with platform
+OR with a sibling sub-project) are configuration errors. Cycles are
+detected and rejected. `OperationsCenter` points at the shell's
+manifest and gets the merged whole.
+
 ## CLI
 
 ```

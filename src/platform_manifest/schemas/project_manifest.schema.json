@@ -36,9 +36,23 @@
     "edges": {
       "type": "array",
       "items": { "$ref": "#/$defs/Edge" }
+    },
+    "includes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Include" },
+      "description": "Sub-project manifests this manifest includes. Used by the multi-repo project shell pattern (one shell manifest references the project_manifest.yaml of each constituent project)."
     }
   },
   "$defs": {
+    "Include": {
+      "type": "object",
+      "required": ["name", "project_manifest_path"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "description": "Human label for the included sub-project (informational)." },
+        "project_manifest_path": { "type": "string", "minLength": 1, "description": "Path to the included project_manifest.yaml. Relative paths resolve against the including manifest's directory." }
+      }
+    },
     "ProjectRepoNode": {
       "type": "object",
       "required": ["canonical_name", "visibility"],
