@@ -38,6 +38,7 @@ from platform_manifest import (
 graph = load_default_repo_graph()
 graph.resolve("ControlPlane")              # → OperationsCenter (legacy alias)
 graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
+graph.who_dispatches_to("executor_runtime") # → [OperationsCenter]
 ```
 
 ## CLI

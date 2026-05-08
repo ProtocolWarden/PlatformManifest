@@ -181,6 +181,27 @@ class RepoGraph:
         }
         return [self.nodes[c] for c in sorted(consumers)]
 
+    def who_dispatches_to(self, repo_id: str) -> list[RepoNode]:
+        """Repos that dispatch work to `repo_id` via DISPATCHES_TO.
+
+        Answers operational questions like 'who would notice if
+        OperationsCenter went down?' or 'which orchestrators send work
+        to ExecutorRuntime?'. Promotes the existing ``dispatches_to``
+        edge from informational metadata to a first-class queryable.
+
+        Returned in stable canonical-name order. Raises ``KeyError``
+        if ``repo_id`` is unknown — same convention as the other
+        directional queries.
+        """
+        if repo_id not in self.nodes:
+            raise KeyError(repo_id)
+        dispatchers = {
+            e.src
+            for e in self.edges
+            if e.dst == repo_id and e.type == RepoEdgeType.DISPATCHES_TO
+        }
+        return [self.nodes[d] for d in sorted(dispatchers)]
+
 
 # ---------------------------------------------------------------------------
 # Effective graph alias
