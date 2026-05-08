@@ -161,20 +161,21 @@ class TestQueries:
             small_graph.who_dispatches_to("ghost")
 
     def test_who_consumes_assets_of_on_synthetic_graph(self) -> None:
-        # Build a tiny graph with BUNDLES_ASSETS_FROM edges
+        # Build a tiny graph with BUNDLES_ASSETS_FROM edges. Synthetic
+        # node names — the algorithm under test is repo-name-agnostic.
         graph = RepoGraph.build(
             nodes=[
-                RepoNode(repo_id="vfa", canonical_name="VFAApi"),
-                RepoNode(repo_id="vfw", canonical_name="VFAWorker"),
-                RepoNode(repo_id="wh", canonical_name="Warehouse"),
+                RepoNode(repo_id="api", canonical_name="GenericApi"),
+                RepoNode(repo_id="worker", canonical_name="GenericWorker"),
+                RepoNode(repo_id="publisher", canonical_name="AssetPublisher"),
             ],
             edges=[
-                RepoEdge(src="vfa", dst="wh", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
-                RepoEdge(src="vfw", dst="wh", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
+                RepoEdge(src="api", dst="publisher", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
+                RepoEdge(src="worker", dst="publisher", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
             ],
         )
-        consumers = [n.canonical_name for n in graph.who_consumes_assets_of("wh")]
-        assert consumers == ["VFAApi", "VFAWorker"]
+        consumers = [n.canonical_name for n in graph.who_consumes_assets_of("publisher")]
+        assert consumers == ["GenericApi", "GenericWorker"]
 
     def test_who_consumes_assets_of_excludes_other_edges(self) -> None:
         graph = RepoGraph.build(
