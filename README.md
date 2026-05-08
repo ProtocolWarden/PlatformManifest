@@ -143,4 +143,4 @@ Consumer repos depend on it via:
 
 ## License
 
-[Apache-2.0](LICENSE).
+GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later) — see [LICENSE](LICENSE).

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 Velascat
 """Tests for the `platform-manifest effective` CLI subcommand (v0.5)."""
 from __future__ import annotations

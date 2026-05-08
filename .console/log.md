@@ -48,3 +48,9 @@ truth; pre-push catches regressions before they hit GitHub.
 
 ## 2026-05-08 — D11 exclusions (cli + models typology)
 
+
+## 2026-05-08 — Relicense Apache-2.0 → AGPL-3.0-or-later
+
+Aligns PM with the rest of the platform (Custodian, OC, etc. all
+AGPL-3.0-or-later).
+
