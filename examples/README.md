@@ -31,10 +31,10 @@ platform-manifest effective \
   --work-scope examples/work_scope/MediaProductSuite/topology/work_scope_manifest.yaml
 ```
 
-## Migration: v0.8 project-shell → v0.9 work-scope
+## Migration: legacy project-shell → work-scope
 
 If you have a manifest authored under PM v0.8.x using `manifest_kind: project`
-with `includes:`, the migration is:
+with `includes:`:
 
 ```diff
 - manifest_kind: project
@@ -42,5 +42,5 @@ with `includes:`, the migration is:
   manifest_version: "1.0.0"
 ```
 
-The `includes:` shape is unchanged. PM v0.9.x still loads the legacy form
-with a `DeprecationWarning`; PM v1.0.0 will hard-fail it.
+The `includes:` shape is unchanged. PM v0.9.x loaded the legacy form with
+a `DeprecationWarning`; PM v1.0.0+ rejects it (schema-level + loader-level).

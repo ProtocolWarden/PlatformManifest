@@ -33,7 +33,7 @@ manifest_kind: project
 manifest_version: "1.0.0"
 platform_manifest:
   name: PlatformManifest
-  version_constraint: ">=0.3,<1.0"
+  version_constraint: ">=1.0,<2.0"
 repos:
   vfa:
     canonical_name: VFAApi
@@ -144,6 +144,23 @@ class TestSchemaFailures:
         assert not report.ok
         assert any("canonical_name" in str(i.to_dict()) or "additional" in str(i.to_dict()).lower()
                    for i in report.issues)
+
+    def test_project_with_includes_rejected_by_schema(self, tmp_path: Path) -> None:
+        # v1.0.0+ — includes is gone from project_manifest.schema.json,
+        # so JSON Schema's additionalProperties:false trips first.
+        report = validate_manifest(
+            _write(tmp_path, "p.yaml",
+                'manifest_kind: project\n'
+                'manifest_version: "1.0.0"\n'
+                'includes:\n'
+                '  - {name: foo, project_manifest_path: ./foo.yaml}\n'
+            )
+        )
+        assert not report.ok
+        assert any(
+            "includes" in str(i.to_dict()) or "additional" in str(i.to_dict()).lower()
+            for i in report.issues
+        )
 
     def test_io_error_for_missing_file(self, tmp_path: Path) -> None:
         report = validate_manifest(tmp_path / "does_not_exist.yaml")

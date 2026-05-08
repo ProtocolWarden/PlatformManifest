@@ -69,10 +69,10 @@ and rejected. `OperationsCenter` points at the work-scope manifest via
 
 Worked example: see `examples/work_scope/`.
 
-> **v0.8 → v0.9 migration**: `manifest_kind: project` with `includes:`
-> is deprecated as of v0.9.0 (still loads with a `DeprecationWarning`)
-> and will hard-fail in v1.0.0. Migration is a one-line change:
-> `manifest_kind: project` → `manifest_kind: work_scope`.
+> **v1.0.0**: `manifest_kind: project` with `includes:` is rejected.
+> Multi-repo composition is exclusively the role of
+> `manifest_kind: work_scope`. (Migrated from? One-line change:
+> `manifest_kind: project` → `manifest_kind: work_scope`.)
 
 ## CLI
 
