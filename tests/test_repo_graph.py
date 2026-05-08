@@ -160,6 +160,43 @@ class TestQueries:
         with pytest.raises(KeyError):
             small_graph.who_dispatches_to("ghost")
 
+    def test_who_consumes_assets_of_on_synthetic_graph(self) -> None:
+        # Build a tiny graph with BUNDLES_ASSETS_FROM edges
+        graph = RepoGraph.build(
+            nodes=[
+                RepoNode(repo_id="vfa", canonical_name="VFAApi"),
+                RepoNode(repo_id="vfw", canonical_name="VFAWorker"),
+                RepoNode(repo_id="wh", canonical_name="Warehouse"),
+            ],
+            edges=[
+                RepoEdge(src="vfa", dst="wh", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
+                RepoEdge(src="vfw", dst="wh", type=RepoEdgeType.BUNDLES_ASSETS_FROM),
+            ],
+        )
+        consumers = [n.canonical_name for n in graph.who_consumes_assets_of("wh")]
+        assert consumers == ["VFAApi", "VFAWorker"]
+
+    def test_who_consumes_assets_of_excludes_other_edges(self) -> None:
+        graph = RepoGraph.build(
+            nodes=[
+                RepoNode(repo_id="a", canonical_name="A"),
+                RepoNode(repo_id="b", canonical_name="B"),
+            ],
+            edges=[
+                RepoEdge(src="a", dst="b", type=RepoEdgeType.DEPENDS_ON_CONTRACTS_FROM),
+            ],
+        )
+        # B is the contract owner, not the asset producer — empty
+        assert graph.who_consumes_assets_of("b") == []
+
+    def test_who_consumes_assets_of_unknown_repo_raises(self) -> None:
+        graph = RepoGraph.build(
+            nodes=[RepoNode(repo_id="a", canonical_name="A")],
+            edges=[],
+        )
+        with pytest.raises(KeyError):
+            graph.who_consumes_assets_of("ghost")
+
     def test_who_dispatches_to_on_live_graph(self) -> None:
         # The bundled platform manifest has OperatorConsole -> OperationsCenter
         # as its only dispatches_to into operations_center; the reverse

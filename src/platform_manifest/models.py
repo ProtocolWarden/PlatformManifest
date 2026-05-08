@@ -36,11 +36,19 @@ class Source(str, Enum):
 
 
 class RepoEdgeType(str, Enum):
-    """v1 edge vocabulary. Add new values only when a real query needs them."""
+    """Edge vocabulary. Add new values only when a real query needs them.
+
+    v1 (PM ≤ v0.5): depends_on_contracts_from, dispatches_to, routes_through
+    v2 (PM ≥ v0.7): bundles_assets_from
+    """
 
     DEPENDS_ON_CONTRACTS_FROM = "depends_on_contracts_from"
     DISPATCHES_TO = "dispatches_to"
     ROUTES_THROUGH = "routes_through"
+    # v0.7 — VF↔Warehouse asset relationship. Consumer node imports/depends
+    # on asset outputs (kits/crates/pallets/yards or any other shipped
+    # artifact format) of the target node. Granularity is operator-defined.
+    BUNDLES_ASSETS_FROM = "bundles_assets_from"
 
 
 class RepoGraphConfigError(ValueError):
@@ -178,6 +186,28 @@ class RepoGraph:
             e.src
             for e in self.edges
             if e.dst == repo_id and e.type == RepoEdgeType.DEPENDS_ON_CONTRACTS_FROM
+        }
+        return [self.nodes[c] for c in sorted(consumers)]
+
+    def who_consumes_assets_of(self, repo_id: str) -> list[RepoNode]:
+        """Repos that consume assets (kits/crates/pallets/etc.) from `repo_id`
+        via BUNDLES_ASSETS_FROM.
+
+        Answers operational questions like 'what breaks if Warehouse changes
+        its asset format?' or 'who'd need to update their crates if the
+        publishing pipeline changes?'. The asset semantics (bundle / kit /
+        crate / artifact format) are operator-defined per edge — the graph
+        only records the dependency relationship.
+
+        Returned in stable canonical-name order. Raises ``KeyError`` on
+        unknown ``repo_id``.
+        """
+        if repo_id not in self.nodes:
+            raise KeyError(repo_id)
+        consumers = {
+            e.src
+            for e in self.edges
+            if e.dst == repo_id and e.type == RepoEdgeType.BUNDLES_ASSETS_FROM
         }
         return [self.nodes[c] for c in sorted(consumers)]
 

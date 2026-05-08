@@ -58,7 +58,8 @@
           "enum": [
             "depends_on_contracts_from",
             "dispatches_to",
-            "routes_through"
+            "routes_through",
+            "bundles_assets_from"
           ]
         }
       }
