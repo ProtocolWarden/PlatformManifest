@@ -1,5 +1,10 @@
 # Log
 
+## 2026-05-08 — Wire pre-commit hook
+
+Added .hooks/pre-commit (log.md enforcement) and set core.hooksPath = .hooks.
+Pre-push Custodian guard was already present; now both hooks are active.
+
 _Chronological continuity log. Decisions, stop points, what changed and why._
 _Not a task tracker — that's backlog.md. Keep entries concise and dated._
 
