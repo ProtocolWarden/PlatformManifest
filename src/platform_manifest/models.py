@@ -23,6 +23,18 @@ class Visibility(str, Enum):
     PRIVATE = "private"
 
 
+class Source(str, Enum):
+    """Provenance: which manifest contributed a node or edge after merge.
+
+    LocalManifest cannot introduce nodes or edges (per design Rule 3), so
+    it does not appear here — local annotations attach to nodes that came
+    from PLATFORM or PROJECT.
+    """
+
+    PLATFORM = "platform"
+    PROJECT = "project"
+
+
 class RepoEdgeType(str, Enum):
     """v1 edge vocabulary. Add new values only when a real query needs them."""
 
@@ -32,18 +44,45 @@ class RepoEdgeType(str, Enum):
 
 
 class RepoGraphConfigError(ValueError):
-    """Raised when the repo graph YAML is malformed or internally inconsistent."""
+    """Raised when a manifest is malformed or violates a merge rule."""
+
+
+# Allowlist for fields a LocalManifest may set on an existing node.
+LOCAL_ANNOTATION_FIELDS: frozenset[str] = frozenset({
+    "local_path",
+    "local_port",
+    "env_file",
+    "endpoint_override",
+    "cache_path",
+    "gpu_required",
+    "runtime_hints",
+})
 
 
 @dataclass(frozen=True)
 class RepoNode:
+    """One repo. Architectural fields come from PlatformManifest or
+    ProjectManifest; local annotation fields are populated only by a
+    LocalManifest at composition time."""
+
     repo_id: str
     canonical_name: str
     visibility: Visibility = Visibility.PUBLIC
     legacy_names: tuple[str, ...] = ()
-    local_path: str | None = None
     github_url: str | None = None
     runtime_role: str | None = None
+    # Provenance — set by the loader at merge time. Defaults to PLATFORM
+    # so programmatic construction in tests stays trivial.
+    source: Source = Source.PLATFORM
+    # Local annotation fields — only LocalManifest may set these.
+    local_path: str | None = None
+    local_port: int | None = None
+    env_file: str | None = None
+    endpoint_override: str | None = None
+    cache_path: str | None = None
+    gpu_required: bool | None = None
+    # Pairs because the dataclass is frozen and dict isn't hashable.
+    runtime_hints: tuple[tuple[str, "str | int | float | bool"], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -51,6 +90,7 @@ class RepoEdge:
     src: str  # repo_id
     dst: str  # repo_id
     type: RepoEdgeType
+    source: Source = Source.PLATFORM
 
 
 @dataclass(frozen=True)
@@ -63,6 +103,10 @@ class ManifestHeader:
 
 @dataclass
 class RepoGraph:
+    """A manifest's parsed nodes + edges. The merged runtime view returned
+    by ``load_effective_graph`` carries the same shape — provenance is
+    annotated on each node/edge via ``source``."""
+
     nodes: dict[str, RepoNode] = field(default_factory=dict)  # keyed by repo_id
     edges: tuple[RepoEdge, ...] = ()
     # name index built at construction time: lowercased canonical & legacy → repo_id
@@ -136,3 +180,15 @@ class RepoGraph:
             if e.dst == repo_id and e.type == RepoEdgeType.DEPENDS_ON_CONTRACTS_FROM
         }
         return [self.nodes[c] for c in sorted(consumers)]
+
+
+# ---------------------------------------------------------------------------
+# Effective graph alias
+# ---------------------------------------------------------------------------
+
+# After v0.3 composition, the merged result is a RepoGraph whose nodes
+# carry `source` and (for local-annotated platform/project nodes)
+# populated local_* fields. We expose the alias to make consumer code
+# self-document — an EffectiveRepoGraph is a RepoGraph that has been
+# through composition.
+EffectiveRepoGraph = RepoGraph

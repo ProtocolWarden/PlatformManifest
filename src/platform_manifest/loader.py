@@ -12,8 +12,12 @@ A manifest file's top-of-file header declares its trust slot:
     manifest_kind: platform | project | local
     manifest_version: "1.0.0"
 
-For v0.2 the loader supports loading a single platform manifest. The
-composition pipeline (project + local) lands in v0.3.
+Single-manifest entry points (this module):
+- ``load_repo_graph(path, expected_kind=PLATFORM)`` — load a platform
+  manifest into a RepoGraph (existing v0.2 surface).
+
+Multi-layer composition lives in ``composition.py``:
+- ``load_effective_graph(base, *, project=None, local=None)``.
 """
 
 from __future__ import annotations
@@ -25,12 +29,14 @@ from typing import Any
 import yaml
 
 from .models import (
+    LOCAL_ANNOTATION_FIELDS,
     ManifestKind,
     RepoEdge,
     RepoEdgeType,
     RepoGraph,
     RepoGraphConfigError,
     RepoNode,
+    Source,
     Visibility,
 )
 
@@ -39,12 +45,7 @@ _PLATFORM_MANIFEST_FILENAME = "platform_manifest.yaml"
 
 
 def default_config_path() -> Path:
-    """Path to the bundled ``data/platform_manifest.yaml``.
-
-    Resolved via ``importlib.resources`` so the path is correct in both
-    source-tree development and installed-wheel use. Returns the path
-    even if the file does not exist.
-    """
+    """Path to the bundled ``data/platform_manifest.yaml``."""
     return Path(str(
         resources.files("platform_manifest") / "data" / _PLATFORM_MANIFEST_FILENAME
     ))
@@ -54,8 +55,7 @@ _cached_default: RepoGraph | None = None
 
 
 def load_default_repo_graph() -> RepoGraph:
-    """Load + cache the bundled platform manifest. Safe to call from
-    coordinator construction sites; subsequent calls reuse the parsed graph."""
+    """Load + cache the bundled platform manifest."""
     global _cached_default
     if _cached_default is None:
         _cached_default = load_repo_graph(default_config_path())
@@ -67,26 +67,21 @@ def load_repo_graph(
     *,
     expected_kind: ManifestKind = ManifestKind.PLATFORM,
 ) -> RepoGraph:
-    """Load a single manifest file and return its RepoGraph.
+    """Load a platform or project manifest and return its RepoGraph.
 
-    ``expected_kind`` enforces the trust slot. The default is
-    ``ManifestKind.PLATFORM`` since this is the v0.2 entry point used
-    by ``load_default_repo_graph``. Composition (loading project +
-    local manifests on top of a base) lands in v0.3.
+    For local manifests, use ``load_local_layer`` since they don't form a
+    standalone graph (they only annotate existing nodes).
 
-    Raises ``RepoGraphConfigError`` on:
-    - missing/malformed YAML
-    - missing or wrong ``manifest_kind`` for the slot
-    - missing required node fields
-    - private nodes in a platform manifest
-    - unknown edge types or edges to unknown nodes
+    Raises ``RepoGraphConfigError`` on malformed YAML, wrong slot,
+    missing required fields, private nodes in a platform manifest, or
+    local-only fields appearing outside a LocalManifest.
     """
-    if not path.exists():
-        raise RepoGraphConfigError(f"repo graph config not found: {path}")
-    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    if not isinstance(raw, dict):
-        raise RepoGraphConfigError(f"manifest root must be a mapping: {path}")
-
+    if expected_kind is ManifestKind.LOCAL:
+        raise RepoGraphConfigError(
+            "load_repo_graph does not load LocalManifest files; "
+            "use composition.load_local_layer or load_effective_graph"
+        )
+    raw = _read_manifest(path)
     _validate_header(raw, expected_kind=expected_kind, path=path)
 
     repos_raw = raw.get("repos") or {}
@@ -96,27 +91,79 @@ def load_repo_graph(
     if not isinstance(edges_raw, list):
         raise RepoGraphConfigError("'edges' must be a list of {from,to,type} mappings")
 
+    source = Source.PLATFORM if expected_kind is ManifestKind.PLATFORM else Source.PROJECT
+
     nodes: list[RepoNode] = []
     for repo_id, fields in repos_raw.items():
-        nodes.append(_parse_node(repo_id, fields, manifest_kind=expected_kind))
+        nodes.append(_parse_node(repo_id, fields, source=source))
 
     if expected_kind is ManifestKind.PLATFORM:
         _enforce_platform_public_only(nodes)
 
-    # Build a quick canonical→repo_id map so edges can name canonical names.
     name_to_id: dict[str, str] = {}
     for node in nodes:
         name_to_id[node.canonical_name.lower()] = node.repo_id
         name_to_id[node.repo_id.lower()] = node.repo_id
 
-    edges = _parse_edges(edges_raw, name_to_id=name_to_id)
+    edges = _parse_edges(edges_raw, name_to_id=name_to_id, source=source)
 
     return RepoGraph.build(nodes=nodes, edges=edges)
 
 
 # ---------------------------------------------------------------------------
+# Public helpers also used by composition.py
+# ---------------------------------------------------------------------------
+
+
+def read_manifest_raw(path: Path) -> dict[str, Any]:
+    """Read + parse YAML, returning the top-level mapping. Raises on malformed."""
+    return _read_manifest(path)
+
+
+def validate_header(
+    raw: dict[str, Any],
+    *,
+    expected_kind: ManifestKind,
+    path: Path,
+) -> None:
+    """Public validator used by composition.py for project + local layers."""
+    _validate_header(raw, expected_kind=expected_kind, path=path)
+
+
+def parse_nodes(raw: dict[str, Any], *, source: Source) -> list[RepoNode]:
+    """Public node parser used by composition.py for the project layer."""
+    repos_raw = raw.get("repos") or {}
+    if not isinstance(repos_raw, dict):
+        raise RepoGraphConfigError("'repos' must be a mapping of repo_id → fields")
+    return [_parse_node(repo_id, fields, source=source) for repo_id, fields in repos_raw.items()]
+
+
+def parse_edges(
+    raw: dict[str, Any],
+    *,
+    name_to_id: dict[str, str],
+    source: Source,
+) -> list[RepoEdge]:
+    """Public edge parser. Caller supplies a union name index so project
+    edges can reference both project and platform names."""
+    edges_raw = raw.get("edges") or []
+    if not isinstance(edges_raw, list):
+        raise RepoGraphConfigError("'edges' must be a list of {from,to,type} mappings")
+    return _parse_edges(edges_raw, name_to_id=name_to_id, source=source)
+
+
+# ---------------------------------------------------------------------------
 # Internals
 # ---------------------------------------------------------------------------
+
+
+def _read_manifest(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise RepoGraphConfigError(f"manifest not found: {path}")
+    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(raw, dict):
+        raise RepoGraphConfigError(f"manifest root must be a mapping: {path}")
+    return raw
 
 
 def _validate_header(
@@ -155,10 +202,19 @@ def _parse_node(
     repo_id: object,
     fields: object,
     *,
-    manifest_kind: ManifestKind,
+    source: Source,
 ) -> RepoNode:
     if not isinstance(fields, dict):
         raise RepoGraphConfigError(f"repo '{repo_id}' fields must be a mapping")
+
+    # Local-only fields cannot appear in PlatformManifest or ProjectManifest.
+    leaked = LOCAL_ANNOTATION_FIELDS & set(fields.keys())
+    if leaked:
+        raise RepoGraphConfigError(
+            f"repo '{repo_id}' has local-only field(s) {sorted(leaked)} "
+            f"in a {source.value} manifest; local annotations belong in a LocalManifest"
+        )
+
     canonical = fields.get("canonical_name")
     if not canonical or not isinstance(canonical, str):
         raise RepoGraphConfigError(f"repo '{repo_id}' missing canonical_name")
@@ -173,9 +229,9 @@ def _parse_node(
         canonical_name=canonical,
         visibility=visibility,
         legacy_names=tuple(legacy),
-        local_path=_opt_str(fields, "local_path"),
         github_url=_opt_str(fields, "github_url"),
         runtime_role=_opt_str(fields, "runtime_role"),
+        source=source,
     )
 
 
@@ -208,6 +264,7 @@ def _parse_edges(
     edges_raw: list[Any],
     *,
     name_to_id: dict[str, str],
+    source: Source,
 ) -> list[RepoEdge]:
     edges: list[RepoEdge] = []
     for idx, item in enumerate(edges_raw):
@@ -233,7 +290,7 @@ def _parse_edges(
             raise RepoGraphConfigError(f"edge #{idx} 'from' unknown: {src_name}")
         if dst_id is None:
             raise RepoGraphConfigError(f"edge #{idx} 'to' unknown: {dst_name}")
-        edges.append(RepoEdge(src=src_id, dst=dst_id, type=edge_type))
+        edges.append(RepoEdge(src=src_id, dst=dst_id, type=edge_type, source=source))
     return edges
 
 
