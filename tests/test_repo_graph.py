@@ -317,33 +317,34 @@ class TestLiveConfig:
 
 
 class TestSchemas:
-    """The three JSON schemas ship in `<repo>/schemas/`. The loader doesn't
-    consume them yet (it does its own validation in Python); they exist
-    for downstream tooling and as the published contract."""
+    """The three JSON schemas ship as package data under
+    ``platform_manifest.schemas`` and are resolved via
+    ``importlib.resources`` so installed wheels behave the same as
+    source checkouts. v0.4 added the validate CLI that reads them."""
 
-    def _schemas_dir(self) -> Path:
-        # Walk up from this test file: tests/ → repo root → schemas/
-        return Path(__file__).resolve().parents[1] / "schemas"
+    _NAMES = (
+        "platform_manifest.schema.json",
+        "project_manifest.schema.json",
+        "local_manifest.schema.json",
+    )
 
     def test_three_schemas_present(self) -> None:
-        d = self._schemas_dir()
-        for name in (
-            "platform_manifest.schema.json",
-            "project_manifest.schema.json",
-            "local_manifest.schema.json",
-        ):
-            assert (d / name).exists(), f"missing schema: {name}"
+        from importlib import resources
+
+        for name in self._NAMES:
+            assert (resources.files("platform_manifest.schemas") / name).is_file(), (
+                f"missing schema: {name}"
+            )
 
     def test_schemas_are_valid_json(self) -> None:
         import json
+        from importlib import resources
 
-        d = self._schemas_dir()
-        for name in (
-            "platform_manifest.schema.json",
-            "project_manifest.schema.json",
-            "local_manifest.schema.json",
-        ):
-            payload = json.loads((d / name).read_text(encoding="utf-8"))
+        for name in self._NAMES:
+            raw = (resources.files("platform_manifest.schemas") / name).read_text(
+                encoding="utf-8"
+            )
+            payload = json.loads(raw)
             assert payload.get("$schema", "").startswith("https://json-schema.org/")
             assert "title" in payload
 
