@@ -1,11 +1,26 @@
 # SPDX-License-Identifier: SSPL-1.0
 # Copyright (C) 2026 Velascat
-"""Repo Graph models — RepoNode, RepoEdge, RepoGraph."""
+"""Repo Graph models — RepoNode, RepoEdge, RepoGraph + manifest metadata."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+
+
+class ManifestKind(str, Enum):
+    """Trust-level slot a manifest occupies in the composition pipeline."""
+
+    PLATFORM = "platform"
+    PROJECT = "project"
+    LOCAL = "local"
+
+
+class Visibility(str, Enum):
+    """Trust classification for a single repo node."""
+
+    PUBLIC = "public"
+    PRIVATE = "private"
 
 
 class RepoEdgeType(str, Enum):
@@ -24,6 +39,7 @@ class RepoGraphConfigError(ValueError):
 class RepoNode:
     repo_id: str
     canonical_name: str
+    visibility: Visibility = Visibility.PUBLIC
     legacy_names: tuple[str, ...] = ()
     local_path: str | None = None
     github_url: str | None = None
@@ -35,6 +51,14 @@ class RepoEdge:
     src: str  # repo_id
     dst: str  # repo_id
     type: RepoEdgeType
+
+
+@dataclass(frozen=True)
+class ManifestHeader:
+    """Top-of-file metadata every manifest carries."""
+
+    manifest_kind: ManifestKind
+    manifest_version: str
 
 
 @dataclass

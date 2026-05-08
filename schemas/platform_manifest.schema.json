@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Velascat/PlatformManifest/schemas/platform_manifest.schema.json",
+  "title": "PlatformManifest",
+  "description": "Public repo map for the reusable platform. Only public nodes allowed.",
+  "type": "object",
+  "required": ["manifest_kind", "manifest_version", "repos"],
+  "additionalProperties": false,
+  "properties": {
+    "manifest_kind": {
+      "type": "string",
+      "const": "platform"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "repos": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/$defs/PublicRepoNode"
+        }
+      },
+      "additionalProperties": false
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Edge" }
+    }
+  },
+  "$defs": {
+    "PublicRepoNode": {
+      "type": "object",
+      "required": ["canonical_name", "visibility"],
+      "additionalProperties": false,
+      "properties": {
+        "canonical_name": { "type": "string", "minLength": 1 },
+        "visibility": { "type": "string", "const": "public" },
+        "legacy_names": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "github_url": { "type": "string", "format": "uri" },
+        "runtime_role": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "required": ["from", "to", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "depends_on_contracts_from",
+            "dispatches_to",
+            "routes_through"
+          ]
+        }
+      }
+    }
+  }
+}
