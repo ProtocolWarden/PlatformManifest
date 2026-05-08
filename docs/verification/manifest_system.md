@@ -705,6 +705,7 @@ At minimum, logs or doctor output should show:
 * graph node count
 * graph edge count
 * source counts: platform / project / work_scope
+* visibility counts: public / private
 * in `work_scope` mode: per-include breakdown (name, path, nodes_contributed, edges_contributed)
 * warnings/errors
 
@@ -717,6 +718,8 @@ At minimum, logs or doctor output should show:
 * `mode` field correctly distinguishes the four states.
 * Per-include breakdown surfaces in JSON output as `includes: [{name, path, nodes_contributed, edges_contributed}]` and in human output as a bulleted list.
 * Per-include errors are captured per-entry — one bad include doesn't blank the whole report.
+* Visibility counts surface as `nodes_by_visibility: {public: N, private: M}` in JSON; human output renders a `nodes_by_visibility:` line.
+* Installed `platform-manifest` package version surfaces in the report (resolves via `importlib.metadata`); reads `(unknown)` if discovery fails.
 
 ---
 
