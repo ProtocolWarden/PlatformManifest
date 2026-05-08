@@ -551,35 +551,41 @@ If one repo is the project, its ProjectManifest may live inside that repo.
 
 ---
 
-## V16 — Multi-Repo Project Layout (PM v0.8.0+)
+## V16 — Multi-Repo Work Scope (PM v0.9.0+, hard-enforced v1.0.0+)
 
 ### Requirement
 
-If many repos together form one project, use one project shell/manifest repo.
+If many repos together form one OperationsCenter work scope, author a `WorkScopeManifest` (`manifest_kind: work_scope`) in a dedicated shell repo. Each constituent keeps its own `ProjectManifest`; the work-scope manifest composes them via explicit `includes:`.
+
+### Migration history
+
+* PM v0.8.0 introduced multi-repo composition via `manifest_kind: project` + `includes:` (the "project-shell" pattern).
+* PM v0.9.0 promoted multi-repo composition to a first-class `manifest_kind: work_scope` with its own schema and provenance (`Source.WORK_SCOPE`); the legacy project-shell shape still loaded but emitted `DeprecationWarning`.
+* PM v1.0.0 removed the legacy compatibility entirely. `manifest_kind: project` with `includes:` is rejected at the schema layer (the `includes` field is gone from `project_manifest.schema.json`) and at the loader layer (with an explicit migration-hint `RepoGraphConfigError`).
 
 ### Expected layout
 
 ```text
 ProjectSuiteManifest/
   topology/
-    project_manifest.yaml         # declares includes:
+    work_scope_manifest.yaml      # composes constituent ProjectManifests
     local_manifest.example.yaml
     local_manifest.yaml           # gitignored
 
-ProjectCore/                      # constituent repos keep their own manifests
-ProjectWorker/
+ProjectCore/                      # each constituent keeps its own ProjectManifest
 ProjectAssets/
+ProjectWorker/
 ```
 
-### Shell manifest shape
+### `WorkScopeManifest` shape
 
 ```yaml
-manifest_kind: project
+manifest_kind: work_scope
 manifest_version: "1.0.0"
 
 platform_manifest:
   name: PlatformManifest
-  version_constraint: ">=0.8,<1.0"
+  version_constraint: ">=1.0,<2.0"
 
 includes:
   - name: ProjectCore
@@ -587,35 +593,43 @@ includes:
   - name: ProjectAssets
     project_manifest_path: ../ProjectAssets/topology/project_manifest.yaml
 
-repos: {}
-edges: []
+repos: {}    # rare — usually empty
+edges: []    # cross-suite edges declared here carry Source.WORK_SCOPE
 ```
 
-### Composition rules across the shell
+### Composition rules
 
 | Rule | Behavior on violation |
 | ---- | --------------------- |
-| Two sub-projects declare the same `repo_id` | Hard fail — `'X' already declared by an included sub-project` |
-| Sub-project tries to redefine a platform `repo_id` | Hard fail |
+| Two included projects declare the same `repo_id` | Hard fail — `'X' already declared by an included project` |
+| Included project tries to redefine a platform `repo_id` | Hard fail |
+| Work-scope manifest tries to redefine a platform `repo_id` | Hard fail |
+| Work-scope edge between two platform nodes | Hard fail |
 | Cycle (A includes B includes A) | Hard fail — `cycle detected` |
 | Excessive nesting (>4 deep by default) | Hard fail — `depth exceeded` |
-| Sub-project edge between two platform nodes | Hard fail |
-| Sub-project edge to/from a sibling sub-project | **Allowed** — this is the whole point |
+| Edge to/from a sibling included project | **Allowed** — the whole point |
+
+### Provenance
+
+* Included project's nodes/edges → `Source.PROJECT`.
+* Work-scope manifest's own nodes/edges → `Source.WORK_SCOPE`.
+* Local annotations applied on top of either.
 
 ### Tests
 
-* Shell manifest with one include validates and composes.
-* Shell manifest with multiple sibling includes composes; nodes from each appear.
-* Sub-project node colliding with platform fails.
-* Sibling sub-project repo_id collision fails.
-* Self-include cycle fails.
-* Two-step cycle fails.
-* Depth-exceeded fails.
-* Cross-suite edge between sibling sub-projects succeeds.
+* `WorkScopeManifest` with one include validates and composes.
+* `WorkScopeManifest` with multiple sibling includes composes; nodes from each appear.
+* Included project node colliding with platform fails.
+* Sibling included-project repo_id collision fails.
+* Cross-suite edge between sibling included projects succeeds and carries `Source.WORK_SCOPE` on edges declared by the work-scope manifest itself.
+* `manifest_kind: project` with `includes:` is rejected (schema + loader, post-v1.0.0).
+* Wrong-slot loading fails both ways: `work_scope` rejected when passed via `project=` slot and vice versa.
+* `load_effective_graph(project=, work_scope=)` with both set raises mutual-exclusion error.
+* No-implicit-discovery: sibling `decoy.yaml` and `topology/project_manifest.yaml`-named decoys in the same directory are NOT auto-included.
 
 ### Constraint
 
-Project-to-project imports occur only via the explicit `includes:` declaration. Implicit cross-references (loading manifest A and somehow seeing manifest B's nodes) are not supported.
+Cross-project imports occur only via the explicit `includes:` field of a `WorkScopeManifest`. Implicit cross-references — loading manifest A and somehow seeing manifest B's nodes — are not supported. The loader does not scan sibling directories or glob.
 
 ---
 
