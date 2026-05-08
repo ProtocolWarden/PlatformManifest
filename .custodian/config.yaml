@@ -39,6 +39,12 @@ audit:
       - src/platform_manifest/cli.py
       - src/platform_manifest/loader.py
       - src/platform_manifest/models.py
+    D11:
+      # cli.py upstream_cmd/downstream_cmd are CLI command pair (typology).
+      # models.py upstream/downstream + the consumer-traversal trio are
+      # graph-traversal helpers — pattern-similar by design.
+      - src/platform_manifest/cli.py
+      - src/platform_manifest/models.py
     T8:
       # Tests use schema files + fixtures and construct from data tables;
       # they don't import platform_manifest by name.
