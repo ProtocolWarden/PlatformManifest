@@ -139,6 +139,40 @@ class TestQueries:
         affected = small_graph.affected_by_contract_change("op")
         assert affected == []
 
+    def test_who_dispatches_to_returns_dispatch_sources(
+        self, small_graph: RepoGraph
+    ) -> None:
+        # OperatorConsole dispatches_to OperationsCenter — so OC's
+        # dispatchers include OperatorConsole.
+        names = [n.canonical_name for n in small_graph.who_dispatches_to("oc")]
+        assert names == ["OperatorConsole"]
+
+    def test_who_dispatches_to_excludes_non_dispatch_edges(
+        self, small_graph: RepoGraph
+    ) -> None:
+        # CxRP only has depends_on_contracts_from edges into it (no dispatches),
+        # so who_dispatches_to should be empty.
+        assert small_graph.who_dispatches_to("cx") == []
+
+    def test_who_dispatches_to_unknown_repo_raises(
+        self, small_graph: RepoGraph
+    ) -> None:
+        with pytest.raises(KeyError):
+            small_graph.who_dispatches_to("ghost")
+
+    def test_who_dispatches_to_on_live_graph(self) -> None:
+        # The bundled platform manifest has OperatorConsole -> OperationsCenter
+        # as its only dispatches_to into operations_center; the reverse
+        # direction (OperationsCenter -> ExecutorRuntime / SourceRegistry)
+        # is what dispatches OUT of OC.
+        graph = load_repo_graph(_LIVE_CONFIG)
+        oc_dispatchers = {n.canonical_name for n in graph.who_dispatches_to("operations_center")}
+        assert "OperatorConsole" in oc_dispatchers
+        # ExecutorRuntime is dispatched-TO by OC, so OC should appear as a
+        # dispatcher of ExecutorRuntime.
+        er_dispatchers = {n.canonical_name for n in graph.who_dispatches_to("executor_runtime")}
+        assert "OperationsCenter" in er_dispatchers
+
 
 # ---------------------------------------------------------------------------
 # Loader — v0.2 manifest header + visibility
