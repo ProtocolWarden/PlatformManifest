@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Velascat/PlatformManifest/schemas/project_manifest.schema.json",
-  "title": "ProjectManifest",
-  "description": "Manifest for one project that uses the platform. May contain public or private nodes.",
+  "$id": "https://github.com/Velascat/PlatformManifest/schemas/work_scope_manifest.schema.json",
+  "title": "WorkScopeManifest",
+  "description": "Composes multiple ProjectManifests into one OperationsCenter work scope. Composition is explicit — only listed includes are loaded; no filesystem discovery. Added in PlatformManifest v0.9.0.",
   "type": "object",
-  "required": ["manifest_kind", "manifest_version"],
+  "required": ["manifest_kind", "manifest_version", "includes"],
   "additionalProperties": false,
   "properties": {
     "manifest_kind": {
       "type": "string",
-      "const": "project"
+      "const": "work_scope"
     },
     "manifest_version": {
       "type": "string",
@@ -24,23 +24,26 @@
         "version_constraint": { "type": "string", "minLength": 1 }
       }
     },
+    "includes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Include" },
+      "description": "ProjectManifests this work scope composes. Order matters — earlier includes may be referenced by canonical name from later ones."
+    },
     "repos": {
       "type": "object",
       "patternProperties": {
         "^[a-z][a-z0-9_]*$": {
-          "$ref": "#/$defs/ProjectRepoNode"
+          "$ref": "#/$defs/WorkScopeRepoNode"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Optional. Work-scope-level repos rarely needed; usually empty."
     },
     "edges": {
       "type": "array",
-      "items": { "$ref": "#/$defs/Edge" }
-    },
-    "includes": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/Include" },
-      "description": "DEPRECATED in v0.9.0 — multi-repo composition has moved to WorkScopeManifest (manifest_kind: work_scope). This field is accepted in v0.9.x with a deprecation warning at load time, and will be removed in v1.0.0. Migrate by changing manifest_kind to work_scope; the includes shape itself is unchanged."
+      "items": { "$ref": "#/$defs/Edge" },
+      "description": "Cross-suite edges declared at the work-scope layer. These get Source.WORK_SCOPE provenance."
     }
   },
   "$defs": {
@@ -49,11 +52,11 @@
       "required": ["name", "project_manifest_path"],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1, "description": "Human label for the included sub-project (informational)." },
-        "project_manifest_path": { "type": "string", "minLength": 1, "description": "Path to the included project_manifest.yaml. Relative paths resolve against the including manifest's directory." }
+        "name": { "type": "string", "minLength": 1, "description": "Human label for the included project (informational)." },
+        "project_manifest_path": { "type": "string", "minLength": 1, "description": "Path to the included project_manifest.yaml. Relative paths resolve against this work-scope manifest's directory." }
       }
     },
-    "ProjectRepoNode": {
+    "WorkScopeRepoNode": {
       "type": "object",
       "required": ["canonical_name", "visibility"],
       "additionalProperties": false,

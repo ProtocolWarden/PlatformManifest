@@ -1,17 +1,22 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (C) 2026 Velascat
-"""Manifest composition — PlatformManifest + ProjectManifest + LocalManifest.
+"""Manifest composition — PlatformManifest + ProjectManifest/WorkScopeManifest + LocalManifest.
 
 Public entry point:
-    load_effective_graph(base, *, project=None, local=None) -> RepoGraph
+    load_effective_graph(base, *, project=None, work_scope=None, local=None) -> RepoGraph
 
-Order is platform → project → local. Each layer sees the result of the
-previous one. Merge rules (per the design doc):
+Order is platform → (project XOR work_scope) → local. Each layer sees the
+result of the previous one. Merge rules (per the design doc):
 
-- Platform: public nodes only, no local-only fields
-- Project: may add private/public nodes and edges, but cannot redefine
-  platform repo_ids and cannot add platform-to-platform edges. Optional
-  ``platform_manifest`` block can pin a PEP 440 version_constraint.
+- Platform: public nodes only, no local-only fields.
+- Project: describes one project. May add private/public nodes and edges,
+  but cannot redefine platform repo_ids and cannot add platform-to-platform
+  edges. Optional ``platform_manifest`` block can pin a PEP 440
+  version_constraint. After v0.9.0, project manifests must NOT include
+  other manifests; v0.9.x emits a deprecation warning, v1.0.0 hard-fails.
+- WorkScope (v0.9.0+): composes multiple ProjectManifests via explicit
+  ``includes:``. Same node/edge constraints as project, but its own
+  declared nodes/edges carry Source.WORK_SCOPE provenance.
 - Local: may only annotate existing nodes with allowlisted local fields
   (local_path/local_port/env_file/endpoint_override/cache_path/
   gpu_required/runtime_hints). It does not add nodes or edges.
@@ -23,6 +28,7 @@ time.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import replace
 from importlib import metadata as importlib_metadata
 from pathlib import Path
@@ -62,25 +68,41 @@ def load_effective_graph(
     base: Path,
     *,
     project: Path | None = None,
+    work_scope: Path | None = None,
     local: Path | None = None,
     max_include_depth: int = _DEFAULT_INCLUDE_DEPTH,
 ) -> RepoGraph:
-    """Compose PlatformManifest + ProjectManifest + LocalManifest into the
-    runtime graph consumed by OperationsCenter and friends.
+    """Compose PlatformManifest + (ProjectManifest XOR WorkScopeManifest) +
+    LocalManifest into the runtime graph consumed by OperationsCenter.
 
-    ``base`` is the platform manifest path. ``project`` and ``local`` are
-    both optional. ``local`` may be passed without ``project`` if a
-    deployment only annotates platform repos.
+    ``base`` is the platform manifest path. At most one of ``project`` and
+    ``work_scope`` may be set:
 
-    A project manifest may declare an ``includes:`` list referencing
-    other project manifests; the loader recurses, applying each
-    included sub-project's nodes/edges before the including project's
-    own. Cycle detection is performed by visited-set; ``max_include_depth``
+    - ``project`` — one ProjectManifest describing a single project unit.
+    - ``work_scope`` — one WorkScopeManifest composing multiple
+      ProjectManifests via explicit ``includes:``. Added in v0.9.0.
+
+    ``local`` is independent and may be passed alone (annotates platform
+    repos only) or alongside either of the above.
+
+    During the v0.9.x transitional window, a ``project`` manifest with
+    legacy ``includes:`` field still loads, but emits a DeprecationWarning;
+    in v1.0.0 it will hard-fail. Migrate by switching ``manifest_kind``
+    from ``project`` to ``work_scope``.
+
+    Cycle detection is performed by visited-set; ``max_include_depth``
     bounds how deep recursion may go (default 4).
 
     Returns a ``RepoGraph`` whose nodes carry ``source`` provenance and,
     where applicable, populated local annotation fields.
     """
+    if project is not None and work_scope is not None:
+        raise RepoGraphConfigError(
+            "load_effective_graph: 'project' and 'work_scope' are mutually "
+            "exclusive — use exactly one of ProjectManifest or "
+            "WorkScopeManifest as the second composition layer"
+        )
+
     platform_graph = load_repo_graph(base, expected_kind=ManifestKind.PLATFORM)
     nodes: dict[str, RepoNode] = dict(platform_graph.nodes)
     edges: list[RepoEdge] = list(platform_graph.edges)
@@ -89,6 +111,15 @@ def load_effective_graph(
     if project is not None:
         nodes, edges = _apply_project(
             project,
+            nodes,
+            edges,
+            platform_node_ids=platform_node_ids,
+            max_depth=max_include_depth,
+        )
+
+    if work_scope is not None:
+        nodes, edges = _apply_work_scope(
+            work_scope,
             nodes,
             edges,
             platform_node_ids=platform_node_ids,
@@ -147,6 +178,19 @@ def _apply_project(
     raw = read_manifest_raw(path)
     validate_header(raw, expected_kind=ManifestKind.PROJECT, path=path)
     _validate_platform_pin(raw)
+
+    # v0.9.0 transitional: ProjectManifest with includes: is deprecated;
+    # multi-repo composition has moved to WorkScopeManifest. Warn once
+    # per load — v1.0.0 will hard-fail this branch.
+    if raw.get("includes"):
+        warnings.warn(
+            f"ProjectManifest at {path} uses 'includes:' — this is deprecated "
+            f"in PlatformManifest v0.9.0 and will be removed in v1.0.0. "
+            f"Migrate by changing 'manifest_kind: project' to "
+            f"'manifest_kind: work_scope'; the includes shape itself is unchanged.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
     # Apply includes first — sub-project nodes/edges land before this
     # project's own, so cross-include edges resolve cleanly.
@@ -296,6 +340,94 @@ def _validate_platform_pin(raw: dict[str, Any]) -> None:
             f"installed platform-manifest {installed} does not satisfy "
             f"ProjectManifest constraint {constraint!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Work-scope layer (v0.9.0+)
+# ---------------------------------------------------------------------------
+
+
+def _apply_work_scope(
+    path: Path,
+    accumulated_nodes: dict[str, RepoNode],
+    accumulated_edges: list[RepoEdge],
+    *,
+    platform_node_ids: frozenset[str],
+    max_depth: int = _DEFAULT_INCLUDE_DEPTH,
+) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
+    """Apply a WorkScopeManifest's includes + own nodes/edges.
+
+    A WorkScopeManifest is the explicit multi-project composition layer.
+    Its ``includes:`` reference ProjectManifests (one per included project),
+    which contribute Source.PROJECT nodes/edges. The work-scope manifest's
+    own ``repos:`` and ``edges:`` (rare for repos, common for cross-suite
+    edges) carry Source.WORK_SCOPE provenance so impact analyses can tell
+    them apart from project-internal edges.
+    """
+    raw = read_manifest_raw(path)
+    validate_header(raw, expected_kind=ManifestKind.WORK_SCOPE, path=path)
+    _validate_platform_pin(raw)
+
+    resolved = path.resolve()
+    visited: frozenset[Path] = frozenset({resolved})
+
+    # Apply includes — each include is a ProjectManifest, recursing through
+    # _apply_project (which itself disallows includes via deprecation
+    # warning under v0.9 and will hard-fail under v1.0).
+    accumulated_nodes, accumulated_edges = _apply_includes(
+        raw, path,
+        accumulated_nodes,
+        accumulated_edges,
+        platform_node_ids=platform_node_ids,
+        max_depth=max_depth,
+        _visited=visited,
+        _depth=1,
+    )
+
+    # Parse this work-scope's own nodes (rare, usually empty) with
+    # WORK_SCOPE provenance so they're distinguishable from project nodes.
+    work_scope_nodes = parse_nodes(raw, source=Source.WORK_SCOPE)
+    work_scope_repo_ids = {n.repo_id for n in work_scope_nodes}
+
+    platform_collisions = work_scope_repo_ids & platform_node_ids
+    if platform_collisions:
+        raise RepoGraphConfigError(
+            f"WorkScopeManifest at {path} cannot redefine platform repo_id(s): "
+            f"{sorted(platform_collisions)}"
+        )
+    sibling_collisions = work_scope_repo_ids & (
+        set(accumulated_nodes.keys()) - platform_node_ids
+    )
+    if sibling_collisions:
+        raise RepoGraphConfigError(
+            f"WorkScopeManifest at {path} cannot redefine repo_id(s) "
+            f"{sorted(sibling_collisions)} already declared by an included "
+            f"project"
+        )
+
+    union_name_to_id: dict[str, str] = {}
+    for node in (*accumulated_nodes.values(), *work_scope_nodes):
+        union_name_to_id[node.canonical_name.lower()] = node.repo_id
+        union_name_to_id[node.repo_id.lower()] = node.repo_id
+        for alias in node.legacy_names:
+            union_name_to_id[alias.lower()] = node.repo_id
+
+    work_scope_edges = parse_edges(
+        raw, name_to_id=union_name_to_id, source=Source.WORK_SCOPE
+    )
+
+    for edge in work_scope_edges:
+        if edge.src in platform_node_ids and edge.dst in platform_node_ids:
+            raise RepoGraphConfigError(
+                f"WorkScopeManifest at {path} cannot add platform-to-platform "
+                f"edge {edge.src} -> {edge.dst} ({edge.type.value})"
+            )
+
+    merged_nodes = dict(accumulated_nodes)
+    for node in work_scope_nodes:
+        merged_nodes[node.repo_id] = node
+
+    return merged_nodes, list(accumulated_edges) + list(work_scope_edges)
 
 
 # ---------------------------------------------------------------------------

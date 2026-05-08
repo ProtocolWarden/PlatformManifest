@@ -9,7 +9,7 @@ _Log significant choices here so they survive context resets._
 
 | Decision | Rationale | Date |
 |----------|-----------|------|
-| [what was decided] | [why] | [date] |
+| Promote multi-repo composition to first-class `WorkScopeManifest` (manifest_kind: work_scope). v0.9.0 ships transitional support; project+includes still loads with DeprecationWarning. v1.0.0 will hard-fail. | Overloading `manifest_kind: project` for shells blurred the trust posture — a shell composes, a project describes. Distinct kind + schema + provenance (Source.WORK_SCOPE) prevents semantic drift and enables strict slot validation in OC settings. | 2026-05-08 |
 
 ## Stop Points
 

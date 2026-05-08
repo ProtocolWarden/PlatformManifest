@@ -136,7 +136,7 @@ def validate_cmd(
         None,
         "--expected",
         "-e",
-        help="Enforce this manifest_kind (platform | project | local). "
+        help="Enforce this manifest_kind (platform | project | work_scope | local). "
              "When omitted, the kind is auto-detected from the file header.",
     ),
     json_output: bool = typer.Option(
@@ -192,7 +192,10 @@ def validate_cmd(
 @app.command("effective")
 def effective_cmd(
     project: Path | None = typer.Option(
-        None, "--project", help="Project manifest YAML path (optional)."
+        None, "--project", help="Project manifest YAML path (mutually exclusive with --work-scope)."
+    ),
+    work_scope: Path | None = typer.Option(
+        None, "--work-scope", help="WorkScopeManifest YAML path (mutually exclusive with --project)."
     ),
     local: Path | None = typer.Option(
         None, "--local", help="Local manifest YAML path (optional)."
@@ -220,7 +223,9 @@ def effective_cmd(
 
     base_path = base or default_config_path()
     try:
-        graph = load_effective_graph(base_path, project=project, local=local)
+        graph = load_effective_graph(
+            base_path, project=project, work_scope=work_scope, local=local
+        )
     except RepoGraphConfigError as exc:
         _console.print(f"[red]composition error:[/red] {exc}")
         raise typer.Exit(code=2) from exc
@@ -229,6 +234,7 @@ def effective_cmd(
         payload: dict[str, object] = {
             "base": str(base_path),
             "project": str(project) if project else None,
+            "work_scope": str(work_scope) if work_scope else None,
             "local": str(local) if local else None,
             "nodes": [
                 {

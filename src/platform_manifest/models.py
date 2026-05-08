@@ -9,10 +9,21 @@ from enum import Enum
 
 
 class ManifestKind(str, Enum):
-    """Trust-level slot a manifest occupies in the composition pipeline."""
+    """Trust-level slot a manifest occupies in the composition pipeline.
+
+    PLATFORM    — public reusable platform base (one bundled YAML).
+    PROJECT     — describes one project / repo-level project unit. May
+                  declare project nodes + edges. Must NOT include other
+                  manifests (after the v0.9.0 transitional window).
+    WORK_SCOPE  — composes multiple ProjectManifests into one OC work
+                  scope via explicit ``includes:``. May declare its own
+                  cross-suite edges. Added in v0.9.0.
+    LOCAL       — one machine's wiring. Annotation-only.
+    """
 
     PLATFORM = "platform"
     PROJECT = "project"
+    WORK_SCOPE = "work_scope"
     LOCAL = "local"
 
 
@@ -33,6 +44,7 @@ class Source(str, Enum):
 
     PLATFORM = "platform"
     PROJECT = "project"
+    WORK_SCOPE = "work_scope"
 
 
 class RepoEdgeType(str, Enum):
