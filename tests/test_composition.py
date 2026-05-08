@@ -88,34 +88,34 @@ class TestProjectAttaches:
             'manifest_kind: project\n'
             'manifest_version: "1.0.0"\n'
             'repos:\n'
-            '  video_foundry_api:\n'
-            '    canonical_name: VideoFoundryAPI\n'
+            '  generic_repo_a:\n'
+            '    canonical_name: GenericRepoA\n'
             '    visibility: private\n'
             '    runtime_role: project_service\n'
-            '  video_foundry_worker:\n'
-            '    canonical_name: VideoFoundryWorker\n'
+            '  generic_repo_b:\n'
+            '    canonical_name: GenericRepoB\n'
             '    visibility: private\n'
             '    runtime_role: artifact_worker\n'
             'edges:\n'
-            '  - {from: VideoFoundryAPI, to: OperationsCenter, type: dispatches_to}\n'
-            '  - {from: VideoFoundryWorker, to: RxP, type: depends_on_contracts_from}\n',
+            '  - {from: GenericRepoA, to: OperationsCenter, type: dispatches_to}\n'
+            '  - {from: GenericRepoB, to: RxP, type: depends_on_contracts_from}\n',
             encoding="utf-8",
         )
         g = load_effective_graph(platform_path, project=proj)
         ids = {n.repo_id for n in g.list_nodes()}
-        assert "video_foundry_api" in ids
-        assert "video_foundry_worker" in ids
+        assert "generic_repo_a" in ids
+        assert "generic_repo_b" in ids
         # Provenance
-        vf = g.resolve("VideoFoundryAPI")
-        assert vf is not None
-        assert vf.source is Source.PROJECT
-        assert vf.visibility is Visibility.PRIVATE
+        node_a = g.resolve("GenericRepoA")
+        assert node_a is not None
+        assert node_a.source is Source.PROJECT
+        assert node_a.visibility is Visibility.PRIVATE
         # OC stays platform
         oc = g.resolve("OperationsCenter")
         assert oc.source is Source.PLATFORM
         # Project edge into platform survives
         oc_inbound = {e.src for e in g.edges if e.dst == "operations_center"}
-        assert "video_foundry_api" in oc_inbound
+        assert "generic_repo_a" in oc_inbound
 
 
 class TestLocalAnnotates:
@@ -180,18 +180,18 @@ class TestEdgeDedup:
             'manifest_kind: project\n'
             'manifest_version: "1.0.0"\n'
             'repos:\n'
-            '  vf_api:\n'
-            '    canonical_name: VFApi\n'
+            '  generic_repo_a:\n'
+            '    canonical_name: GenericRepoA\n'
             '    visibility: private\n'
             'edges:\n'
-            '  - {from: VFApi, to: OperationsCenter, type: dispatches_to}\n'
-            '  - {from: VFApi, to: OperationsCenter, type: dispatches_to}\n',
+            '  - {from: GenericRepoA, to: OperationsCenter, type: dispatches_to}\n'
+            '  - {from: GenericRepoA, to: OperationsCenter, type: dispatches_to}\n',
             encoding="utf-8",
         )
         g = load_effective_graph(platform_path, project=proj)
         same = [
             e for e in g.edges
-            if e.src == "vf_api" and e.dst == "operations_center"
+            if e.src == "generic_repo_a" and e.dst == "operations_center"
         ]
         assert len(same) == 1
 
@@ -203,18 +203,18 @@ class TestEdgeDedup:
             'manifest_kind: project\n'
             'manifest_version: "1.0.0"\n'
             'repos:\n'
-            '  vf_api:\n'
-            '    canonical_name: VFApi\n'
+            '  generic_repo_a:\n'
+            '    canonical_name: GenericRepoA\n'
             '    visibility: private\n'
             'edges:\n'
-            '  - {from: VFApi, to: OperationsCenter, type: dispatches_to}\n'
-            '  - {from: VFApi, to: OperationsCenter, type: depends_on_contracts_from}\n',
+            '  - {from: GenericRepoA, to: OperationsCenter, type: dispatches_to}\n'
+            '  - {from: GenericRepoA, to: OperationsCenter, type: depends_on_contracts_from}\n',
             encoding="utf-8",
         )
         g = load_effective_graph(platform_path, project=proj)
         kinds = {
             e.type.value for e in g.edges
-            if e.src == "vf_api" and e.dst == "operations_center"
+            if e.src == "generic_repo_a" and e.dst == "operations_center"
         }
         assert kinds == {"dispatches_to", "depends_on_contracts_from"}
 
@@ -232,7 +232,7 @@ class TestFailure1:
             'manifest_version: "1.0.0"\n'
             'repos:\n'
             '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
-            '  vf: {canonical_name: VideoFoundryAPI, visibility: private}\n',
+            '  ga: {canonical_name: GenericRepoA, visibility: private}\n',
             encoding="utf-8",
         )
         with pytest.raises(RepoGraphConfigError, match="public nodes"):
@@ -471,7 +471,7 @@ class TestLocalFieldLeakage:
             'manifest_version: "1.0.0"\n'
             'repos:\n'
             '  vf:\n'
-            '    canonical_name: VFApi\n'
+            '    canonical_name: GenericRepoA\n'
             '    visibility: private\n'
             '    cache_path: /tmp/vf\n',
             encoding="utf-8",

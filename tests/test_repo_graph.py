@@ -339,7 +339,7 @@ class TestVisibility:
             _platform_yaml(
                 "repos:\n"
                 "  oc: {canonical_name: OperationsCenter, visibility: public}\n"
-                "  vf: {canonical_name: VideoFoundryAPI, visibility: private}\n"
+                "  ga: {canonical_name: GenericRepoA, visibility: private}\n"
             ),
             encoding="utf-8",
         )
