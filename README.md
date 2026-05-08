@@ -53,6 +53,14 @@ platform-manifest impact cxrp
 # platform base (override with --against PATH).
 platform-manifest validate path/to/project_manifest.yaml --expected project
 platform-manifest validate path/to/local_manifest.yaml --json   # CI-friendly
+
+# Show the merged EffectiveRepoGraph — what OC actually consumes.
+# Composes platform + project + local layers exactly as
+# OperationsCenter.repo_graph_factory does at runtime.
+platform-manifest effective \
+    --project path/to/project_manifest.yaml \
+    --local   path/to/local_manifest.yaml
+platform-manifest effective --json   # machine-readable
 ```
 
 CI-friendly: exit 0 = clean, 1 = validation failed, 2 = bad invocation.
