@@ -15,6 +15,30 @@ Read-only context for OperationsCenter planning, SwitchBoard lane decisions, and
 - A deployment config store. Per-consumer local config (Plane URLs, kodo settings, etc.) stays in each consumer repo with its own `<repo>.example.yaml` + gitignored `<repo>.local.yaml`.
 - A runtime registry. ExecutorRuntime owns runner registration; PlatformManifest only describes which repos play which platform roles.
 
+## Quick start
+
+```bash
+pip install -e .
+```
+
+```python
+from platform_manifest import load_default_repo_graph
+graph = load_default_repo_graph()
+graph.resolve("ControlPlane")               # → OperationsCenter (legacy alias)
+```
+
+CLI:
+
+```bash
+platform-manifest list
+platform-manifest resolve ControlPlane
+platform-manifest impact cxrp
+```
+
+## Architecture
+
+A bundled YAML at `src/platform_manifest/data/repo_graph.yaml` declares every platform repo (`RepoNode`s) and their relationships (`RepoEdge`s). The loader composes three layers — Platform (this bundle) + optional Project / WorkScope (consumer-provided) + Local (per-machine annotations) — into one `EffectiveRepoGraph`. Consumers query the merged graph via the **Public API** below; querying the bundled graph alone is the **Quick start** path. Edges follow the **Edge vocabulary** table; new types land only when a real query needs them.
+
 ## Edge vocabulary (v1)
 
 | edge | meaning |
