@@ -71,6 +71,7 @@ class ValidationReport:
 _SCHEMA_FILES: dict[ManifestKind, str] = {
     ManifestKind.PLATFORM: "platform_manifest.schema.json",
     ManifestKind.PROJECT: "project_manifest.schema.json",
+    ManifestKind.WORK_SCOPE: "work_scope_manifest.schema.json",
     ManifestKind.LOCAL: "local_manifest.schema.json",
 }
 
@@ -140,6 +141,11 @@ def validate_manifest(
         elif detected is ManifestKind.PROJECT:
             base = against_platform or default_config_path()
             loader_issue = _validate_project_in_composition(path, base=base)
+            if loader_issue is not None:
+                issues.append(loader_issue)
+        elif detected is ManifestKind.WORK_SCOPE:
+            base = against_platform or default_config_path()
+            loader_issue = _validate_work_scope_in_composition(path, base=base)
             if loader_issue is not None:
                 issues.append(loader_issue)
 
@@ -243,6 +249,20 @@ def _validate_project_in_composition(
     """Compose project against the platform base to validate cross-layer refs."""
     try:
         load_effective_graph(base, project=path)
+    except RepoGraphConfigError as exc:
+        return ValidationIssue(severity="loader", message=str(exc))
+    return None
+
+
+def _validate_work_scope_in_composition(
+    path: Path,
+    *,
+    base: Path,
+) -> ValidationIssue | None:
+    """Compose work-scope against the platform base. Validates includes
+    resolve, no platform-to-platform edges, no repo_id collisions, etc."""
+    try:
+        load_effective_graph(base, work_scope=path)
     except RepoGraphConfigError as exc:
         return ValidationIssue(severity="loader", message=str(exc))
     return None

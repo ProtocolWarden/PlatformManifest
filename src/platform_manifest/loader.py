@@ -81,6 +81,12 @@ def load_repo_graph(
             "load_repo_graph does not load LocalManifest files; "
             "use composition.load_local_layer or load_effective_graph"
         )
+    if expected_kind is ManifestKind.WORK_SCOPE:
+        raise RepoGraphConfigError(
+            "load_repo_graph does not load WorkScopeManifest files standalone; "
+            "use load_effective_graph(base, work_scope=...) — work scopes "
+            "compose ProjectManifests and aren't a standalone graph"
+        )
     raw = _read_manifest(path)
     _validate_header(raw, expected_kind=expected_kind, path=path)
 
