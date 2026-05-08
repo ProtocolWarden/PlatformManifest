@@ -63,4 +63,4 @@ Consumer repos depend on it via:
 
 ## License
 
-[SSPL-1.0](LICENSE).
+[Apache-2.0](LICENSE).
