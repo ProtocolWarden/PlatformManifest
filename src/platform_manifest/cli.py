@@ -174,7 +174,7 @@ def validate_cmd(
     report = validate_manifest(path, expected=expected_kind, against_platform=against)
 
     if json_output:
-        typer.echo(json.dumps(report.to_dict(), indent=2))
+        typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
     else:
         kind_str = report.detected_kind.value if report.detected_kind else "unknown"
         if report.ok:
@@ -260,7 +260,7 @@ def effective_cmd(
                 for e in graph.edges
             ],
         }
-        typer.echo(json.dumps(payload, indent=2))
+        typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
         return
 
     nodes_table = Table(title="Effective Repo Graph — Nodes")

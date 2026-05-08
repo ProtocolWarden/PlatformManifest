@@ -35,3 +35,6 @@ Added a minimal CHANGELOG.md so M1 (and M5 format check) pass.
 
 ## 2026-05-08 — B1: Scrub VideoFoundry/Warehouse leak from manifest_system.md
 
+
+## 2026-05-08 — Custodian round: PM clean (27 → 0)
+

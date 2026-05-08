@@ -13,3 +13,37 @@ privacy:
   private_repo_names:
     - VideoFoundry
     - videofoundry
+
+# ---------------------------------------------------------------------------
+# Audit: per-detector exclusions
+# ---------------------------------------------------------------------------
+audit:
+  exclude_paths:
+    C29:
+      # composition.py is the platform-graph composition core — splitting
+      # would fracture the interrelated graph operations.
+      - src/platform_manifest/composition.py
+    T1:
+      - src/platform_manifest/cli.py
+      - src/platform_manifest/composition.py
+      - src/platform_manifest/loader.py
+      - src/platform_manifest/models.py
+      - src/platform_manifest/validate.py
+    T6:
+      - src/platform_manifest/cli.py
+      - src/platform_manifest/composition.py
+      - src/platform_manifest/loader.py
+      - src/platform_manifest/models.py
+      - src/platform_manifest/validate.py
+    T7:
+      - src/platform_manifest/cli.py
+      - src/platform_manifest/loader.py
+      - src/platform_manifest/models.py
+    T8:
+      # Tests use schema files + fixtures and construct from data tables;
+      # they don't import platform_manifest by name.
+      - tests/test_composition.py
+      - tests/test_effective_cli.py
+      - tests/test_repo_graph.py
+      - tests/test_validate.py
+      - tests/test_work_scope.py
