@@ -55,11 +55,15 @@ from .models import (
 # ---------------------------------------------------------------------------
 
 
+_DEFAULT_INCLUDE_DEPTH = 4
+
+
 def load_effective_graph(
     base: Path,
     *,
     project: Path | None = None,
     local: Path | None = None,
+    max_include_depth: int = _DEFAULT_INCLUDE_DEPTH,
 ) -> RepoGraph:
     """Compose PlatformManifest + ProjectManifest + LocalManifest into the
     runtime graph consumed by OperationsCenter and friends.
@@ -68,15 +72,28 @@ def load_effective_graph(
     both optional. ``local`` may be passed without ``project`` if a
     deployment only annotates platform repos.
 
+    A project manifest may declare an ``includes:`` list referencing
+    other project manifests; the loader recurses, applying each
+    included sub-project's nodes/edges before the including project's
+    own. Cycle detection is performed by visited-set; ``max_include_depth``
+    bounds how deep recursion may go (default 4).
+
     Returns a ``RepoGraph`` whose nodes carry ``source`` provenance and,
     where applicable, populated local annotation fields.
     """
     platform_graph = load_repo_graph(base, expected_kind=ManifestKind.PLATFORM)
     nodes: dict[str, RepoNode] = dict(platform_graph.nodes)
     edges: list[RepoEdge] = list(platform_graph.edges)
+    platform_node_ids: frozenset[str] = frozenset(nodes.keys())
 
     if project is not None:
-        nodes, edges = _apply_project(project, nodes, edges)
+        nodes, edges = _apply_project(
+            project,
+            nodes,
+            edges,
+            platform_node_ids=platform_node_ids,
+            max_depth=max_include_depth,
+        )
 
     if local is not None:
         nodes = _apply_local(local, nodes)
@@ -94,28 +111,82 @@ def load_effective_graph(
 
 def _apply_project(
     path: Path,
-    base_nodes: dict[str, RepoNode],
-    base_edges: list[RepoEdge],
+    accumulated_nodes: dict[str, RepoNode],
+    accumulated_edges: list[RepoEdge],
+    *,
+    platform_node_ids: frozenset[str],
+    max_depth: int = _DEFAULT_INCLUDE_DEPTH,
+    _visited: frozenset[Path] = frozenset(),
+    _depth: int = 0,
 ) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
+    """Apply a project manifest's nodes + edges (recursively for includes).
+
+    ``platform_node_ids`` is the immutable set of platform repo_ids —
+    used by the platform-to-platform edge rule, which only treats true
+    platform nodes (not sub-project nodes) as off-limits to project edges.
+
+    ``_visited`` and ``_depth`` are recursion-control internals. Cycle
+    detection raises ``RepoGraphConfigError`` if the same resolved path
+    is encountered twice in the include chain.
+    """
+    if _depth > max_depth:
+        chain = " → ".join(str(p) for p in _visited) or "(root)"
+        raise RepoGraphConfigError(
+            f"ProjectManifest include depth exceeded {max_depth} at {path} "
+            f"(chain: {chain})"
+        )
+    resolved = path.resolve()
+    if resolved in _visited:
+        chain = " → ".join(str(p) for p in _visited)
+        raise RepoGraphConfigError(
+            f"ProjectManifest include cycle detected: {resolved} "
+            f"already visited (chain: {chain})"
+        )
+    new_visited = _visited | {resolved}
+
     raw = read_manifest_raw(path)
     validate_header(raw, expected_kind=ManifestKind.PROJECT, path=path)
     _validate_platform_pin(raw)
 
-    # Parse project nodes first; these are the ones the project introduces.
-    project_nodes = parse_nodes(raw, source=Source.PROJECT)
+    # Apply includes first — sub-project nodes/edges land before this
+    # project's own, so cross-include edges resolve cleanly.
+    accumulated_nodes, accumulated_edges = _apply_includes(
+        raw, path,
+        accumulated_nodes,
+        accumulated_edges,
+        platform_node_ids=platform_node_ids,
+        max_depth=max_depth,
+        _visited=new_visited,
+        _depth=_depth + 1,
+    )
 
-    # Rule 2 — collisions on repo_id are configuration errors.
+    # Parse this project's own nodes
+    project_nodes = parse_nodes(raw, source=Source.PROJECT)
     project_repo_ids = {n.repo_id for n in project_nodes}
-    collisions = project_repo_ids & set(base_nodes.keys())
-    if collisions:
+
+    # Rule 2 — collisions are configuration errors. Distinguish platform
+    # collisions (the original v0.3 rule) from sibling-include collisions
+    # (new in v0.8 — same rule, different actor).
+    platform_collisions = project_repo_ids & platform_node_ids
+    if platform_collisions:
         raise RepoGraphConfigError(
-            f"ProjectManifest cannot redefine platform repo_id(s): {sorted(collisions)}"
+            f"ProjectManifest at {path} cannot redefine platform repo_id(s): "
+            f"{sorted(platform_collisions)}"
+        )
+    sibling_collisions = project_repo_ids & (
+        set(accumulated_nodes.keys()) - platform_node_ids
+    )
+    if sibling_collisions:
+        raise RepoGraphConfigError(
+            f"ProjectManifest at {path} cannot redefine repo_id(s) "
+            f"{sorted(sibling_collisions)} already declared by an included "
+            f"sub-project"
         )
 
-    # Build a union name-index so project edges can reference both
-    # project nodes and platform nodes (the common case).
+    # Union name-index so project edges can reference platform nodes,
+    # sibling sub-project nodes, AND this project's own nodes.
     union_name_to_id: dict[str, str] = {}
-    for node in (*base_nodes.values(), *project_nodes):
+    for node in (*accumulated_nodes.values(), *project_nodes):
         union_name_to_id[node.canonical_name.lower()] = node.repo_id
         union_name_to_id[node.repo_id.lower()] = node.repo_id
         for alias in node.legacy_names:
@@ -123,20 +194,64 @@ def _apply_project(
 
     project_edges = parse_edges(raw, name_to_id=union_name_to_id, source=Source.PROJECT)
 
-    # Rule 2 — project edges may not be platform→platform. Platform edges
-    # are exactly those whose endpoints are both already in base_nodes.
+    # Rule 2 — project edges may not be platform→platform. Sub-project
+    # edges to/from each other ARE allowed (they're the whole point of
+    # the suite-include pattern).
     for edge in project_edges:
-        if edge.src in base_nodes and edge.dst in base_nodes:
+        if edge.src in platform_node_ids and edge.dst in platform_node_ids:
             raise RepoGraphConfigError(
-                f"ProjectManifest cannot add platform-to-platform edge "
-                f"{edge.src} -> {edge.dst} ({edge.type.value})"
+                f"ProjectManifest at {path} cannot add platform-to-platform "
+                f"edge {edge.src} -> {edge.dst} ({edge.type.value})"
             )
 
-    merged_nodes = dict(base_nodes)
+    merged_nodes = dict(accumulated_nodes)
     for node in project_nodes:
         merged_nodes[node.repo_id] = node
 
-    return merged_nodes, list(base_edges) + list(project_edges)
+    return merged_nodes, list(accumulated_edges) + list(project_edges)
+
+
+def _apply_includes(
+    raw: dict[str, Any],
+    parent_path: Path,
+    accumulated_nodes: dict[str, RepoNode],
+    accumulated_edges: list[RepoEdge],
+    *,
+    platform_node_ids: frozenset[str],
+    max_depth: int,
+    _visited: frozenset[Path],
+    _depth: int,
+) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
+    """Recursively apply a project's includes (sub-project manifests)."""
+    includes = raw.get("includes") or []
+    if not isinstance(includes, list):
+        raise RepoGraphConfigError(
+            f"ProjectManifest 'includes' must be a list at {parent_path}"
+        )
+    for idx, inc in enumerate(includes):
+        if not isinstance(inc, dict):
+            raise RepoGraphConfigError(
+                f"include #{idx} at {parent_path} must be a mapping with "
+                f"{{name, project_manifest_path}}"
+            )
+        inc_path_raw = inc.get("project_manifest_path")
+        if not inc_path_raw or not isinstance(inc_path_raw, str):
+            raise RepoGraphConfigError(
+                f"include #{idx} at {parent_path} missing required string "
+                f"'project_manifest_path'"
+            )
+        # Resolve relative to the including manifest's directory
+        inc_path = (parent_path.parent / Path(inc_path_raw)).resolve()
+        accumulated_nodes, accumulated_edges = _apply_project(
+            inc_path,
+            accumulated_nodes,
+            accumulated_edges,
+            platform_node_ids=platform_node_ids,
+            max_depth=max_depth,
+            _visited=_visited,
+            _depth=_depth,
+        )
+    return accumulated_nodes, accumulated_edges
 
 
 def _validate_platform_pin(raw: dict[str, Any]) -> None:
