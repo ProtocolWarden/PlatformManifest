@@ -45,7 +45,7 @@ class RepoEdgeType(str, Enum):
     DEPENDS_ON_CONTRACTS_FROM = "depends_on_contracts_from"
     DISPATCHES_TO = "dispatches_to"
     ROUTES_THROUGH = "routes_through"
-    # v0.7 — VF↔Warehouse asset relationship. Consumer node imports/depends
+    # v0.7 — asset-bundling relationship. Consumer node imports/depends
     # on asset outputs (kits/crates/pallets/yards or any other shipped
     # artifact format) of the target node. Granularity is operator-defined.
     BUNDLES_ASSETS_FROM = "bundles_assets_from"

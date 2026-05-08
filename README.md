@@ -50,10 +50,10 @@ manifest_kind: project
 manifest_version: "1.0.0"
 
 includes:
-  - name: VideoFoundry
-    project_manifest_path: ../VideoFoundry/topology/project_manifest.yaml
-  - name: Warehouse
-    project_manifest_path: ../Warehouse/topology/project_manifest.yaml
+  - name: GenericRepoA
+    project_manifest_path: ../GenericRepoA/topology/project_manifest.yaml
+  - name: GenericRepoB
+    project_manifest_path: ../GenericRepoB/topology/project_manifest.yaml
 
 repos: []   # the shell may also declare its own repos
 edges: []   # cross-suite edges go here
