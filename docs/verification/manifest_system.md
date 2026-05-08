@@ -451,8 +451,8 @@ Example local config:
 platform_manifest:
   enabled: true
   project_slug: video-foundry
-  project_manifest_path: /home/dev/Documents/GitHub/VideoFoundry/topology/project_manifest.yaml
-  local_manifest_path: /home/dev/Documents/GitHub/VideoFoundry/topology/local_manifest.yaml
+  project_manifest_path: /home/dev/Documents/GitHub/<managed-repo>/topology/project_manifest.yaml
+  local_manifest_path: /home/dev/Documents/GitHub/<managed-repo>/topology/local_manifest.yaml
 ```
 
 ### Tests
@@ -536,7 +536,7 @@ If one repo is the project, its ProjectManifest may live inside that repo.
 ### Expected layout
 
 ```text
-VideoFoundry/
+<managed-repo>/
   topology/
     project_manifest.yaml
     local_manifest.example.yaml
