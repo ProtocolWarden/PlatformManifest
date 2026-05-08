@@ -75,13 +75,18 @@ The loader must enforce `manifest_kind` by slot.
 | ----------- | ---------------------- |
 | base        | platform               |
 | project     | project                |
+| work_scope  | work_scope (PM v0.9.0+) |
 | local       | local                  |
+
+The `project` and `work_scope` slots are mutually exclusive — exactly one of them participates in any single composition. See V16 for the multi-repo work-scope shape.
 
 ### Tests
 
 * Passing a `ProjectManifest` as `base` fails.
 * Passing a `LocalManifest` as `project` fails.
 * Passing a `PlatformManifest` as `local` fails.
+* Passing a `ProjectManifest` as `work_scope` fails.
+* Passing a `WorkScopeManifest` as `project` fails.
 * Correct kinds load successfully.
 
 ### Expected error shape
@@ -445,23 +450,37 @@ Consumer repos:
 
 ### Settings block
 
-Example local config:
+OC's `PlatformManifestSettings` carries two mutually-exclusive second-layer fields. Set exactly one:
 
 ```yaml
+# single-project mode
 platform_manifest:
   enabled: true
-  project_slug: video-foundry
+  project_slug: my-project
   project_manifest_path: /home/dev/Documents/GitHub/<managed-repo>/topology/project_manifest.yaml
-  local_manifest_path: /home/dev/Documents/GitHub/<managed-repo>/topology/local_manifest.yaml
+  local_manifest_path:   /home/dev/Documents/GitHub/<managed-repo>/topology/local_manifest.yaml
 ```
+
+```yaml
+# work-scope mode (PM v0.9.0+)
+platform_manifest:
+  enabled: true
+  project_slug: media-product-suite
+  work_scope_manifest_path: /home/dev/Documents/GitHub/MediaProductSuite/topology/work_scope_manifest.yaml
+  local_manifest_path:      /home/dev/Documents/GitHub/MediaProductSuite/topology/local_manifest.yaml
+```
+
+A Pydantic `model_validator` enforces XOR at config load: setting both `project_manifest_path` and `work_scope_manifest_path` raises a clear "mutually exclusive" error before any manifest is read.
 
 ### Tests
 
 * No config produces platform-only graph.
 * Configured project manifest produces graph with project node.
-* Configured local manifest annotates nodes.
+* Configured work-scope manifest produces graph with included projects' nodes (Source.PROJECT) plus any work-scope-declared edges (Source.WORK_SCOPE).
+* `project_manifest_path` and `work_scope_manifest_path` both set raises a configuration error at `load_settings()`.
+* Configured local manifest annotates nodes in either mode.
 * Warning is logged when manifest load fails — graph degrades to `None` gracefully (OC startup never blocks).
-* OC does not silently treat a failed project load as success.
+* OC does not silently treat a failed project/work-scope load as success.
 
 ### Operational verification
 
@@ -485,15 +504,25 @@ OperationsCenter: source=platform, local_path=...
 
 * manifest loaders
 * effective graph composition
-* platform/project/local manifest path resolution
+* platform/project/work-scope/local manifest path resolution
 * runtime dispatch classes
 * Plane task propagation
 * SourceRegistry ownership
+
+### Enforcement
+
+OC ships a static denylist at `tools/boundary/switchboard_denylist.py` that scans the SwitchBoard source tree for forbidden symbol names. The denylist is forward-looking — it includes symbols that don't yet exist in SB so accidental adoption fails the boundary check. Currently covers:
+
+* ER-001…ER-004 primitives (`SwarmCoordinator`, `LifecycleRunner`, `RunMemoryIndexWriter`, `RepoGraphLoader`, `RepoGraphIndexer`, etc.)
+* Runtime dispatch (`ExecutorRuntime`, `RuntimeRunner`, `SubprocessRunner`, `RuntimeInvocation`, `RuntimeResult`)
+* Fork management (`SourceRegistry`)
+* Manifest/composition symbols (PM v0.9.0+): `load_repo_graph`, `load_effective_graph`, `load_default_repo_graph`, `PlatformManifestSettings`, `build_effective_repo_graph`, `build_effective_repo_graph_from_settings`, `WorkScopeManifest`, `ManifestKind`
 
 ### Tests
 
 * Static denylist check prevents `SwitchBoard` from importing manifest composition internals.
 * Static denylist check prevents runtime dispatch ownership leaking into `SwitchBoard`.
+* Static denylist check prevents WorkScopeManifest authority leaking into `SwitchBoard`.
 * Lane/backend selection tests still work with repo context as plain input.
 
 ---
@@ -669,11 +698,14 @@ Operators must be able to tell whether manifest wiring is active.
 At minimum, logs or doctor output should show:
 
 * PlatformManifest path/version
-* ProjectManifest path if configured
+* selected composition mode: `disabled` | `platform_only` | `project` | `work_scope`
+* ProjectManifest path if mode is `project`
+* WorkScopeManifest path if mode is `work_scope`
 * LocalManifest path if configured
 * graph node count
 * graph edge count
-* source counts: platform/project
+* source counts: platform / project / work_scope
+* in `work_scope` mode: per-include breakdown (name, path, nodes_contributed, edges_contributed)
 * warnings/errors
 
 ### Tests
@@ -682,6 +714,9 @@ At minimum, logs or doctor output should show:
 * Failed wiring prints or records actionable error.
 * Platform-only fallback is explicit, not silent.
 * `operations-center-graph-doctor` exits 0 on success / 1 on graph_built=False / 2 on bad invocation.
+* `mode` field correctly distinguishes the four states.
+* Per-include breakdown surfaces in JSON output as `includes: [{name, path, nodes_contributed, edges_contributed}]` and in human output as a bulleted list.
+* Per-include errors are captured per-entry — one bad include doesn't blank the whole report.
 
 ---
 
