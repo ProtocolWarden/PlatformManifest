@@ -1,0 +1,12 @@
+# Per-machine wiring for the MediaProductSuite work scope.
+# Annotates nodes from any of the included projects.
+
+manifest_kind: local
+manifest_version: "1.0.0"
+
+repos:
+  media_product_core_api:
+    local_path: /home/dev/src/MediaProductCore
+    local_port: 8080
+  media_product_assets_publisher:
+    local_path: /home/dev/src/MediaProductAssets

@@ -62,3 +62,32 @@ jobs:
           platform-manifest validate \
             src/platform_manifest/data/platform_manifest.yaml \
             --expected platform
+
+  validate-examples:
+    name: Validate example manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e .
+      - name: Validate single-project example
+        run: |
+          platform-manifest validate \
+            examples/single_project/project_manifest.yaml \
+            --expected project
+      - name: Validate work-scope constituents
+        run: |
+          platform-manifest validate \
+            examples/work_scope/MediaProductCore/topology/project_manifest.yaml \
+            --expected project
+          platform-manifest validate \
+            examples/work_scope/MediaProductAssets/topology/project_manifest.yaml \
+            --expected project
+      - name: Validate work-scope manifest
+        run: |
+          platform-manifest validate \
+            examples/work_scope/MediaProductSuite/topology/work_scope_manifest.yaml \
+            --expected work_scope

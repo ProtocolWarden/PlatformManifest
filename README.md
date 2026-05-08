@@ -41,29 +41,38 @@ graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
 graph.who_dispatches_to("executor_runtime") # → [OperationsCenter]
 ```
 
-## Multi-repo project shell (v0.8+)
+## Multi-repo work scope — `WorkScopeManifest` (v0.9+)
 
-A project manifest may include other project manifests:
+When several repos compose into one OperationsCenter work scope, author
+a `WorkScopeManifest` (`manifest_kind: work_scope`). Each constituent
+keeps its own `ProjectManifest`; the work scope explicitly includes them:
 
 ```yaml
-manifest_kind: project
+manifest_kind: work_scope
 manifest_version: "1.0.0"
 
 includes:
-  - name: GenericRepoA
-    project_manifest_path: ../GenericRepoA/topology/project_manifest.yaml
-  - name: GenericRepoB
-    project_manifest_path: ../GenericRepoB/topology/project_manifest.yaml
+  - name: ProjectA
+    project_manifest_path: ../ProjectA/topology/project_manifest.yaml
+  - name: ProjectB
+    project_manifest_path: ../ProjectB/topology/project_manifest.yaml
 
-repos: []   # the shell may also declare its own repos
-edges: []   # cross-suite edges go here
+repos: {}   # rare — the work scope may also declare its own
+edges: []   # cross-suite edges (Source.WORK_SCOPE provenance)
 ```
 
-The loader recurses sub-projects and applies their nodes/edges
-before the shell's own. Collisions (duplicate repo_id with platform
-OR with a sibling sub-project) are configuration errors. Cycles are
-detected and rejected. `OperationsCenter` points at the shell's
-manifest and gets the merged whole.
+The loader recurses included projects and applies their nodes/edges
+before the work scope's own. Collisions (duplicate repo_id with platform
+OR with a sibling include) are configuration errors. Cycles are detected
+and rejected. `OperationsCenter` points at the work-scope manifest via
+`work_scope_manifest_path` and gets the merged whole.
+
+Worked example: see `examples/work_scope/`.
+
+> **v0.8 → v0.9 migration**: `manifest_kind: project` with `includes:`
+> is deprecated as of v0.9.0 (still loads with a `DeprecationWarning`)
+> and will hard-fail in v1.0.0. Migration is a one-line change:
+> `manifest_kind: project` → `manifest_kind: work_scope`.
 
 ## CLI
 
@@ -76,15 +85,19 @@ platform-manifest impact cxrp
 # Auto-detects manifest_kind; pass --expected to enforce the slot.
 # Project manifests are validated in composition with the bundled
 # platform base (override with --against PATH).
-platform-manifest validate path/to/project_manifest.yaml --expected project
+platform-manifest validate path/to/project_manifest.yaml    --expected project
+platform-manifest validate path/to/work_scope_manifest.yaml --expected work_scope
 platform-manifest validate path/to/local_manifest.yaml --json   # CI-friendly
 
 # Show the merged EffectiveRepoGraph — what OC actually consumes.
-# Composes platform + project + local layers exactly as
+# Composes platform + (project XOR work_scope) + local layers exactly as
 # OperationsCenter.repo_graph_factory does at runtime.
 platform-manifest effective \
     --project path/to/project_manifest.yaml \
     --local   path/to/local_manifest.yaml
+platform-manifest effective \
+    --work-scope path/to/work_scope_manifest.yaml \
+    --local      path/to/local_manifest.yaml
 platform-manifest effective --json   # machine-readable
 ```
 

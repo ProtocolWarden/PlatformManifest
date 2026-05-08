@@ -1,0 +1,12 @@
+manifest_kind: project
+manifest_version: "1.0.0"
+
+platform_manifest:
+  name: PlatformManifest
+  version_constraint: ">=0.9,<1.0"
+
+repos:
+  media_product_assets_publisher:
+    canonical_name: MediaProductAssetsPublisher
+    visibility: private
+    runtime_role: artifact_worker
