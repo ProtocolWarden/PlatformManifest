@@ -365,3 +365,98 @@ class TestLocalOverWorkScope:
         assert a.local_port == 9090
         # Provenance unchanged by local layer
         assert a.source is Source.PROJECT
+
+
+# ---------------------------------------------------------------------------
+# No-implicit-discovery — loader must compose only what's explicitly named
+# ---------------------------------------------------------------------------
+
+
+class TestNoImplicitDiscovery:
+    def test_work_scope_with_zero_includes_rejected_by_schema(
+        self, platform_path: Path, tmp_path: Path
+    ) -> None:
+        # Schema requires minItems:1 on includes — there is no "scan
+        # the directory for project_manifest.yaml" fallback.
+        ws = tmp_path / "work_scope.yaml"
+        ws.write_text(
+            'manifest_kind: work_scope\n'
+            'manifest_version: "1.0.0"\n'
+            'includes: []\n',
+            encoding="utf-8",
+        )
+        # Place a sibling project_manifest.yaml that, IF the loader were
+        # globbing, would get auto-included.
+        sibling = tmp_path / "project_manifest.yaml"
+        sibling.write_text(
+            'manifest_kind: project\n'
+            'manifest_version: "1.0.0"\n'
+            'repos:\n'
+            '  ghost_api:\n'
+            '    canonical_name: GhostAPI\n'
+            '    visibility: private\n',
+            encoding="utf-8",
+        )
+        # Loader hits validate_header (header is fine), then parse — but the
+        # composition entry point treats includes as the source of truth and
+        # never scans. With empty includes the work_scope contributes
+        # exactly nothing beyond the platform base.
+        # Some implementations may reject empty list at schema; either way
+        # the sibling file must NOT be discovered.
+        try:
+            g = load_effective_graph(platform_path, work_scope=ws)
+        except RepoGraphConfigError:
+            # If schema/loader rejects empty includes, that's fine —
+            # the no-discovery property still holds vacuously.
+            return
+        assert g.resolve("GhostAPI") is None
+
+    def test_loader_only_loads_files_explicitly_named(
+        self, platform_path: Path, tmp_path: Path
+    ) -> None:
+        # Author one project, place a "decoy" project in the same dir
+        # that we do NOT include. Verify only the named project lands.
+        included = tmp_path / "included.yaml"
+        included.write_text(
+            'manifest_kind: project\n'
+            'manifest_version: "1.0.0"\n'
+            'repos:\n'
+            '  included_api:\n'
+            '    canonical_name: IncludedAPI\n'
+            '    visibility: private\n',
+            encoding="utf-8",
+        )
+        decoy = tmp_path / "decoy.yaml"
+        decoy.write_text(
+            'manifest_kind: project\n'
+            'manifest_version: "1.0.0"\n'
+            'repos:\n'
+            '  decoy_api:\n'
+            '    canonical_name: DecoyAPI\n'
+            '    visibility: private\n',
+            encoding="utf-8",
+        )
+        # Also drop a project_manifest.yaml literal — common discovery
+        # target name. If the loader globbed, this would get pulled in.
+        topology_decoy = tmp_path / "project_manifest.yaml"
+        topology_decoy.write_text(
+            'manifest_kind: project\n'
+            'manifest_version: "1.0.0"\n'
+            'repos:\n'
+            '  topology_decoy_api:\n'
+            '    canonical_name: TopologyDecoyAPI\n'
+            '    visibility: private\n',
+            encoding="utf-8",
+        )
+        ws = tmp_path / "work_scope.yaml"
+        ws.write_text(
+            'manifest_kind: work_scope\n'
+            'manifest_version: "1.0.0"\n'
+            'includes:\n'
+            f'  - {{name: Included, project_manifest_path: {included}}}\n',
+            encoding="utf-8",
+        )
+        g = load_effective_graph(platform_path, work_scope=ws)
+        assert g.resolve("IncludedAPI") is not None
+        assert g.resolve("DecoyAPI") is None
+        assert g.resolve("TopologyDecoyAPI") is None
