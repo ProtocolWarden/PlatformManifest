@@ -36,23 +36,9 @@
     "edges": {
       "type": "array",
       "items": { "$ref": "#/$defs/Edge" }
-    },
-    "includes": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/Include" },
-      "description": "DEPRECATED in v0.9.0 — multi-repo composition has moved to WorkScopeManifest (manifest_kind: work_scope). This field is accepted in v0.9.x with a deprecation warning at load time, and will be removed in v1.0.0. Migrate by changing manifest_kind to work_scope; the includes shape itself is unchanged."
     }
   },
   "$defs": {
-    "Include": {
-      "type": "object",
-      "required": ["name", "project_manifest_path"],
-      "additionalProperties": false,
-      "properties": {
-        "name": { "type": "string", "minLength": 1, "description": "Human label for the included sub-project (informational)." },
-        "project_manifest_path": { "type": "string", "minLength": 1, "description": "Path to the included project_manifest.yaml. Relative paths resolve against the including manifest's directory." }
-      }
-    },
     "ProjectRepoNode": {
       "type": "object",
       "required": ["canonical_name", "visibility"],

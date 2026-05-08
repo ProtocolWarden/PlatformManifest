@@ -3,13 +3,12 @@
 """Tests for WorkScopeManifest (manifest_kind: work_scope) — v0.9.0+.
 
 WorkScopeManifest is the explicit multi-project composition layer.
-Replaces the v0.8.x project-shell-with-includes pattern, which is
-deprecated in v0.9.x and will be removed in v1.0.0.
+Replaces the v0.8.x project-shell-with-includes pattern, which was
+deprecated in v0.9.x and removed in v1.0.0.
 """
 
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 
 import pytest
@@ -268,12 +267,12 @@ class TestVisibilityPreservation:
 
 
 # ---------------------------------------------------------------------------
-# Deprecation warning on project-with-includes
+# v1.0.0 hard enforcement — project manifests cannot include
 # ---------------------------------------------------------------------------
 
 
-class TestProjectIncludesDeprecation:
-    def test_project_with_includes_emits_deprecation_warning(
+class TestProjectIncludesRejected:
+    def test_project_with_includes_hard_fails(
         self, platform_path: Path, tmp_path: Path
     ) -> None:
         proj_a = _project_a(tmp_path)
@@ -285,21 +284,9 @@ class TestProjectIncludesDeprecation:
             f'  - {{name: ProjectA, project_manifest_path: {proj_a}}}\n',
             encoding="utf-8",
         )
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
+        # Loader path: rejected via the explicit migration-hint guard
+        with pytest.raises(RepoGraphConfigError, match="work_scope"):
             load_effective_graph(platform_path, project=legacy_shell)
-        deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert any("work_scope" in str(w.message) for w in deprecations)
-
-    def test_clean_project_emits_no_deprecation(
-        self, platform_path: Path, tmp_path: Path
-    ) -> None:
-        proj_a = _project_a(tmp_path)
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            load_effective_graph(platform_path, project=proj_a)
-        deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert deprecations == []
 
 
 # ---------------------------------------------------------------------------

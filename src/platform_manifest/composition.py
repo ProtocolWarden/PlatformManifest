@@ -10,10 +10,9 @@ result of the previous one. Merge rules (per the design doc):
 
 - Platform: public nodes only, no local-only fields.
 - Project: describes one project. May add private/public nodes and edges,
-  but cannot redefine platform repo_ids and cannot add platform-to-platform
-  edges. Optional ``platform_manifest`` block can pin a PEP 440
-  version_constraint. After v0.9.0, project manifests must NOT include
-  other manifests; v0.9.x emits a deprecation warning, v1.0.0 hard-fails.
+  but cannot redefine platform repo_ids, cannot add platform-to-platform
+  edges, and (since v1.0.0) must NOT include other manifests. Optional
+  ``platform_manifest`` block can pin a PEP 440 version_constraint.
 - WorkScope (v0.9.0+): composes multiple ProjectManifests via explicit
   ``includes:``. Same node/edge constraints as project, but its own
   declared nodes/edges carry Source.WORK_SCOPE provenance.
@@ -28,7 +27,6 @@ time.
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import replace
 from importlib import metadata as importlib_metadata
 from pathlib import Path
@@ -85,10 +83,8 @@ def load_effective_graph(
     ``local`` is independent and may be passed alone (annotates platform
     repos only) or alongside either of the above.
 
-    During the v0.9.x transitional window, a ``project`` manifest with
-    legacy ``includes:`` field still loads, but emits a DeprecationWarning;
-    in v1.0.0 it will hard-fail. Migrate by switching ``manifest_kind``
-    from ``project`` to ``work_scope``.
+    Since v1.0.0, ``project`` manifests must NOT carry ``includes:``;
+    multi-repo composition is exclusively the role of ``work_scope``.
 
     Cycle detection is performed by visited-set; ``max_include_depth``
     bounds how deep recursion may go (default 4).
@@ -173,36 +169,24 @@ def _apply_project(
             f"ProjectManifest include cycle detected: {resolved} "
             f"already visited (chain: {chain})"
         )
-    new_visited = _visited | {resolved}
 
     raw = read_manifest_raw(path)
     validate_header(raw, expected_kind=ManifestKind.PROJECT, path=path)
     _validate_platform_pin(raw)
 
-    # v0.9.0 transitional: ProjectManifest with includes: is deprecated;
-    # multi-repo composition has moved to WorkScopeManifest. Warn once
-    # per load — v1.0.0 will hard-fail this branch.
+    # v1.0.0: ProjectManifest must NOT include other manifests. The
+    # schema rejects this at the JSON-Schema layer; this guard catches
+    # the case where the schema was bypassed (direct loader call) so
+    # the error message is the migration hint, not a generic 'unknown
+    # field' complaint.
     if raw.get("includes"):
-        warnings.warn(
-            f"ProjectManifest at {path} uses 'includes:' — this is deprecated "
-            f"in PlatformManifest v0.9.0 and will be removed in v1.0.0. "
+        raise RepoGraphConfigError(
+            f"ProjectManifest at {path} contains 'includes:' — multi-repo "
+            f"composition is exclusively the role of WorkScopeManifest "
+            f"(manifest_kind: work_scope) since PlatformManifest v1.0.0. "
             f"Migrate by changing 'manifest_kind: project' to "
-            f"'manifest_kind: work_scope'; the includes shape itself is unchanged.",
-            DeprecationWarning,
-            stacklevel=3,
+            f"'manifest_kind: work_scope'; the includes shape is unchanged."
         )
-
-    # Apply includes first — sub-project nodes/edges land before this
-    # project's own, so cross-include edges resolve cleanly.
-    accumulated_nodes, accumulated_edges = _apply_includes(
-        raw, path,
-        accumulated_nodes,
-        accumulated_edges,
-        platform_node_ids=platform_node_ids,
-        max_depth=max_depth,
-        _visited=new_visited,
-        _depth=_depth + 1,
-    )
 
     # Parse this project's own nodes
     project_nodes = parse_nodes(raw, source=Source.PROJECT)
