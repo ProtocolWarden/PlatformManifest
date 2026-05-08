@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "platform-manifest"
-version = "0.2.0"
+version = "0.3.0"
 description = "Canonical platform repo map: identity, legacy aliases, and edges between repos"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,6 +12,7 @@ dependencies = [
   "pyyaml>=6.0",
   "typer>=0.12",
   "rich>=13.0",
+  "packaging>=23.0",
 ]
 
 [project.optional-dependencies]
