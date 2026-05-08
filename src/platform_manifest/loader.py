@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: SSPL-1.0
+# SPDX-License-Identifier: Apache-2.0
 # Copyright (C) 2026 Velascat
 """YAML loader for repo graph manifests.
 

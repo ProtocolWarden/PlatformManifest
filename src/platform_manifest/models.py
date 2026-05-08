@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: SSPL-1.0
+# SPDX-License-Identifier: Apache-2.0
 # Copyright (C) 2026 Velascat
 """Repo Graph models — RepoNode, RepoEdge, RepoGraph + manifest metadata."""
 
