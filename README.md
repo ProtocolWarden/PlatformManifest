@@ -138,7 +138,7 @@ pip install -e .[dev]     # with pytest + ruff
 Consumer repos depend on it via:
 
 ```
-"platform-manifest @ git+https://github.com/Velascat/PlatformManifest.git"
+"platform-manifest @ git+https://github.com/ProtocolWarden/PlatformManifest.git"
 ```
 
 ## License

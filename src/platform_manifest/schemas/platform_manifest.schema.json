@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Velascat/PlatformManifest/schemas/platform_manifest.schema.json",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/platform_manifest.schema.json",
   "title": "PlatformManifest",
   "description": "Public repo map for the reusable platform. Only public nodes allowed.",
   "type": "object",

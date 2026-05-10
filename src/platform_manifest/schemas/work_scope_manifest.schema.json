@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Velascat/PlatformManifest/schemas/work_scope_manifest.schema.json",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/work_scope_manifest.schema.json",
   "title": "WorkScopeManifest",
   "description": "Composes multiple ProjectManifests into one OperationsCenter work scope. Composition is explicit — only listed includes are loaded; no filesystem discovery. Added in PlatformManifest v0.9.0.",
   "type": "object",

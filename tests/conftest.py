@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Copyright (C) 2026 Velascat
+# Copyright (C) 2026 ProtocolWarden
 """Pytest conftest with venv guard.
 
 Refuses to run unless invoked from inside this project's `.venv` —

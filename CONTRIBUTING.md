@@ -11,7 +11,7 @@ PlatformManifest is the canonical repo map for the platform: who exists, what th
 ## Development Setup
 
 ```bash
-git clone https://github.com/Velascat/PlatformManifest.git
+git clone https://github.com/ProtocolWarden/PlatformManifest.git
 cd PlatformManifest
 python3 -m venv .venv
 source .venv/bin/activate

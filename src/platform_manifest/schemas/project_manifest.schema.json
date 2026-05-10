@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Velascat/PlatformManifest/schemas/project_manifest.schema.json",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/project_manifest.schema.json",
   "title": "ProjectManifest",
   "description": "Manifest for one project that uses the platform. May contain public or private nodes.",
   "type": "object",

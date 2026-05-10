@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Velascat/PlatformManifest/schemas/local_manifest.schema.json",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/local_manifest.schema.json",
   "title": "LocalManifest",
   "description": "One machine's wiring for one project. May only annotate existing nodes with local fields.",
   "type": "object",

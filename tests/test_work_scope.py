@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Copyright (C) 2026 Velascat
+# Copyright (C) 2026 ProtocolWarden
 """Tests for WorkScopeManifest (manifest_kind: work_scope) — v0.9.0+.
 
 WorkScopeManifest is the explicit multi-project composition layer.

@@ -23,63 +23,63 @@ repos:
     canonical_name: OperatorConsole
     visibility: public
     legacy_names: [FOB]
-    github_url: https://github.com/Velascat/OperatorConsole
+    github_url: https://github.com/ProtocolWarden/OperatorConsole
     runtime_role: operator_cli
 
   operations_center:
     canonical_name: OperationsCenter
     visibility: public
     legacy_names: [ControlPlane]
-    github_url: https://github.com/Velascat/OperationsCenter
+    github_url: https://github.com/ProtocolWarden/OperationsCenter
     runtime_role: orchestration
 
   switchboard:
     canonical_name: SwitchBoard
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/SwitchBoard
+    github_url: https://github.com/ProtocolWarden/SwitchBoard
     runtime_role: lane_selection
 
   workstation:
     canonical_name: WorkStation
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/WorkStation
+    github_url: https://github.com/ProtocolWarden/WorkStation
     runtime_role: local_runtime
 
   cxrp:
     canonical_name: CxRP
     visibility: public
     legacy_names: [ExecutionContractProtocol]
-    github_url: https://github.com/Velascat/CxRP
+    github_url: https://github.com/ProtocolWarden/CxRP
     runtime_role: contracts
 
   rxp:
     canonical_name: RxP
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/RxP
+    github_url: https://github.com/ProtocolWarden/RxP
     runtime_role: contracts
 
   executor_runtime:
     canonical_name: ExecutorRuntime
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/ExecutorRuntime
+    github_url: https://github.com/ProtocolWarden/ExecutorRuntime
     runtime_role: runtime_dispatch
 
   source_registry:
     canonical_name: SourceRegistry
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/SourceRegistry
+    github_url: https://github.com/ProtocolWarden/SourceRegistry
     runtime_role: fork_management
 
   platform_manifest:
     canonical_name: PlatformManifest
     visibility: public
     legacy_names: []
-    github_url: https://github.com/Velascat/PlatformManifest
+    github_url: https://github.com/ProtocolWarden/PlatformManifest
     runtime_role: platform_map
 
 edges:
