@@ -1,5 +1,5 @@
 {
-  "overall_status": "WARN",
+  "overall_status": "PASS",
   "generated_on": "2026-05-11",
   "findings": [
     {
@@ -108,20 +108,20 @@
       "severity": "low",
       "status": "PASS",
       "invariant": "OperationsCenter must consume PlatformManifest without owning ontology.",
-      "observed": "OC repo_graph_factory still uses the bundled platform base and only layers project, work-scope, and local overlays.",
+      "observed": "OC repo_graph_factory now composes platform -> private -> (project xor work_scope) -> local and remains a metadata consumer only.",
       "expected": "OC remains a topology and visibility consumer and orchestration owner only.",
-      "recommendation": "Keep manifest parsing centralized in repo_graph_factory."
+      "recommendation": "Keep manifest parsing centralized in repo_graph_factory and keep private-manifest discovery tested."
     },
     {
       "finding_id": "PMVFY-011",
       "repo": "OperationsCenter",
       "phase": "Cross-Phase",
-      "severity": "medium",
-      "status": "KNOWN_LEGACY",
+      "severity": "low",
+      "status": "PASS",
       "invariant": "Semantic duplication across PlatformManifest, CxRP, RxP, and OperationsCenter should remain bounded.",
-      "observed": "OperationsCenter still defines internal TaskProposal, LaneDecision, ExecutionRequest, and ExecutionResult models and maps them to or from protocol repos.",
-      "expected": "No accidental drift between internal OC models and protocol-owner repos.",
-      "recommendation": "Treat OC contract mirrors as a managed compatibility layer and keep mapper and schema drift tests strong."
+      "observed": "OperationsCenter now uses explicit OC-native names for internal planning, routing, and execution-boundary models and maps them explicitly to canonical CxRP contracts at repo boundaries.",
+      "expected": "Internal OC models remain clearly non-canonical and boundary mapping stays explicit and tested.",
+      "recommendation": "Keep contract ownership tests and mapper coverage in place as the internal OC model layer evolves."
     }
   ]
 }

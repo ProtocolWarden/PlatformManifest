@@ -73,12 +73,12 @@
     {
       "finding_id": "OOR-007",
       "repo": "OperationsCenter",
-      "status": "KNOWN_LEGACY",
+      "status": "PASS",
       "owner": "OperationsCenter",
       "concepts": [
-        "Internal contract mirrors for protocol mapping"
+        "Internal orchestration and execution-boundary models mapped to canonical protocol contracts"
       ],
-      "observed": "OC keeps internal TaskProposal, LaneDecision, ExecutionRequest, and ExecutionResult models as mapper targets."
+      "observed": "OC internal proposal, routing, and execution-boundary models are explicitly OC-owned and mapped to canonical CxRP wire contracts."
     }
   ]
 }

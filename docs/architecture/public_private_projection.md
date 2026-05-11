@@ -113,6 +113,22 @@ Relationship handling rules:
 * Redacted edges may expose existence without exposing details only when
   policy allows it.
 * Superset/subset relationships must be queryable inside private manifests.
+
+## Repository Ownership
+
+The `PrivateManifest` *shape* is owned by `PlatformManifest`, but the
+private topology *data* may live in a separate repository such as
+`ProtocolWarden/PrivateManifest`.
+
+That split is intentional:
+
+* `PlatformManifest` owns schemas, composition rules, projection behavior,
+  and visibility invariants.
+* `PrivateManifest` repos own private manifest documents like
+  `manifests/videofoundry/private_manifest.yaml`.
+* Managed project repos such as `VideoFoundry` may keep only project/local
+  overlays and should not become the authoritative source of private
+  platform topology.
 * Public projections may expose only the safe side of a relationship or an
   allowed redacted placeholder.
 

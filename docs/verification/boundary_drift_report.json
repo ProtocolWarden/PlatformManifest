@@ -1,5 +1,5 @@
 {
-  "overall_status": "WARN",
+  "overall_status": "PASS",
   "checks": [
     {
       "finding_id": "BDR-001",
@@ -52,11 +52,11 @@
     {
       "finding_id": "BDR-007",
       "repo": "OperationsCenter",
-      "status": "KNOWN_LEGACY",
+      "status": "PASS",
       "invariant": "No repo should drift toward god-repo behavior through protocol duplication.",
-      "observed": "OC still maintains internal contract mirrors mapped to or from CxRP and RxP.",
-      "expected": "Compatibility mirrors remain tightly tested and bounded.",
-      "recommendation": "Keep mapper and schema drift coverage explicit."
+      "observed": "OC internal proposal, routing, and execution-boundary models now use explicit OC-native names or compatibility aliases with documented CxRP ownership at the wire boundary.",
+      "expected": "Compatibility aliases remain bounded while canonical cross-repo ownership stays in CxRP/RxP.",
+      "recommendation": "Keep the contract ownership tests and mapper checks as a drift guard."
     }
   ]
 }

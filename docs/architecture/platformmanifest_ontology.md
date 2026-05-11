@@ -57,6 +57,18 @@ OperationsCenter contracts. It can publish artifact manifests, reports, and
 audit outputs that OperationsCenter consumes, but it is not part of
 OperationsCenter and must not import platform core internals.
 
+## Data vs Model Ownership
+
+PlatformManifest owns the manifest model, schemas, composition rules, and
+visibility invariants for `platform`, `private`, `project`, `work_scope`,
+and `local` manifest shapes.
+
+That does not require all manifest documents to live in this repo:
+
+* the public platform base may ship with `PlatformManifest`
+* private topology documents may live in a dedicated `PrivateManifest` repo
+* local overlays remain machine/user-owned and unpublished
+
 ## Entity Shape
 
 The ontology-level entity shape is intentionally generic:

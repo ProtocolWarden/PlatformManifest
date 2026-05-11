@@ -1,6 +1,6 @@
-# Verification Spec — Repo Graph Primitive and Three-Layer Manifest System
+# Verification Spec — Repo Graph Primitive and Layered Manifest System
 
-**Status:** Verified (current shipped surface — PM v0.8.0).
+**Status:** Verified (current shipped surface — PM v1.0.0).
 
 ## Purpose
 
@@ -9,23 +9,27 @@ Verify that the repo graph primitive and manifest system are correct, safe, and 
 This verification covers:
 
 1. `PlatformManifest`
-2. `ProjectManifest`
-3. `LocalManifest`
-4. `EffectiveRepoGraph`
-5. `OperationsCenter` consumption
-6. `SwitchBoard` boundary safety
-7. CI/schema validation
-8. Operator wiring and diagnostics
+2. `PrivateManifest`
+3. `ProjectManifest`
+4. `WorkScopeManifest`
+5. `LocalManifest`
+6. `EffectiveRepoGraph`
+7. `OperationsCenter` consumption
+8. `SwitchBoard` boundary safety
+9. CI/schema validation
+10. Operator wiring and diagnostics
 
 ---
 
 # Core Invariant
 
 ```text
-PlatformManifest + ProjectManifest + LocalManifest = EffectiveRepoGraph
+PlatformManifest + PrivateManifest + (ProjectManifest xor WorkScopeManifest) + LocalManifest = EffectiveRepoGraph
 ```
 
-The merged graph must let `OperationsCenter` reason about public platform repos and the currently selected project (or suite of projects) without leaking private project details into public manifests.
+The merged graph must let `OperationsCenter` reason about public platform repos,
+private managed projects, and the currently selected project or work scope
+without leaking private topology details into public manifests.
 
 ---
 
@@ -35,28 +39,42 @@ The merged graph must let `OperationsCenter` reason about public platform repos 
 
 Public reusable manifest.
 
-Contains only public platform repos.
+Contains only public platform repos and public-safe relationships.
+
+## PrivateManifest
+
+Private platform superset.
+
+Contains private managed projects, private repositories, and private-only
+relationships. The shape is owned by PlatformManifest; the data may live in a
+separate `PrivateManifest` repository.
 
 ## ProjectManifest
 
-Project-specific manifest.
+Project-specific extension manifest.
 
-Contains repos and edges for one project — or, when used as a **shell manifest**, references multiple sub-project manifests via `includes:` (added in PM v0.8.0).
+Contains project-scoped repos and edges, or acts as a compatibility shell
+manifest that points operators at the private-manifest layer.
 
-Can be public or private.
+## WorkScopeManifest
+
+Scoped work overlay.
+
+Contains work-item or suite-specific topology overlays for a single effective
+composition.
 
 ## LocalManifest
 
 Machine-specific manifest.
 
-Contains only local wiring annotations for existing nodes.
+Contains only local wiring annotations and runtime overlays for existing nodes.
 
 ## EffectiveRepoGraph
 
 Runtime merged graph produced from:
 
 ```text
-PlatformManifest → ProjectManifest (with optional sub-project includes) → LocalManifest
+PlatformManifest → PrivateManifest → (ProjectManifest xor WorkScopeManifest) → LocalManifest
 ```
 
 ---
