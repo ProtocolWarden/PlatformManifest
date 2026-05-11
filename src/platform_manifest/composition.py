@@ -1,29 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 ProtocolWarden
-"""Manifest composition — PlatformManifest + ProjectManifest/WorkScopeManifest + LocalManifest.
-
-Public entry point:
-    load_effective_graph(base, *, project=None, work_scope=None, local=None) -> RepoGraph
-
-Order is platform → (project XOR work_scope) → local. Each layer sees the
-result of the previous one. Merge rules (per the design doc):
-
-- Platform: public nodes only, no local-only fields.
-- Project: describes one project. May add private/public nodes and edges,
-  but cannot redefine platform repo_ids, cannot add platform-to-platform
-  edges, and (since v1.0.0) must NOT include other manifests. Optional
-  ``platform_manifest`` block can pin a PEP 440 version_constraint.
-- WorkScope (v0.9.0+): composes multiple ProjectManifests via explicit
-  ``includes:``. Same node/edge constraints as project, but its own
-  declared nodes/edges carry Source.WORK_SCOPE provenance.
-- Local: may only annotate existing nodes with allowlisted local fields
-  (local_path/local_port/env_file/endpoint_override/cache_path/
-  gpu_required/runtime_hints). It does not add nodes or edges.
-
-Edges with the same (from, to, type) are deduped (later layers win the
-provenance tag). Unknown edge types are configuration errors at parse
-time.
-"""
+"""Manifest composition for platform, private, project, work-scope, and local layers."""
 
 from __future__ import annotations
 
@@ -39,13 +16,14 @@ from .loader import (
     load_repo_graph,
     parse_edges,
     parse_nodes,
+    parse_relationships,
     read_manifest_raw,
     validate_header,
 )
-# load_repo_graph is the platform entry point used in load_effective_graph.
 from .models import (
     LOCAL_ANNOTATION_FIELDS,
     ManifestKind,
+    OntologyRelationship,
     RepoEdge,
     RepoGraph,
     RepoGraphConfigError,
@@ -54,44 +32,19 @@ from .models import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-
 _DEFAULT_INCLUDE_DEPTH = 4
 
 
 def load_effective_graph(
     base: Path,
     *,
+    private: Path | None = None,
     project: Path | None = None,
     work_scope: Path | None = None,
     local: Path | None = None,
     max_include_depth: int = _DEFAULT_INCLUDE_DEPTH,
 ) -> RepoGraph:
-    """Compose PlatformManifest + (ProjectManifest XOR WorkScopeManifest) +
-    LocalManifest into the runtime graph consumed by OperationsCenter.
-
-    ``base`` is the platform manifest path. At most one of ``project`` and
-    ``work_scope`` may be set:
-
-    - ``project`` — one ProjectManifest describing a single project unit.
-    - ``work_scope`` — one WorkScopeManifest composing multiple
-      ProjectManifests via explicit ``includes:``. Added in v0.9.0.
-
-    ``local`` is independent and may be passed alone (annotates platform
-    repos only) or alongside either of the above.
-
-    Since v1.0.0, ``project`` manifests must NOT carry ``includes:``;
-    multi-repo composition is exclusively the role of ``work_scope``.
-
-    Cycle detection is performed by visited-set; ``max_include_depth``
-    bounds how deep recursion may go (default 4).
-
-    Returns a ``RepoGraph`` whose nodes carry ``source`` provenance and,
-    where applicable, populated local annotation fields.
-    """
+    """Compose platform -> private -> (project xor work_scope) -> local."""
     if project is not None and work_scope is not None:
         raise RepoGraphConfigError(
             "load_effective_graph: 'project' and 'work_scope' are mutually "
@@ -102,22 +55,36 @@ def load_effective_graph(
     platform_graph = load_repo_graph(base, expected_kind=ManifestKind.PLATFORM)
     nodes: dict[str, RepoNode] = dict(platform_graph.nodes)
     edges: list[RepoEdge] = list(platform_graph.edges)
+    relationships: list[OntologyRelationship] = list(platform_graph.relationships)
     platform_node_ids: frozenset[str] = frozenset(nodes.keys())
 
+    if private is not None:
+        nodes, edges, relationships = _apply_layer(
+            private,
+            expected_kind=ManifestKind.PRIVATE,
+            node_source=Source.PRIVATE,
+            accumulated_nodes=nodes,
+            accumulated_edges=edges,
+            accumulated_relationships=relationships,
+            platform_node_ids=platform_node_ids,
+        )
+
     if project is not None:
-        nodes, edges = _apply_project(
+        nodes, edges, relationships = _apply_project(
             project,
             nodes,
             edges,
+            relationships,
             platform_node_ids=platform_node_ids,
             max_depth=max_include_depth,
         )
 
     if work_scope is not None:
-        nodes, edges = _apply_work_scope(
+        nodes, edges, relationships = _apply_work_scope(
             work_scope,
             nodes,
             edges,
+            relationships,
             platform_node_ids=platform_node_ids,
             max_depth=max_include_depth,
         )
@@ -128,115 +95,73 @@ def load_effective_graph(
     return RepoGraph.build(
         nodes=list(nodes.values()),
         edges=_dedupe_edges(edges),
+        relationships=_dedupe_relationships(relationships),
     )
 
 
-# ---------------------------------------------------------------------------
-# Project layer
-# ---------------------------------------------------------------------------
-
-
-def _apply_project(
+def _apply_layer(
     path: Path,
+    *,
+    expected_kind: ManifestKind,
+    node_source: Source,
     accumulated_nodes: dict[str, RepoNode],
     accumulated_edges: list[RepoEdge],
-    *,
+    accumulated_relationships: list[OntologyRelationship],
     platform_node_ids: frozenset[str],
-    max_depth: int = _DEFAULT_INCLUDE_DEPTH,
-    _visited: frozenset[Path] = frozenset(),
-    _depth: int = 0,
-) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
-    """Apply a project manifest's nodes + edges (recursively for includes).
-
-    ``platform_node_ids`` is the immutable set of platform repo_ids —
-    used by the platform-to-platform edge rule, which only treats true
-    platform nodes (not sub-project nodes) as off-limits to project edges.
-
-    ``_visited`` and ``_depth`` are recursion-control internals. Cycle
-    detection raises ``RepoGraphConfigError`` if the same resolved path
-    is encountered twice in the include chain.
-    """
-    if _depth > max_depth:
-        chain = " → ".join(str(p) for p in _visited) or "(root)"
-        raise RepoGraphConfigError(
-            f"ProjectManifest include depth exceeded {max_depth} at {path} "
-            f"(chain: {chain})"
-        )
-    resolved = path.resolve()
-    if resolved in _visited:
-        chain = " → ".join(str(p) for p in _visited)
-        raise RepoGraphConfigError(
-            f"ProjectManifest include cycle detected: {resolved} "
-            f"already visited (chain: {chain})"
-        )
-
+) -> tuple[dict[str, RepoNode], list[RepoEdge], list[OntologyRelationship]]:
     raw = read_manifest_raw(path)
-    validate_header(raw, expected_kind=ManifestKind.PROJECT, path=path)
-    _validate_platform_pin(raw)
+    validate_header(raw, expected_kind=expected_kind, path=path)
+    if expected_kind is not ManifestKind.PRIVATE:
+        _validate_platform_pin(raw)
 
-    # v1.0.0: ProjectManifest must NOT include other manifests. The
-    # schema rejects this at the JSON-Schema layer; this guard catches
-    # the case where the schema was bypassed (direct loader call) so
-    # the error message is the migration hint, not a generic 'unknown
-    # field' complaint.
-    if raw.get("includes"):
-        raise RepoGraphConfigError(
-            f"ProjectManifest at {path} contains 'includes:' — multi-repo "
-            f"composition is exclusively the role of WorkScopeManifest "
-            f"(manifest_kind: work_scope) since PlatformManifest v1.0.0. "
-            f"Migrate by changing 'manifest_kind: project' to "
-            f"'manifest_kind: work_scope'; the includes shape is unchanged."
-        )
+    layer_nodes = parse_nodes(raw, source=node_source)
+    layer_repo_ids = {n.repo_id for n in layer_nodes}
 
-    # Parse this project's own nodes
-    project_nodes = parse_nodes(raw, source=Source.PROJECT)
-    project_repo_ids = {n.repo_id for n in project_nodes}
-
-    # Rule 2 — collisions are configuration errors. Distinguish platform
-    # collisions (the original v0.3 rule) from sibling-include collisions
-    # (new in v0.8 — same rule, different actor).
-    platform_collisions = project_repo_ids & platform_node_ids
+    platform_collisions = layer_repo_ids & platform_node_ids
     if platform_collisions:
         raise RepoGraphConfigError(
-            f"ProjectManifest at {path} cannot redefine platform repo_id(s): "
-            f"{sorted(platform_collisions)}"
+            f"{expected_kind.value.title()}Manifest at {path} cannot redefine "
+            f"platform repo_id(s): {sorted(platform_collisions)}"
         )
-    sibling_collisions = project_repo_ids & (
-        set(accumulated_nodes.keys()) - platform_node_ids
-    )
+    sibling_collisions = layer_repo_ids & (set(accumulated_nodes.keys()) - platform_node_ids)
     if sibling_collisions:
         raise RepoGraphConfigError(
-            f"ProjectManifest at {path} cannot redefine repo_id(s) "
-            f"{sorted(sibling_collisions)} already declared by an included "
-            f"sub-project"
+            f"{expected_kind.value.title()}Manifest at {path} cannot redefine repo_id(s) "
+            f"{sorted(sibling_collisions)} already declared by an earlier layer"
         )
 
-    # Union name-index so project edges can reference platform nodes,
-    # sibling sub-project nodes, AND this project's own nodes.
-    union_name_to_id: dict[str, str] = {}
-    for node in (*accumulated_nodes.values(), *project_nodes):
-        union_name_to_id[node.canonical_name.lower()] = node.repo_id
-        union_name_to_id[node.repo_id.lower()] = node.repo_id
-        for alias in node.legacy_names:
-            union_name_to_id[alias.lower()] = node.repo_id
+    union_name_to_id = _build_name_index((*accumulated_nodes.values(), *layer_nodes))
+    layer_edges = parse_edges(raw, name_to_id=union_name_to_id, source=node_source)
+    layer_relationships = parse_relationships(
+        raw, name_to_id=union_name_to_id, source=node_source
+    )
 
-    project_edges = parse_edges(raw, name_to_id=union_name_to_id, source=Source.PROJECT)
-
-    # Rule 2 — project edges may not be platform→platform. Sub-project
-    # edges to/from each other ARE allowed (they're the whole point of
-    # the suite-include pattern).
-    for edge in project_edges:
+    for edge in layer_edges:
         if edge.src in platform_node_ids and edge.dst in platform_node_ids:
             raise RepoGraphConfigError(
-                f"ProjectManifest at {path} cannot add platform-to-platform "
+                f"{expected_kind.value.title()}Manifest at {path} cannot add platform-to-platform "
                 f"edge {edge.src} -> {edge.dst} ({edge.type.value})"
+            )
+    for relationship in layer_relationships:
+        if (
+            relationship.source_id in platform_node_ids
+            and relationship.target_id in platform_node_ids
+        ):
+            raise RepoGraphConfigError(
+                f"{expected_kind.value.title()}Manifest at {path} cannot add platform-to-platform "
+                f"relationship {relationship.source_id} -> {relationship.target_id} "
+                f"({relationship.kind.value})"
             )
 
     merged_nodes = dict(accumulated_nodes)
-    for node in project_nodes:
+    for node in layer_nodes:
         merged_nodes[node.repo_id] = node
 
-    return merged_nodes, list(accumulated_edges) + list(project_edges)
+    return (
+        merged_nodes,
+        list(accumulated_edges) + list(layer_edges),
+        list(accumulated_relationships) + list(layer_relationships),
+    )
 
 
 def _apply_includes(
@@ -244,18 +169,16 @@ def _apply_includes(
     parent_path: Path,
     accumulated_nodes: dict[str, RepoNode],
     accumulated_edges: list[RepoEdge],
+    accumulated_relationships: list[OntologyRelationship],
     *,
     platform_node_ids: frozenset[str],
     max_depth: int,
     _visited: frozenset[Path],
     _depth: int,
-) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
-    """Recursively apply a project's includes (sub-project manifests)."""
+) -> tuple[dict[str, RepoNode], list[RepoEdge], list[OntologyRelationship]]:
     includes = raw.get("includes") or []
     if not isinstance(includes, list):
-        raise RepoGraphConfigError(
-            f"ProjectManifest 'includes' must be a list at {parent_path}"
-        )
+        raise RepoGraphConfigError(f"ProjectManifest 'includes' must be a list at {parent_path}")
     for idx, inc in enumerate(includes):
         if not isinstance(inc, dict):
             raise RepoGraphConfigError(
@@ -268,23 +191,69 @@ def _apply_includes(
                 f"include #{idx} at {parent_path} missing required string "
                 f"'project_manifest_path'"
             )
-        # Resolve relative to the including manifest's directory
         inc_path = (parent_path.parent / Path(inc_path_raw)).resolve()
-        accumulated_nodes, accumulated_edges = _apply_project(
+        accumulated_nodes, accumulated_edges, accumulated_relationships = _apply_project(
             inc_path,
             accumulated_nodes,
             accumulated_edges,
+            accumulated_relationships,
             platform_node_ids=platform_node_ids,
             max_depth=max_depth,
             _visited=_visited,
             _depth=_depth,
         )
-    return accumulated_nodes, accumulated_edges
+    return accumulated_nodes, accumulated_edges, accumulated_relationships
+
+
+def _apply_project(
+    path: Path,
+    accumulated_nodes: dict[str, RepoNode],
+    accumulated_edges: list[RepoEdge],
+    accumulated_relationships: list[OntologyRelationship],
+    *,
+    platform_node_ids: frozenset[str],
+    max_depth: int = _DEFAULT_INCLUDE_DEPTH,
+    _visited: frozenset[Path] = frozenset(),
+    _depth: int = 0,
+) -> tuple[dict[str, RepoNode], list[RepoEdge], list[OntologyRelationship]]:
+    if _depth > max_depth:
+        chain = " -> ".join(str(p) for p in _visited) or "(root)"
+        raise RepoGraphConfigError(
+            f"ProjectManifest include depth exceeded {max_depth} at {path} "
+            f"(chain: {chain})"
+        )
+    resolved = path.resolve()
+    if resolved in _visited:
+        chain = " -> ".join(str(p) for p in _visited)
+        raise RepoGraphConfigError(
+            f"ProjectManifest include cycle detected: {resolved} "
+            f"already visited (chain: {chain})"
+        )
+
+    raw = read_manifest_raw(path)
+    validate_header(raw, expected_kind=ManifestKind.PROJECT, path=path)
+    _validate_platform_pin(raw)
+    if raw.get("includes"):
+        raise RepoGraphConfigError(
+            f"ProjectManifest at {path} contains 'includes:' — multi-repo "
+            f"composition is exclusively the role of WorkScopeManifest "
+            f"(manifest_kind: work_scope) since PlatformManifest v1.0.0. "
+            f"Migrate by changing 'manifest_kind: project' to "
+            f"'manifest_kind: work_scope'; the includes shape is unchanged."
+        )
+
+    return _apply_layer(
+        path,
+        expected_kind=ManifestKind.PROJECT,
+        node_source=Source.PROJECT,
+        accumulated_nodes=accumulated_nodes,
+        accumulated_edges=accumulated_edges,
+        accumulated_relationships=accumulated_relationships,
+        platform_node_ids=platform_node_ids,
+    )
 
 
 def _validate_platform_pin(raw: dict[str, Any]) -> None:
-    """If the project pins a platform_manifest version_constraint, verify it
-    against the installed ``platform-manifest`` distribution."""
     pin = raw.get("platform_manifest")
     if pin is None:
         return
@@ -310,8 +279,6 @@ def _validate_platform_pin(raw: dict[str, Any]) -> None:
     try:
         installed = importlib_metadata.version("platform-manifest")
     except importlib_metadata.PackageNotFoundError:
-        # Tests sometimes run before install; if we can't find the
-        # distribution, skip the check rather than fail spuriously.
         return
     try:
         installed_v = Version(installed)
@@ -326,28 +293,15 @@ def _validate_platform_pin(raw: dict[str, Any]) -> None:
         )
 
 
-# ---------------------------------------------------------------------------
-# Work-scope layer (v0.9.0+)
-# ---------------------------------------------------------------------------
-
-
 def _apply_work_scope(
     path: Path,
     accumulated_nodes: dict[str, RepoNode],
     accumulated_edges: list[RepoEdge],
+    accumulated_relationships: list[OntologyRelationship],
     *,
     platform_node_ids: frozenset[str],
     max_depth: int = _DEFAULT_INCLUDE_DEPTH,
-) -> tuple[dict[str, RepoNode], list[RepoEdge]]:
-    """Apply a WorkScopeManifest's includes + own nodes/edges.
-
-    A WorkScopeManifest is the explicit multi-project composition layer.
-    Its ``includes:`` reference ProjectManifests (one per included project),
-    which contribute Source.PROJECT nodes/edges. The work-scope manifest's
-    own ``repos:`` and ``edges:`` (rare for repos, common for cross-suite
-    edges) carry Source.WORK_SCOPE provenance so impact analyses can tell
-    them apart from project-internal edges.
-    """
+) -> tuple[dict[str, RepoNode], list[RepoEdge], list[OntologyRelationship]]:
     raw = read_manifest_raw(path)
     validate_header(raw, expected_kind=ManifestKind.WORK_SCOPE, path=path)
     _validate_platform_pin(raw)
@@ -355,68 +309,27 @@ def _apply_work_scope(
     resolved = path.resolve()
     visited: frozenset[Path] = frozenset({resolved})
 
-    # Apply includes — each include is a ProjectManifest, recursing through
-    # _apply_project (which itself disallows includes via deprecation
-    # warning under v0.9 and will hard-fail under v1.0).
-    accumulated_nodes, accumulated_edges = _apply_includes(
-        raw, path,
+    accumulated_nodes, accumulated_edges, accumulated_relationships = _apply_includes(
+        raw,
+        path,
         accumulated_nodes,
         accumulated_edges,
+        accumulated_relationships,
         platform_node_ids=platform_node_ids,
         max_depth=max_depth,
         _visited=visited,
         _depth=1,
     )
 
-    # Parse this work-scope's own nodes (rare, usually empty) with
-    # WORK_SCOPE provenance so they're distinguishable from project nodes.
-    work_scope_nodes = parse_nodes(raw, source=Source.WORK_SCOPE)
-    work_scope_repo_ids = {n.repo_id for n in work_scope_nodes}
-
-    platform_collisions = work_scope_repo_ids & platform_node_ids
-    if platform_collisions:
-        raise RepoGraphConfigError(
-            f"WorkScopeManifest at {path} cannot redefine platform repo_id(s): "
-            f"{sorted(platform_collisions)}"
-        )
-    sibling_collisions = work_scope_repo_ids & (
-        set(accumulated_nodes.keys()) - platform_node_ids
+    return _apply_layer(
+        path,
+        expected_kind=ManifestKind.WORK_SCOPE,
+        node_source=Source.WORK_SCOPE,
+        accumulated_nodes=accumulated_nodes,
+        accumulated_edges=accumulated_edges,
+        accumulated_relationships=accumulated_relationships,
+        platform_node_ids=platform_node_ids,
     )
-    if sibling_collisions:
-        raise RepoGraphConfigError(
-            f"WorkScopeManifest at {path} cannot redefine repo_id(s) "
-            f"{sorted(sibling_collisions)} already declared by an included "
-            f"project"
-        )
-
-    union_name_to_id: dict[str, str] = {}
-    for node in (*accumulated_nodes.values(), *work_scope_nodes):
-        union_name_to_id[node.canonical_name.lower()] = node.repo_id
-        union_name_to_id[node.repo_id.lower()] = node.repo_id
-        for alias in node.legacy_names:
-            union_name_to_id[alias.lower()] = node.repo_id
-
-    work_scope_edges = parse_edges(
-        raw, name_to_id=union_name_to_id, source=Source.WORK_SCOPE
-    )
-
-    for edge in work_scope_edges:
-        if edge.src in platform_node_ids and edge.dst in platform_node_ids:
-            raise RepoGraphConfigError(
-                f"WorkScopeManifest at {path} cannot add platform-to-platform "
-                f"edge {edge.src} -> {edge.dst} ({edge.type.value})"
-            )
-
-    merged_nodes = dict(accumulated_nodes)
-    for node in work_scope_nodes:
-        merged_nodes[node.repo_id] = node
-
-    return merged_nodes, list(accumulated_edges) + list(work_scope_edges)
-
-
-# ---------------------------------------------------------------------------
-# Local layer
-# ---------------------------------------------------------------------------
 
 
 def _apply_local(
@@ -428,9 +341,7 @@ def _apply_local(
 
     repos_raw = raw.get("repos") or {}
     if not isinstance(repos_raw, dict):
-        raise RepoGraphConfigError(
-            f"LocalManifest at {path}: 'repos' must be a mapping"
-        )
+        raise RepoGraphConfigError(f"LocalManifest at {path}: 'repos' must be a mapping")
 
     annotated = dict(nodes)
     for repo_id, fields in repos_raw.items():
@@ -441,7 +352,7 @@ def _apply_local(
         if repo_id not in annotated:
             raise RepoGraphConfigError(
                 f"LocalManifest references unknown repo_id '{repo_id}'; "
-                f"local annotations may only attach to platform or project repos"
+                f"local annotations may only attach to platform, private, or project repos"
             )
         bad = set(fields.keys()) - LOCAL_ANNOTATION_FIELDS
         if bad:
@@ -500,22 +411,23 @@ def _annotate(node: RepoNode, fields: dict[str, Any]) -> RepoNode:
 def _expect_str(fields: dict[str, Any], key: str) -> str:
     val = fields[key]
     if not isinstance(val, str) or not val:
-        raise RepoGraphConfigError(
-            f"LocalManifest '{key}' must be a non-empty string"
-        )
+        raise RepoGraphConfigError(f"LocalManifest '{key}' must be a non-empty string")
     return val
 
 
-# ---------------------------------------------------------------------------
-# Edge dedup
-# ---------------------------------------------------------------------------
+def _build_name_index(nodes: tuple[RepoNode, ...] | list[RepoNode]) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for node in nodes:
+        out[node.canonical_name.lower()] = node.repo_id
+        out[node.repo_id.lower()] = node.repo_id
+        for alias in node.legacy_names:
+            out[alias.lower()] = node.repo_id
+        if node.public_alias:
+            out[node.public_alias.lower()] = node.repo_id
+    return out
 
 
 def _dedupe_edges(edges: list[RepoEdge]) -> list[RepoEdge]:
-    """Drop duplicates of (src, dst, type). First occurrence wins —
-    platform edges out-rank project edges with the same shape, which
-    matches the layering order. Different edge types between the same
-    pair are kept."""
     seen: set[tuple[str, str, str]] = set()
     out: list[RepoEdge] = []
     for edge in edges:
@@ -524,6 +436,19 @@ def _dedupe_edges(edges: list[RepoEdge]) -> list[RepoEdge]:
             continue
         seen.add(key)
         out.append(edge)
+    return out
+
+
+def _dedupe_relationships(
+    relationships: list[OntologyRelationship],
+) -> list[OntologyRelationship]:
+    seen: set[str] = set()
+    out: list[OntologyRelationship] = []
+    for relationship in relationships:
+        if relationship.relationship_id in seen:
+            continue
+        seen.add(relationship.relationship_id)
+        out.append(relationship)
     return out
 
 

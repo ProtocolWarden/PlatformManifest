@@ -1,0 +1,127 @@
+{
+  "overall_status": "WARN",
+  "generated_on": "2026-05-11",
+  "findings": [
+    {
+      "finding_id": "PMVFY-001",
+      "repo": "PlatformManifest",
+      "phase": "Phase 1",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Ontology and boundary ownership must be explicit in docs.",
+      "observed": "Architecture docs explicitly assign ownership to PlatformManifest, CxRP, RxP, OperationsCenter, ExecutorRuntime, WorkStation, VideoFoundry, and Custodian.",
+      "expected": "No ambiguous or overlapping ownership language.",
+      "recommendation": "Keep docs and ownership tests in sync when roles evolve."
+    },
+    {
+      "finding_id": "PMVFY-002",
+      "repo": "CxRP",
+      "phase": "Phase 2",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "CxRP owns execution/routing contract semantics.",
+      "observed": "CxRP still defines TaskProposal, LaneDecision, ExecutionRequest, ExecutionResult, RuntimeBinding, and CapabilitySet in its own repo.",
+      "expected": "Execution/routing contracts live in CxRP, not PlatformManifest.",
+      "recommendation": "Continue referencing these from PlatformManifest rather than duplicating them."
+    },
+    {
+      "finding_id": "PMVFY-003",
+      "repo": "RxP",
+      "phase": "Phase 2",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "RxP owns runtime invocation semantics.",
+      "observed": "RxP still defines RuntimeInvocation and RuntimeResult in its own repo.",
+      "expected": "Runtime invocation contracts live in RxP, not PlatformManifest.",
+      "recommendation": "Keep invocation and transport semantics owned in RxP."
+    },
+    {
+      "finding_id": "PMVFY-004",
+      "repo": "PlatformManifest",
+      "phase": "Phase 3",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Private manifest kind must exist in model and schema surface.",
+      "observed": "ManifestKind.PRIVATE, private_manifest.schema.json, and private-manifest composition support are implemented.",
+      "expected": "A first-class private-manifest shape distinct from project scope.",
+      "recommendation": "Keep new private-manifest fixtures and docs aligned with the implementation."
+    },
+    {
+      "finding_id": "PMVFY-005",
+      "repo": "PlatformManifest",
+      "phase": "Phase 3",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Ontology relationships must support the requested relationship vocabulary.",
+      "observed": "OntologyRelationshipKind, OntologyRelationship, relationship schemas, and RepoGraph relationship queries are implemented.",
+      "expected": "Query-capable ontology relationship kinds must be model-visible and schema-visible.",
+      "recommendation": "Preserve relationship query coverage as new kinds are added."
+    },
+    {
+      "finding_id": "PMVFY-006",
+      "repo": "PlatformManifest",
+      "phase": "Phase 3",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Entity and relationship models should explicitly represent projection metadata.",
+      "observed": "Projection metadata fields exist on RepoNode and OntologyRelationship and are used by to_public_manifest_dict.",
+      "expected": "Explicit projection metadata fields and fail-closed semantics.",
+      "recommendation": "Keep projection behavior modeled explicitly rather than migrating it back into ad hoc metadata."
+    },
+    {
+      "finding_id": "PMVFY-007",
+      "repo": "PlatformManifest",
+      "phase": "Phase 4",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Public manifests must be safe projections of private or effective input.",
+      "observed": "Projection tests prove stripping of private nodes, private-only relationships, local fields, and non-public projection behavior.",
+      "expected": "Deterministic, safe public projection.",
+      "recommendation": "Keep these tests as a release gate."
+    },
+    {
+      "finding_id": "PMVFY-008",
+      "repo": "PlatformManifest",
+      "phase": "Phase 4",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "Public publication should not bypass projection validation accidentally.",
+      "observed": "project-public always validates, and unsafe generation moved to a separate project-public-unsafe command with an explicit warning.",
+      "expected": "No silent validation bypass on the normal publication path.",
+      "recommendation": "Keep release and publication workflows on project-public only."
+    },
+    {
+      "finding_id": "PMVFY-009",
+      "repo": "PlatformManifest/Custodian",
+      "phase": "Phase 5",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "PlatformManifest should own PMV-specific policy logic; Custodian should own runtime and reporting interfaces.",
+      "observed": "PlatformManifest still exports the PMV detector contributor, and Custodian still loads it through a generic contributor target.",
+      "expected": "Plugin/native detector ownership split with stable PMV rule IDs.",
+      "recommendation": "Keep PMV semantics versioned in PlatformManifest."
+    },
+    {
+      "finding_id": "PMVFY-010",
+      "repo": "OperationsCenter",
+      "phase": "Phase 6",
+      "severity": "low",
+      "status": "PASS",
+      "invariant": "OperationsCenter must consume PlatformManifest without owning ontology.",
+      "observed": "OC repo_graph_factory still uses the bundled platform base and only layers project, work-scope, and local overlays.",
+      "expected": "OC remains a topology and visibility consumer and orchestration owner only.",
+      "recommendation": "Keep manifest parsing centralized in repo_graph_factory."
+    },
+    {
+      "finding_id": "PMVFY-011",
+      "repo": "OperationsCenter",
+      "phase": "Cross-Phase",
+      "severity": "medium",
+      "status": "KNOWN_LEGACY",
+      "invariant": "Semantic duplication across PlatformManifest, CxRP, RxP, and OperationsCenter should remain bounded.",
+      "observed": "OperationsCenter still defines internal TaskProposal, LaneDecision, ExecutionRequest, and ExecutionResult models and maps them to or from protocol repos.",
+      "expected": "No accidental drift between internal OC models and protocol-owner repos.",
+      "recommendation": "Treat OC contract mirrors as a managed compatibility layer and keep mapper and schema drift tests strong."
+    }
+  ]
+}

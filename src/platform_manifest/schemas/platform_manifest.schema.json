@@ -28,22 +28,93 @@
     "edges": {
       "type": "array",
       "items": { "$ref": "#/$defs/Edge" }
+    },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/PublicRelationship" }
     }
   },
   "$defs": {
+    "Visibility": {
+      "type": "string",
+      "enum": ["public"]
+    },
+    "ProjectionBehavior": {
+      "type": "string",
+      "enum": ["public_safe", "redacted_public_stub"]
+    },
+    "EntityKind": {
+      "type": "string",
+      "enum": [
+        "Repository",
+        "Project",
+        "ManagedProject",
+        "ManagedRepository",
+        "PublicRepository",
+        "PrivateRepository",
+        "ProtocolRepository",
+        "ArtifactProducer",
+        "DeploymentLayer",
+        "ExecutionBackend",
+        "Manifest",
+        "Artifact",
+        "Run",
+        "Audit",
+        "Evidence",
+        "Binding",
+        "VisibilityPolicy",
+        "ProjectionRule",
+        "RedactionRule",
+        "MirrorRelationship",
+        "SupersetRelationship"
+      ]
+    },
+    "RelationshipKind": {
+      "type": "string",
+      "enum": [
+        "projects_to",
+        "redacts_from",
+        "implements",
+        "documents",
+        "orchestrates",
+        "deploys",
+        "hosts",
+        "references_schema_from",
+        "manages",
+        "produces_artifacts_for",
+        "consumes_manifest_from",
+        "validates_with",
+        "loads_plugin_from"
+      ]
+    },
     "PublicRepoNode": {
       "type": "object",
       "required": ["canonical_name", "visibility"],
       "additionalProperties": false,
       "properties": {
         "canonical_name": { "type": "string", "minLength": 1 },
-        "visibility": { "type": "string", "const": "public" },
+        "visibility": { "$ref": "#/$defs/Visibility" },
         "legacy_names": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
         },
         "github_url": { "type": "string", "format": "uri" },
-        "runtime_role": { "type": "string", "minLength": 1 }
+        "runtime_role": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/EntityKind" },
+        "owner": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "projection_policy": { "type": "string", "minLength": 1 },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "public_alias": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/PublicMetadata" }
+      }
+    },
+    "PublicMetadata": {
+      "type": "object",
+      "description": "Public-safe descriptive metadata. Private/internal fields belong in private manifests or local manifests and must be projected/redacted before publication.",
+      "additionalProperties": {
+        "type": ["string", "integer", "number", "boolean"]
       }
     },
     "Edge": {
@@ -62,6 +133,22 @@
             "bundles_assets_from"
           ]
         }
+      }
+    },
+    "PublicRelationship": {
+      "type": "object",
+      "required": ["id", "source", "target", "kind", "visibility", "projection_behavior"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/RelationshipKind" },
+        "visibility": { "$ref": "#/$defs/Visibility" },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "policy_ref": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/PublicMetadata" }
       }
     }
   }

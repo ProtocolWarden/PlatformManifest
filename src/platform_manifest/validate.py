@@ -70,6 +70,7 @@ class ValidationReport:
 
 _SCHEMA_FILES: dict[ManifestKind, str] = {
     ManifestKind.PLATFORM: "platform_manifest.schema.json",
+    ManifestKind.PRIVATE: "private_manifest.schema.json",
     ManifestKind.PROJECT: "project_manifest.schema.json",
     ManifestKind.WORK_SCOPE: "work_scope_manifest.schema.json",
     ManifestKind.LOCAL: "local_manifest.schema.json",
@@ -129,6 +130,8 @@ def validate_manifest(
 
     # Stage 2: Python loader.
     # - PLATFORM: standalone loader (it's the base; no cross-layer refs).
+    # - PRIVATE:  compose against the bundled platform base (or override)
+    #             so private refs to public platform nodes resolve.
     # - PROJECT:  compose against the bundled platform base (or
     #             against_platform override) so project edges referencing
     #             platform nodes resolve correctly.
@@ -136,6 +139,11 @@ def validate_manifest(
     if not issues:
         if detected is ManifestKind.PLATFORM:
             loader_issue = _validate_via_loader(path, kind=detected)
+            if loader_issue is not None:
+                issues.append(loader_issue)
+        elif detected is ManifestKind.PRIVATE:
+            base = against_platform or default_config_path()
+            loader_issue = _validate_private_in_composition(path, base=base)
             if loader_issue is not None:
                 issues.append(loader_issue)
         elif detected is ManifestKind.PROJECT:
@@ -249,6 +257,18 @@ def _validate_project_in_composition(
     """Compose project against the platform base to validate cross-layer refs."""
     try:
         load_effective_graph(base, project=path)
+    except RepoGraphConfigError as exc:
+        return ValidationIssue(severity="loader", message=str(exc))
+    return None
+
+
+def _validate_private_in_composition(
+    path: Path,
+    *,
+    base: Path,
+) -> ValidationIssue | None:
+    try:
+        load_effective_graph(base, private=path)
     except RepoGraphConfigError as exc:
         return ValidationIssue(severity="loader", message=str(exc))
     return None

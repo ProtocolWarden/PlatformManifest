@@ -173,6 +173,34 @@ Could this file be open-sourced without leaking private information?
 
 If no, verification fails.
 
+### Projection helper
+
+`to_public_manifest_dict(graph)` emits a public PlatformManifest-shaped
+dictionary from an EffectiveRepoGraph. It keeps only public nodes,
+public-to-public edges, and schema-allowed public fields. Local annotations
+and private project details have no output slot.
+
+The `platform-manifest project-public` CLI wraps the same helper:
+
+```bash
+platform-manifest project-public \
+  --project path/to/project_manifest.yaml \
+  --local path/to/local_manifest.yaml \
+  --output public_manifest.json
+```
+
+By default the command validates generated output against the public
+PlatformManifest schema.
+
+### Projection tests
+
+* Private project nodes are absent from public projections.
+* Edges touching private nodes are absent from public projections.
+* Local-only fields such as `local_path`, `env_file`, and `runtime_hints`
+  are absent from public projections.
+* Private URLs and internal paths are absent from public projections.
+* Generated public projections validate as `manifest_kind: platform`.
+
 ---
 
 ## V4 — ProjectManifest Attachment Rules
@@ -413,6 +441,8 @@ Consumer repos:
 * `importlib.resources.files("platform_manifest.schemas")` can locate schemas.
 * CI fails on malformed manifest.
 * CI fails on private node in PlatformManifest.
+* CI proves public projection output validates against the PlatformManifest
+  schema.
 
 ---
 
@@ -439,6 +469,33 @@ Consumer repos:
 * Wrong expected kind fails.
 * Malformed YAML fails.
 * Schema violation fails.
+
+---
+
+## V11a — Public Projection CLI
+
+### Requirement
+
+`platform-manifest project-public` must derive public output from composed
+private/effective input instead of requiring separately authored public
+manifests.
+
+### Expected behavior
+
+* Accepts `--project` or `--work-scope`, mutually exclusive by composition
+  rules.
+* Accepts `--local` to prove local fields are dropped.
+* Emits JSON to stdout by default.
+* Writes JSON to `--output` when provided.
+* Validates generated output by default.
+* Exits `2` for composition errors.
+
+### Tests
+
+* Private node names and private URLs do not appear in CLI output.
+* Local paths and env files do not appear in CLI output.
+* Output file mode writes valid JSON.
+* Invalid private/effective input exits with a composition error.
 
 ---
 
@@ -553,6 +610,44 @@ OC ships a static denylist at `tools/boundary/switchboard_denylist.py` that scan
 * WorkStation returns local manifest path or `None` — no YAML parsing.
 * OperationsCenter consumes returned path.
 * WorkStation does not merge manifests.
+
+---
+
+## V14a — Custodian Visibility Policy Descriptor
+
+### Requirement
+
+PlatformManifest must provide Custodian with stable detector inputs without
+owning Custodian's detector implementation.
+
+### Expected behavior
+
+`platform-manifest custodian-policy` emits JSON containing:
+
+```text
+policy_owner
+policy
+unknown_visibility
+unknown_field_policy
+forbidden_public_fields
+checks[]
+```
+
+### Tests
+
+* Policy owner is `PlatformManifest`.
+* Unknown visibility is declared as private.
+* Unknown field policy is declared as drop.
+* Forbidden public fields include private URLs, internal paths, private
+  bindings, private artifact locations, restricted relationship edges, and
+  runtime hints.
+* Check IDs include private repo name detection and relationship projection
+  policy validation.
+* Custodian PMV detectors fail a leaky public manifest and pass a clean
+  public projection.
+* The PMV detector implementation is contributed by PlatformManifest via
+  `platform_manifest.custodian_native:build_custodian_detectors`, not owned by
+  Custodian core.
 
 ---
 

@@ -1,0 +1,62 @@
+{
+  "overall_status": "WARN",
+  "checks": [
+    {
+      "finding_id": "BDR-001",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "PlatformManifest must not absorb CxRP schemas.",
+      "observed": "PlatformManifest continues to reference CxRP ownership and does not copy execution or routing schemas into its own model surface.",
+      "expected": "Reference only, no schema ownership."
+    },
+    {
+      "finding_id": "BDR-002",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "PlatformManifest must not absorb RxP schemas.",
+      "observed": "PlatformManifest continues to reference RuntimeInvocation and RuntimeResult semantics as RxP-owned only.",
+      "expected": "Reference only, no runtime schema ownership."
+    },
+    {
+      "finding_id": "BDR-003",
+      "repo": "OperationsCenter",
+      "status": "PASS",
+      "invariant": "OperationsCenter must not own platform ontology.",
+      "observed": "repo_graph_factory still consumes the bundled PlatformManifest base and returns RepoGraph or None only.",
+      "expected": "Consumption boundary only."
+    },
+    {
+      "finding_id": "BDR-004",
+      "repo": "OperationsCenter",
+      "status": "PASS",
+      "invariant": "VideoFoundry must remain separately managed.",
+      "observed": "Docs explicitly keep VideoFoundry external and no VideoFoundry code imports are introduced by this remediation.",
+      "expected": "Managed project, not OC subsystem."
+    },
+    {
+      "finding_id": "BDR-005",
+      "repo": "OperationsCenter",
+      "status": "PASS",
+      "invariant": "ExecutorRuntime and WorkStation must not collapse conceptually.",
+      "observed": "Docs and runtime boundaries still distinguish invocation from hosting and deployment.",
+      "expected": "Clear runtime-versus-hosting split."
+    },
+    {
+      "finding_id": "BDR-006",
+      "repo": "Custodian",
+      "status": "PASS",
+      "invariant": "Custodian must not become PlatformManifest ontology owner.",
+      "observed": "Custodian still loads PlatformManifest-owned PMV detectors via a contributor target rather than embedding detector logic.",
+      "expected": "Generic detector runtime only."
+    },
+    {
+      "finding_id": "BDR-007",
+      "repo": "OperationsCenter",
+      "status": "KNOWN_LEGACY",
+      "invariant": "No repo should drift toward god-repo behavior through protocol duplication.",
+      "observed": "OC still maintains internal contract mirrors mapped to or from CxRP and RxP.",
+      "expected": "Compatibility mirrors remain tightly tested and bounded.",
+      "recommendation": "Keep mapper and schema drift coverage explicit."
+    }
+  ]
+}

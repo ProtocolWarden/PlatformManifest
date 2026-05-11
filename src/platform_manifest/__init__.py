@@ -6,6 +6,7 @@ Treats repos as graph nodes with canonical identity + legacy-name resolution
 + direct upstream/downstream queries. Three trust slots:
 
     PlatformManifest  — public, reusable
+    PrivateManifest   — private platform superset
     ProjectManifest   — one project using the platform
     LocalManifest     — one machine's wiring for one project
 
@@ -22,16 +23,26 @@ Public API:
 """
 
 from .composition import load_effective_graph
+from .custodian import (
+    PUBLIC_FORBIDDEN_FIELDS,
+    PUBLIC_PROJECTION_CHECKS,
+    custodian_policy_manifest,
+)
 from .loader import (
     default_config_path,
     load_default_repo_graph,
     load_repo_graph,
 )
 from .models import (
+    EntityKind,
     EffectiveRepoGraph,
     LOCAL_ANNOTATION_FIELDS,
     ManifestHeader,
     ManifestKind,
+    OntologyRelationship,
+    OntologyRelationshipKind,
+    PrivateManifest,
+    ProjectionBehavior,
     RepoEdge,
     RepoEdgeType,
     RepoGraph,
@@ -40,12 +51,21 @@ from .models import (
     Source,
     Visibility,
 )
+from .projection import to_public_manifest_dict
+from .custodian_native import build_custodian_detectors
 
 __all__ = [
     "EffectiveRepoGraph",
+    "EntityKind",
     "LOCAL_ANNOTATION_FIELDS",
     "ManifestHeader",
     "ManifestKind",
+    "OntologyRelationship",
+    "OntologyRelationshipKind",
+    "PrivateManifest",
+    "ProjectionBehavior",
+    "PUBLIC_FORBIDDEN_FIELDS",
+    "PUBLIC_PROJECTION_CHECKS",
     "RepoEdge",
     "RepoEdgeType",
     "RepoGraph",
@@ -57,4 +77,7 @@ __all__ = [
     "load_default_repo_graph",
     "load_effective_graph",
     "load_repo_graph",
+    "custodian_policy_manifest",
+    "build_custodian_detectors",
+    "to_public_manifest_dict",
 ]

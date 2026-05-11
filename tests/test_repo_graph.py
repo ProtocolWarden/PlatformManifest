@@ -91,6 +91,7 @@ class TestModelBuild:
     def test_visibility_default_is_public(self) -> None:
         node = RepoNode(repo_id="a", canonical_name="A")
         assert node.visibility is Visibility.PUBLIC
+        assert node.kind == "Repository"
 
 
 # ---------------------------------------------------------------------------
@@ -234,6 +235,52 @@ class TestLoader:
         g = load_repo_graph(cfg)
         assert {n.repo_id for n in g.list_nodes()} == {"oc", "cx"}
         assert g.affected_by_contract_change("cx")[0].canonical_name == "OperationsCenter"
+
+    def test_loads_optional_ontology_fields(self, tmp_path: Path) -> None:
+        cfg = tmp_path / "g.yaml"
+        cfg.write_text(
+            _platform_yaml(
+                "repos:\n"
+                "  oc:\n"
+                "    canonical_name: OperationsCenter\n"
+                "    visibility: public\n"
+                "    kind: Repository\n"
+                "    owner: ProtocolWarden\n"
+                "    scope: platform\n"
+                "    metadata:\n"
+                "      documentation_url: https://github.com/ProtocolWarden/OperationsCenter\n"
+                "      public_contract_surface: true\n"
+                "edges: []\n"
+            ),
+            encoding="utf-8",
+        )
+        graph = load_repo_graph(cfg)
+        node = graph.resolve("OperationsCenter")
+        assert node is not None
+        assert node.kind == "Repository"
+        assert node.owner == "ProtocolWarden"
+        assert node.scope == "platform"
+        assert dict(node.metadata) == {
+            "documentation_url": "https://github.com/ProtocolWarden/OperationsCenter",
+            "public_contract_surface": True,
+        }
+
+    def test_metadata_rejects_nested_contract_schema_copy(self, tmp_path: Path) -> None:
+        cfg = tmp_path / "g.yaml"
+        cfg.write_text(
+            _platform_yaml(
+                "repos:\n"
+                "  cx:\n"
+                "    canonical_name: CxRP\n"
+                "    visibility: public\n"
+                "    metadata:\n"
+                "      copied_schema:\n"
+                "        ExecutionRequest: {}\n"
+            ),
+            encoding="utf-8",
+        )
+        with pytest.raises(RepoGraphConfigError, match="metadata\\[copied_schema\\]"):
+            load_repo_graph(cfg)
 
     def test_load_unknown_edge_type_rejected(self, tmp_path: Path) -> None:
         cfg = tmp_path / "g.yaml"

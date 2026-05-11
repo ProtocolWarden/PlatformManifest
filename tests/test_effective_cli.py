@@ -43,6 +43,9 @@ class TestEffectiveCLI:
         payload = json.loads(result.output)
         names = {n["canonical_name"] for n in payload["nodes"]}
         assert "OperationsCenter" in names
+        oc = next(n for n in payload["nodes"] if n["canonical_name"] == "OperationsCenter")
+        assert oc["kind"] == "Repository"
+        assert "metadata" in oc
         assert all(n["source"] == "platform" for n in payload["nodes"])
 
     def test_with_project_shows_private_node(self, tmp_path: Path) -> None:

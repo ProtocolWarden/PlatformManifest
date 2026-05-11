@@ -41,6 +41,17 @@ repos:
 edges: []
 """
 
+_PRIVATE_VALID = """\
+manifest_kind: private
+manifest_version: "1.0.0"
+repos:
+  vf:
+    canonical_name: VideoFoundry
+    visibility: private
+    kind: ManagedProject
+relationships: []
+"""
+
 _LOCAL_VALID = """\
 manifest_kind: local
 manifest_version: "1.0.0"
@@ -72,6 +83,11 @@ class TestValidManifests:
         report = validate_manifest(_write(tmp_path, "p.yaml", _PROJECT_VALID))
         assert report.ok, [i.message for i in report.issues]
         assert report.detected_kind is ManifestKind.PROJECT
+
+    def test_valid_private(self, tmp_path: Path) -> None:
+        report = validate_manifest(_write(tmp_path, "p.yaml", _PRIVATE_VALID))
+        assert report.ok, [i.message for i in report.issues]
+        assert report.detected_kind is ManifestKind.PRIVATE
 
     def test_valid_local(self, tmp_path: Path) -> None:
         report = validate_manifest(_write(tmp_path, "p.yaml", _LOCAL_VALID))
@@ -131,6 +147,47 @@ class TestSchemaFailures:
         assert not report.ok
         assert any("public" in i.message.lower() or "constant" in i.message.lower() for i in report.issues)
 
+    def test_public_manifest_rejects_private_projection_fields(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(tmp_path, "p.yaml",
+                'manifest_kind: platform\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  vf:\n'
+                '    canonical_name: VideoFoundry\n'
+                '    visibility: public\n'
+                '    private_url: https://github.com/private/video-foundry\n'
+                '    internal_path: /home/dev/private/VideoFoundry\n'
+                '    private_bindings: secret-runtime\n'
+            )
+        )
+        assert not report.ok
+        assert any(
+            field in str(issue.to_dict())
+            for issue in report.issues
+            for field in ("private_url", "internal_path", "private_bindings")
+        )
+
+    def test_project_manifest_accepts_private_ontology_metadata(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(tmp_path, "p.yaml",
+                'manifest_kind: project\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  video_foundry:\n'
+                '    canonical_name: VideoFoundry\n'
+                '    visibility: private\n'
+                '    kind: ManagedProject\n'
+                '    owner: ProtocolWarden\n'
+                '    scope: managed_project\n'
+                '    metadata:\n'
+                '      reference_testbed: true\n'
+                '      public_projection: VideoFoundryPublic\n'
+                'edges: []\n'
+            )
+        )
+        assert report.ok, [i.to_dict() for i in report.issues]
+
     def test_local_with_canonical_name_rejected_by_schema(self, tmp_path: Path) -> None:
         report = validate_manifest(
             _write(tmp_path, "p.yaml",
@@ -173,6 +230,74 @@ class TestSchemaFailures:
         )
         assert not report.ok
         assert any("YAML" in i.message for i in report.issues)
+
+    def test_platform_relationship_missing_visibility_rejected(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(
+                tmp_path,
+                "p.yaml",
+                'manifest_kind: platform\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
+                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                'relationships:\n'
+                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, projection_behavior: public_safe}\n',
+            )
+        )
+        assert not report.ok
+        assert any("visibility" in str(i.to_dict()) for i in report.issues)
+
+    def test_platform_relationship_missing_projection_behavior_rejected(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(
+                tmp_path,
+                "p.yaml",
+                'manifest_kind: platform\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
+                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                'relationships:\n'
+                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: public}\n',
+            )
+        )
+        assert not report.ok
+        assert any("projection_behavior" in str(i.to_dict()) for i in report.issues)
+
+    def test_platform_relationship_unknown_visibility_rejected(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(
+                tmp_path,
+                "p.yaml",
+                'manifest_kind: platform\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
+                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                'relationships:\n'
+                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: bogus, projection_behavior: public_safe}\n',
+            )
+        )
+        assert not report.ok
+        assert any("visibility" in str(i.to_dict()) for i in report.issues)
+
+    def test_platform_relationship_unknown_projection_behavior_rejected(self, tmp_path: Path) -> None:
+        report = validate_manifest(
+            _write(
+                tmp_path,
+                "p.yaml",
+                'manifest_kind: platform\n'
+                'manifest_version: "1.0.0"\n'
+                'repos:\n'
+                '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
+                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                'relationships:\n'
+                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: public, projection_behavior: bogus}\n',
+            )
+        )
+        assert not report.ok
+        assert any("projection_behavior" in str(i.to_dict()) for i in report.issues)
 
 
 # ---------------------------------------------------------------------------

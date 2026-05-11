@@ -22,6 +22,8 @@ from rich.table import Table
 
 from .loader import default_config_path, load_repo_graph
 from .models import ManifestKind, RepoGraphConfigError
+from .projection import to_public_manifest_dict
+from .custodian import custodian_policy_manifest
 from .validate import validate_manifest
 
 app = typer.Typer(help="Platform Manifest — repo map inspection.")
@@ -194,6 +196,9 @@ def effective_cmd(
     project: Path | None = typer.Option(
         None, "--project", help="Project manifest YAML path (mutually exclusive with --work-scope)."
     ),
+    private: Path | None = typer.Option(
+        None, "--private", help="Private manifest YAML path layered after the public platform base."
+    ),
     work_scope: Path | None = typer.Option(
         None, "--work-scope", help="WorkScopeManifest YAML path (mutually exclusive with --project)."
     ),
@@ -224,7 +229,7 @@ def effective_cmd(
     base_path = base or default_config_path()
     try:
         graph = load_effective_graph(
-            base_path, project=project, work_scope=work_scope, local=local
+            base_path, private=private, project=project, work_scope=work_scope, local=local
         )
     except RepoGraphConfigError as exc:
         _console.print(f"[red]composition error:[/red] {exc}")
@@ -234,6 +239,7 @@ def effective_cmd(
         payload: dict[str, object] = {
             "base": str(base_path),
             "project": str(project) if project else None,
+            "private": str(private) if private else None,
             "work_scope": str(work_scope) if work_scope else None,
             "local": str(local) if local else None,
             "nodes": [
@@ -241,10 +247,20 @@ def effective_cmd(
                     "repo_id": n.repo_id,
                     "canonical_name": n.canonical_name,
                     "visibility": n.visibility.value,
+                    "kind": n.kind,
+                    "owner": n.owner,
+                    "scope": n.scope,
                     "source": n.source.value,
                     "runtime_role": n.runtime_role,
                     "legacy_names": list(n.legacy_names),
                     "github_url": n.github_url,
+                    "metadata": dict(n.metadata),
+                    "projection_policy": n.projection_policy,
+                    "projection_behavior": n.projection_behavior.value,
+                    "public_alias": n.public_alias,
+                    "redaction_label": n.redaction_label,
+                    "private_binding_refs": list(n.private_binding_refs),
+                    "local_overlay_refs": list(n.local_overlay_refs),
                     "local_path": n.local_path,
                     "local_port": n.local_port,
                     "env_file": n.env_file,
@@ -258,6 +274,21 @@ def effective_cmd(
             "edges": [
                 {"from": e.src, "to": e.dst, "type": e.type.value, "source": e.source.value}
                 for e in graph.edges
+            ],
+            "relationships": [
+                {
+                    "id": r.relationship_id,
+                    "source": r.source_id,
+                    "target": r.target_id,
+                    "kind": r.kind.value,
+                    "visibility": r.visibility.value,
+                    "projection_behavior": r.projection_behavior.value,
+                    "policy_ref": r.policy_ref,
+                    "redaction_label": r.redaction_label,
+                    "metadata": dict(r.metadata),
+                    "source_manifest": r.source.value,
+                }
+                for r in graph.list_relationships()
             ],
         }
         typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
@@ -298,6 +329,139 @@ def effective_cmd(
     for edge in graph.edges:
         edges_table.add_row(edge.src, edge.dst, edge.type.value, edge.source.value)
     _console.print(edges_table)
+
+
+@app.command("project-public")
+def project_public_cmd(
+    private: Path | None = typer.Option(
+        None,
+        "--private",
+        help="Private manifest YAML path layered after the public platform base.",
+    ),
+    project: Path | None = typer.Option(
+        None,
+        "--project",
+        help="Project manifest YAML path (mutually exclusive with --work-scope).",
+    ),
+    work_scope: Path | None = typer.Option(
+        None,
+        "--work-scope",
+        help="WorkScopeManifest YAML path (mutually exclusive with --project).",
+    ),
+    local: Path | None = typer.Option(
+        None,
+        "--local",
+        help="Local manifest YAML path. Accepted to prove local fields are dropped.",
+    ),
+    base: Path | None = typer.Option(
+        None,
+        "--base",
+        help="Override the platform base; defaults to the bundled platform_manifest.yaml.",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write the projected public manifest JSON to this path instead of stdout.",
+    ),
+) -> None:
+    """Generate a public manifest projection from private/effective input.
+
+    This command always validates. Unsafe generation lives on the explicit
+    `project-public-unsafe` developer-only command.
+    """
+    from .composition import load_effective_graph
+
+    base_path = base or default_config_path()
+    try:
+        graph = load_effective_graph(
+            base_path, private=private, project=project, work_scope=work_scope, local=local
+        )
+    except RepoGraphConfigError as exc:
+        _console.print(f"[red]composition error:[/red] {exc}")
+        raise typer.Exit(code=2) from exc
+
+    projected = to_public_manifest_dict(graph)
+    rendered = json.dumps(projected, indent=2, ensure_ascii=False)
+    from tempfile import NamedTemporaryFile
+
+    with NamedTemporaryFile("w", encoding="utf-8", suffix=".json") as tmp:
+        tmp.write(rendered)
+        tmp.flush()
+        report = validate_manifest(Path(tmp.name), expected=ManifestKind.PLATFORM)
+    if not report.ok:
+        for issue in report.issues:
+            loc = f" at {issue.json_path}" if issue.json_path else ""
+            _console.print(f"  [{issue.severity}]{issue.message}{loc}")
+        raise typer.Exit(code=1)
+    if output is not None:
+        output.write_text(rendered + "\n", encoding="utf-8")
+    else:
+        typer.echo(rendered)
+
+
+@app.command("project-public-unsafe")
+def project_public_unsafe_cmd(
+    private: Path | None = typer.Option(
+        None,
+        "--private",
+        help="Private manifest YAML path layered after the public platform base.",
+    ),
+    project: Path | None = typer.Option(
+        None,
+        "--project",
+        help="Project manifest YAML path (mutually exclusive with --work-scope).",
+    ),
+    work_scope: Path | None = typer.Option(
+        None,
+        "--work-scope",
+        help="WorkScopeManifest YAML path (mutually exclusive with --project).",
+    ),
+    local: Path | None = typer.Option(
+        None,
+        "--local",
+        help="Local manifest YAML path. Accepted to prove local fields are dropped.",
+    ),
+    base: Path | None = typer.Option(
+        None,
+        "--base",
+        help="Override the platform base; defaults to the bundled platform_manifest.yaml.",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write the projected public manifest JSON to this path instead of stdout.",
+    ),
+) -> None:
+    """Developer-only unsafe public projection helper. Does not validate output."""
+    from .composition import load_effective_graph
+
+    _console.print(
+        "[yellow]warning:[/yellow] project-public-unsafe skips validation and "
+        "must not be used for release or publication workflows."
+    )
+    base_path = base or default_config_path()
+    try:
+        graph = load_effective_graph(
+            base_path, private=private, project=project, work_scope=work_scope, local=local
+        )
+    except RepoGraphConfigError as exc:
+        _console.print(f"[red]composition error:[/red] {exc}")
+        raise typer.Exit(code=2) from exc
+
+    projected = to_public_manifest_dict(graph)
+    rendered = json.dumps(projected, indent=2, ensure_ascii=False)
+    if output is not None:
+        output.write_text(rendered + "\n", encoding="utf-8")
+    else:
+        typer.echo(rendered)
+
+
+@app.command("custodian-policy")
+def custodian_policy_cmd() -> None:
+    """Emit the PlatformManifest visibility policy descriptor for Custodian."""
+    typer.echo(json.dumps(custodian_policy_manifest(), indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":

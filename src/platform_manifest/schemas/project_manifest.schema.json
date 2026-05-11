@@ -2,15 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/project_manifest.schema.json",
   "title": "ProjectManifest",
-  "description": "Manifest for one project that uses the platform. May contain public or private nodes.",
+  "description": "Manifest for one project slice that uses the platform. May contain public or non-public nodes.",
   "type": "object",
   "required": ["manifest_kind", "manifest_version"],
   "additionalProperties": false,
   "properties": {
-    "manifest_kind": {
-      "type": "string",
-      "const": "project"
-    },
+    "manifest_kind": { "type": "string", "const": "project" },
     "manifest_version": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
@@ -28,7 +25,7 @@
       "type": "object",
       "patternProperties": {
         "^[a-z][a-z0-9_]*$": {
-          "$ref": "#/$defs/ProjectRepoNode"
+          "$ref": "#/$defs/RepoNode"
         }
       },
       "additionalProperties": false
@@ -36,25 +33,106 @@
     "edges": {
       "type": "array",
       "items": { "$ref": "#/$defs/Edge" }
+    },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Relationship" }
     }
   },
   "$defs": {
-    "ProjectRepoNode": {
+    "Visibility": {
+      "type": "string",
+      "enum": ["public", "private", "internal", "restricted", "local"]
+    },
+    "ProjectionBehavior": {
+      "type": "string",
+      "enum": [
+        "public_safe",
+        "private_only",
+        "local_only",
+        "redact",
+        "redacted_public_stub",
+        "drop_from_public"
+      ]
+    },
+    "EntityKind": {
+      "type": "string",
+      "enum": [
+        "Repository",
+        "Project",
+        "ManagedProject",
+        "ManagedRepository",
+        "PublicRepository",
+        "PrivateRepository",
+        "ProtocolRepository",
+        "ArtifactProducer",
+        "DeploymentLayer",
+        "ExecutionBackend",
+        "Manifest",
+        "Artifact",
+        "Run",
+        "Audit",
+        "Evidence",
+        "Binding",
+        "VisibilityPolicy",
+        "ProjectionRule",
+        "RedactionRule",
+        "MirrorRelationship",
+        "SupersetRelationship"
+      ]
+    },
+    "RelationshipKind": {
+      "type": "string",
+      "enum": [
+        "projects_to",
+        "redacts_from",
+        "implements",
+        "documents",
+        "orchestrates",
+        "deploys",
+        "hosts",
+        "references_schema_from",
+        "manages",
+        "produces_artifacts_for",
+        "consumes_manifest_from",
+        "validates_with",
+        "loads_plugin_from"
+      ]
+    },
+    "RepoNode": {
       "type": "object",
       "required": ["canonical_name", "visibility"],
       "additionalProperties": false,
       "properties": {
         "canonical_name": { "type": "string", "minLength": 1 },
-        "visibility": {
-          "type": "string",
-          "enum": ["public", "private"]
-        },
+        "visibility": { "$ref": "#/$defs/Visibility" },
         "legacy_names": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
         },
         "github_url": { "type": "string", "format": "uri" },
-        "runtime_role": { "type": "string", "minLength": 1 }
+        "runtime_role": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/EntityKind" },
+        "owner": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "projection_policy": { "type": "string", "minLength": 1 },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "public_alias": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "private_binding_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "local_overlay_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "integer", "number", "boolean"]
+          }
+        }
       }
     },
     "Edge": {
@@ -72,6 +150,27 @@
             "routes_through",
             "bundles_assets_from"
           ]
+        }
+      }
+    },
+    "Relationship": {
+      "type": "object",
+      "required": ["id", "source", "target", "kind", "visibility", "projection_behavior"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/RelationshipKind" },
+        "visibility": { "$ref": "#/$defs/Visibility" },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "policy_ref": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["string", "integer", "number", "boolean"]
+          }
         }
       }
     }

@@ -123,6 +123,15 @@ platform-manifest effective \
     --work-scope path/to/work_scope_manifest.yaml \
     --local      path/to/local_manifest.yaml
 platform-manifest effective --json   # machine-readable
+
+# Generate a public-safe projection from private/effective input.
+platform-manifest project-public \
+    --project path/to/project_manifest.yaml \
+    --local   path/to/local_manifest.yaml \
+    --output  public_manifest.json
+
+# Emit the visibility policy descriptor Custodian can scan against.
+platform-manifest custodian-policy
 ```
 
 CI-friendly: exit 0 = clean, 1 = validation failed, 2 = bad invocation.

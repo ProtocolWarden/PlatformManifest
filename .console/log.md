@@ -68,3 +68,9 @@ AGPL-3.0-or-later).
 ## 2026-05-10 — Custodian pre-push command resolution
 
 - Updated the pre-push guard to prefer system `custodian-multi`, with repo venv and sibling Custodian venv fallbacks.
+
+## 2026-05-11 — Phase 3 ontology and relationship fail-closed remediation
+
+- Added first-class `PrivateManifest` support, ontology relationships, and explicit projection metadata in the PlatformManifest model and schema surface.
+- Hardened public projection so the safe publication command always validates before producing final output, with unsafe generation split onto an explicit dev-only command.
+- Extended PlatformManifest-owned PMV detection so relationship-level projection violations are enforced alongside legacy edge checks.
