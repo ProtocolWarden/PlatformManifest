@@ -28,8 +28,9 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from .composition import load_effective_graph
+from .errors import RepoGraphConfigError
 from .loader import default_config_path, load_repo_graph
-from .models import ManifestKind, RepoGraphConfigError
+from .models import ManifestKind
 
 
 @dataclass(frozen=True)

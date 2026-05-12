@@ -13,8 +13,8 @@ not a runtime registry and not a protocol-schema repository.
 | OperationsCenter | Governance, validation, orchestration, enforcement. |
 | SwitchBoard | Lane and runtime recommendation. |
 | ExecutorRuntime | Runtime backend/driver used by OperationsCenter. |
-| WorkStation | Deployment and hosting layer for runtime environments. |
-| VideoFoundry | Managed project, artifact producer, and reference testbed. |
+| PlatformDeployment | Deployment and hosting layer for runtime environments. |
+| Managed private project | Example managed project and artifact producer. |
 | SourceFoundry | Source/corpus producer. |
 | Intelligencer | Signal interpretation and proposals. |
 | Custodian | Privacy and hygiene detectors. |
@@ -29,8 +29,8 @@ graph TD
     OC[OperationsCenter\nGovernance + Orchestration]
     SB[SwitchBoard\nLane/Runtime Recommendation]
     ER[ExecutorRuntime\nOC Backend Runtime Driver]
-    WS[WorkStation\nDeployment + Hosting Layer]
-    VF[VideoFoundry\nManaged Project + Artifact Producer]
+    WS[PlatformDeployment\nDeployment + Hosting Layer]
+    MP[Managed Private Project\nArtifact Producer]
     SF[SourceFoundry\nSource/Corpus Producer]
     INT[Intelligencer\nSignal Interpretation + Proposals]
     CUST[Custodian\nPrivacy + Hygiene Detectors]
@@ -48,9 +48,9 @@ graph TD
     OC -->|invokes via| ER
     ER -->|runs targets hosted by| WS
 
-    OC -->|manages as external project| VF
-    VF -->|artifact manifests / reports| OC
-    SF -->|SourceCorpus / SignalCorpus| VF
+    OC -->|manages as external project| MP
+    MP -->|artifact manifests / reports| OC
+    SF -->|SourceCorpus / SignalCorpus| MP
     SF -->|SignalCorpus| INT
 ```
 
@@ -66,8 +66,8 @@ sequenceDiagram
     participant PM as PlatformManifest
     participant SB as SwitchBoard
     participant ER as ExecutorRuntime
-    participant WS as WorkStation
-    participant VF as VideoFoundry
+    participant WS as PlatformDeployment
+    participant MP as ManagedProject
     participant CUST as Custodian
 
     INT->>OC: TaskProposal / SpecProposal
@@ -78,8 +78,8 @@ sequenceDiagram
     OC->>OC: Bind RuntimeBinding + CapabilitySet
     OC->>ER: Runtime invocation request using RxP semantics
     ER->>WS: Invoke configured runtime target
-    WS->>VF: Run audit/workflow command
-    VF-->>WS: Artifacts + artifact_manifest.json
+    WS->>MP: Run audit/workflow command
+    MP-->>WS: Artifacts + artifact_manifest.json
     WS-->>ER: Runtime result
     ER-->>OC: Normalized runtime result
     OC->>PM: Index/update manifest references
@@ -98,11 +98,10 @@ SwitchBoard can consume repo context as input for lane/runtime
 recommendation, but it does not own manifest loading, merging, runtime
 dispatch, or project wiring.
 
-WorkStation may expose deployment and hosting information such as local
+PlatformDeployment may expose deployment and hosting information such as local
 runtime availability or configured target location. It must not own
 PlatformManifest, ProjectManifest, or orchestration policy.
 
-VideoFoundry fits as an external managed project and reference testbed for
-OperationsCenter contracts. It can demonstrate artifact production, audit
-workflows, and manifest consumption without becoming part of the
-OperationsCenter codebase.
+Managed private projects stay external to orchestration consumers. They can
+demonstrate artifact production, audit workflows, and manifest consumption
+without becoming part of the OperationsCenter codebase.

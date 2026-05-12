@@ -13,11 +13,11 @@ verification specs and design notes.
   Private superset to public projection semantics, redaction behavior, and
   projection test plan.
 - [architecture/platform_topology.md](architecture/platform_topology.md) —
-  Platform repo topology, OperationsCenter consumption, VideoFoundry as a
-  managed project, and execution timeline.
+  Platform repo topology, OperationsCenter consumption, managed-project
+  participation, and execution timeline.
 - [architecture/visibility_boundary.md](architecture/visibility_boundary.md) —
   Visibility boundary between PlatformManifest, Custodian, OperationsCenter,
-  ExecutorRuntime, and WorkStation.
+  ExecutorRuntime, and PlatformDeployment.
 - [architecture/vocabulary_audit.md](architecture/vocabulary_audit.md) —
   Classification of current manifest vocabulary as ontology-level,
   visibility-related, projection-related, implementation-specific, or owned

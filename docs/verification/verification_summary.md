@@ -1,7 +1,7 @@
 # Verification Summary
 
 **Date:** 2026-05-11  
-**Scope:** PlatformManifest, PrivateManifest, VideoFoundry, Custodian, OperationsCenter, CxRP, RxP  
+**Scope:** PlatformManifest, PrivateManifest, managed private project, Custodian, OperationsCenter, CxRP, RxP  
 **Overall status:** `PASS`
 
 The ontology and visibility expansion is now complete across model, data, and
@@ -10,7 +10,7 @@ consumer boundaries.
 The remaining gaps from the earlier remediation cycle are closed:
 
 - `PrivateManifest` now exists as a dedicated repository for private topology data.
-- VideoFoundry private topology now lives in `PrivateManifest`, not as a repo-local
+- managed private project private topology now lives in `PrivateManifest`, not as a repo-local
   private-topology special case.
 - Platform/public, private, project, work-scope, and local manifest shapes are now
   explicit and layered.
@@ -40,21 +40,21 @@ The remaining gaps from the earlier remediation cycle are closed:
 
 Evidence:
 - [PrivateManifest README](../../../../PrivateManifest/README.md)
-- [VideoFoundry private manifest](../../../../PrivateManifest/manifests/videofoundry/private_manifest.yaml)
+- [managed private project private manifest](../../../../PrivateManifest/manifests/managed-private-project/private_manifest.yaml)
 - [PrivateManifest validation workflow](../../../../PrivateManifest/.github/workflows/validate.yml)
 
 `PrivateManifest` is now a separate repository that owns private topology data
 files. PlatformManifest still owns the private-manifest shape, schema, loader,
 composition, and visibility semantics.
 
-### `PASS` — VideoFoundry moved under the private-manifest layer
+### `PASS` — managed private project moved under the private-manifest layer
 
 Evidence:
-- [VideoFoundry private manifest](../../../../PrivateManifest/manifests/videofoundry/private_manifest.yaml)
-- [VideoFoundry project manifest shim](../../../../VideoFoundry/topology/project_manifest.yaml)
-- [VideoFoundry local manifest example](../../../../VideoFoundry/topology/local_manifest.example.yaml)
+- [managed private project private manifest](../../../../PrivateManifest/manifests/managed-private-project/private_manifest.yaml)
+- [managed private project project manifest shim](../../../../managed private project/topology/project_manifest.yaml)
+- [managed private project local manifest example](../../../../managed private project/topology/local_manifest.example.yaml)
 
-VideoFoundry is now represented as one managed private project within the
+managed private project is now represented as one managed private project within the
 private-manifest layer. Its repo-local project manifest is only a compatibility
 shell and no longer carries private topology truth.
 
@@ -113,7 +113,7 @@ The PlatformManifest ontology and visibility expansion is complete:
 - protocol ownership remains separated
 - public/private/local boundaries are enforced
 - private topology lives in a dedicated private data repo
-- VideoFoundry remains separately managed
+- managed private project remains separately managed
 - OperationsCenter remains a consumer of validated manifest metadata
 - Custodian remains a generic enforcement runtime that loads PlatformManifest policy
 

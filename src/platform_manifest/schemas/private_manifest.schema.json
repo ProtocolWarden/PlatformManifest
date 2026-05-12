@@ -72,9 +72,50 @@
         "SupersetRelationship"
       ]
     },
+    "PlatformPlane": {
+      "type": "string",
+      "enum": [
+        "documentation",
+        "ontology",
+        "topology",
+        "topography",
+        "governance",
+        "control",
+        "runtime",
+        "utility"
+      ]
+    },
+    "OwnerKind": {
+      "type": "string",
+      "enum": [
+        "protocol",
+        "control_plane",
+        "manifest",
+        "deployment",
+        "governance",
+        "managed_project",
+        "utility",
+        "documentation"
+      ]
+    },
     "RelationshipKind": {
       "type": "string",
       "enum": [
+        "consumes_manifest",
+        "publishes_projection",
+        "reads_artifact",
+        "writes_artifact",
+        "reads_heartbeat",
+        "subscribes_to_heartbeat",
+        "dispatches_request",
+        "poll_status",
+        "indexes_output",
+        "validates_output",
+        "owns_schema",
+        "implements_adapter",
+        "invokes_runtime",
+        "produces_artifact",
+        "reports_to",
         "projects_to",
         "redacts_from",
         "implements",
@@ -104,6 +145,8 @@
         "github_url": { "type": "string", "format": "uri" },
         "runtime_role": { "type": "string", "minLength": 1 },
         "kind": { "$ref": "#/$defs/EntityKind" },
+        "plane": { "$ref": "#/$defs/PlatformPlane" },
+        "owner_kind": { "$ref": "#/$defs/OwnerKind" },
         "owner": { "type": "string", "minLength": 1 },
         "scope": { "type": "string", "minLength": 1 },
         "projection_policy": { "type": "string", "minLength": 1 },

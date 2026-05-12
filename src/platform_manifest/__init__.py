@@ -28,12 +28,14 @@ from .custodian import (
     PUBLIC_PROJECTION_CHECKS,
     custodian_policy_manifest,
 )
+from .errors import RepoGraphConfigError
 from .loader import (
     default_config_path,
     load_default_repo_graph,
     load_repo_graph,
 )
 from .models import (
+    EdgeCategory,
     EntityKind,
     EffectiveRepoGraph,
     LOCAL_ANNOTATION_FIELDS,
@@ -41,12 +43,14 @@ from .models import (
     ManifestKind,
     OntologyRelationship,
     OntologyRelationshipKind,
+    OwnerKind,
+    PlatformPlane,
     PrivateManifest,
     ProjectionBehavior,
+    RELATIONSHIP_EDGE_CATEGORIES,
     RepoEdge,
     RepoEdgeType,
     RepoGraph,
-    RepoGraphConfigError,
     RepoNode,
     Source,
     Visibility,
@@ -56,16 +60,20 @@ from .custodian_native import build_custodian_detectors
 
 __all__ = [
     "EffectiveRepoGraph",
+    "EdgeCategory",
     "EntityKind",
     "LOCAL_ANNOTATION_FIELDS",
     "ManifestHeader",
     "ManifestKind",
     "OntologyRelationship",
     "OntologyRelationshipKind",
+    "OwnerKind",
+    "PlatformPlane",
     "PrivateManifest",
     "ProjectionBehavior",
     "PUBLIC_FORBIDDEN_FIELDS",
     "PUBLIC_PROJECTION_CHECKS",
+    "RELATIONSHIP_EDGE_CATEGORIES",
     "RepoEdge",
     "RepoEdgeType",
     "RepoGraph",

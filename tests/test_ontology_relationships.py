@@ -4,10 +4,14 @@
 
 from __future__ import annotations
 
+import json
+from importlib import resources
 from pathlib import Path
 
 from platform_manifest import (
     OntologyRelationshipKind,
+    OwnerKind,
+    PlatformPlane,
     ProjectionBehavior,
     Visibility,
     load_effective_graph,
@@ -23,10 +27,14 @@ repos:
     canonical_name: OperationsCenter
     visibility: public
     projection_behavior: public_safe
+    plane: control
+    owner_kind: control_plane
   executor_runtime:
     canonical_name: ExecutorRuntime
     visibility: public
     projection_behavior: public_safe
+    plane: runtime
+    owner_kind: control_plane
   hidden_public:
     canonical_name: HiddenPublic
     visibility: public
@@ -42,6 +50,12 @@ relationships:
     source: HiddenPublic
     target: OperationsCenter
     kind: documents
+    visibility: public
+    projection_behavior: public_safe
+  - id: oc-consumes-manifest
+    source: OperationsCenter
+    target: ExecutorRuntime
+    kind: consumes_manifest
     visibility: public
     projection_behavior: public_safe
 edges: []
@@ -61,11 +75,15 @@ def test_relationship_queries_are_first_class(tmp_path: Path) -> None:
     assert [rel.relationship_id for rel in rels] == ["oc-orchestrates-er"]
     assert rels[0].visibility is Visibility.PUBLIC
     assert rels[0].projection_behavior is ProjectionBehavior.PUBLIC_SAFE
+    assert graph.resolve("OperationsCenter").plane is PlatformPlane.CONTROL
+    assert graph.resolve("ExecutorRuntime").owner_kind is OwnerKind.CONTROL_PLANE
     assert [rel.relationship_id for rel in graph.relationships_from("operations_center")] == [
-        "oc-orchestrates-er"
+        "oc-consumes-manifest",
+        "oc-orchestrates-er",
     ]
     assert [rel.relationship_id for rel in graph.relationships_to("executor_runtime")] == [
-        "oc-orchestrates-er"
+        "oc-consumes-manifest",
+        "oc-orchestrates-er",
     ]
 
 
@@ -75,7 +93,10 @@ def test_projection_uses_explicit_projection_metadata(tmp_path: Path) -> None:
 
     assert "hidden_public" not in projected["repos"]
     assert set(projected["repos"]) == {"operations_center", "executor_runtime"}
-    assert [rel["id"] for rel in projected["relationships"]] == ["oc-orchestrates-er"]
+    assert [rel["id"] for rel in projected["relationships"]] == [
+        "oc-consumes-manifest",
+        "oc-orchestrates-er",
+    ]
 
 
 def test_relationship_without_visibility_fails_closed(tmp_path: Path) -> None:
@@ -132,3 +153,20 @@ def test_relationship_without_projection_behavior_fails_closed(tmp_path: Path) -
     report = validate_manifest(bad)
     assert not report.ok
     assert any("projection_behavior" in str(issue.to_dict()) for issue in report.issues)
+
+
+def test_schema_relationship_vocab_matches_code() -> None:
+    schema_names = [
+        "platform_manifest.schema.json",
+        "private_manifest.schema.json",
+        "project_manifest.schema.json",
+        "work_scope_manifest.schema.json",
+    ]
+    expected = {kind.value for kind in OntologyRelationshipKind}
+    for schema_name in schema_names:
+        raw = (resources.files("platform_manifest.schemas") / schema_name).read_text(
+            encoding="utf-8"
+        )
+        payload = json.loads(raw)
+        observed = set(payload["$defs"]["RelationshipKind"]["enum"])
+        assert observed == expected, schema_name

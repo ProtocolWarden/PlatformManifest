@@ -12,8 +12,8 @@ CxRP owns execution/routing contract semantics.
 RxP owns runtime invocation semantics.
 OperationsCenter owns governance and orchestration implementation.
 ExecutorRuntime performs runtime invocation for OperationsCenter.
-WorkStation deploys and hosts runtime environments.
-VideoFoundry is a separate managed project and reference testbed.
+PlatformDeployment deploys and hosts runtime environments.
+Managed private projects remain external to orchestration consumers.
 Custodian detects leaks and hygiene violations against declared policy.
 ```
 
@@ -47,14 +47,14 @@ visibility metadata. It does not own the PlatformManifest ontology, and it
 does not redefine public/private policy.
 
 ExecutorRuntime is the runtime backend and driver used by OperationsCenter
-to invoke work using RxP semantics. WorkStation is the deployment and hosting
-layer for runtime environments; it is not the OperationsCenter execution
-backend. WorkStation is the deployment and hosting layer, not the OC
+to invoke work using RxP semantics. PlatformDeployment is the deployment
+and hosting layer for runtime environments; it is not the OperationsCenter
 execution backend.
 
-VideoFoundry is a managed project and reference testbed for
-OperationsCenter contracts. It can publish artifact manifests, reports, and
-audit outputs that OperationsCenter consumes, but it is not part of
+PlatformDeployment is the deployment and hosting layer.
+
+Managed private projects can publish artifact manifests, reports, and audit
+outputs that OperationsCenter consumes, but they are not part of
 OperationsCenter and must not import platform core internals.
 
 ## Data vs Model Ownership
@@ -66,7 +66,7 @@ and `local` manifest shapes.
 That does not require all manifest documents to live in this repo:
 
 * the public platform base may ship with `PlatformManifest`
-* private topology documents may live in a dedicated `PrivateManifest` repo
+* private topology documents may live in a dedicated private topology repo
 * local overlays remain machine/user-owned and unpublished
 
 ## Entity Shape
@@ -118,8 +118,8 @@ projection metadata used for public/private policy enforcement.
 | `PublicRepository` | Publicly disclosable repository. | May appear in public manifests. |
 | `PrivateRepository` | Private repository or private implementation surface. | Must not appear in public manifests unless projected/redacted. |
 | `ProtocolRepository` | Repository owning protocol schemas. | CxRP and RxP are referenced, not absorbed. |
-| `ArtifactProducer` | Entity that produces artifacts or reports. | Example: VideoFoundry. |
-| `DeploymentLayer` | Hosting/deployment environment layer. | Example: WorkStation. |
+| `ArtifactProducer` | Entity that produces artifacts or reports. | Example: a managed project. |
+| `DeploymentLayer` | Hosting/deployment environment layer. | Example: PlatformDeployment. |
 | `ExecutionBackend` | Runtime backend/driver. | Example: ExecutorRuntime. |
 | `Manifest` | Manifest document or generated manifest output. | Public manifests are projections of private manifests. |
 | `Artifact` | Produced file, bundle, report, or metadata object. | Public-safe metadata may be projected. |

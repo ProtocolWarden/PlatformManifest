@@ -14,7 +14,7 @@ into one component.
 | Custodian | Leak detection, hygiene checks, invariant detection, policy validation results. | The ontology itself or orchestration policy. |
 | OperationsCenter | Governance, validation, orchestration, enforcement workflow. | PlatformManifest ontology or Custodian detector internals. |
 | ExecutorRuntime | Runtime invocation driver for OperationsCenter. | Deployment hosting and visibility policy. |
-| WorkStation | Deployment and hosting layer. | OC execution backend ownership. |
+| PlatformDeployment | Deployment and hosting layer. | OC execution backend ownership. |
 
 ## Custodian Checks
 
@@ -91,11 +91,11 @@ graph LR
 
     subgraph Runtime[Runtime Execution]
         ER[ExecutorRuntime]
-        WS[WorkStation]
+        WS[PlatformDeployment]
     end
 
     subgraph ManagedProjects[Managed Projects]
-        VF[VideoFoundry]
+        MP[ManagedProject]
         SF[SourceFoundry]
     end
 
@@ -106,11 +106,11 @@ graph LR
     RX --> ER
     OC --> ER
     ER --> WS
-    OC --> VF
-    SF --> VF
+    OC --> MP
+    SF --> MP
 
-    OC -. must not import internals .-> VF
-    VF -. must not import platform core .-> OC
+    OC -. must not import internals .-> MP
+    MP -. must not import platform core .-> OC
     PM -. must not absorb .-> CX
     PM -. must not absorb .-> RX
 ```
@@ -125,9 +125,9 @@ should assert:
 * All five Mermaid diagrams remain present.
 * Docs continue to state that PlatformManifest references CxRP and RxP
   rather than owning their schemas.
-* Docs continue to describe VideoFoundry as a separate managed project and
-  reference testbed.
-* Docs continue to describe WorkStation as deployment/hosting and
+* Docs continue to describe managed private projects as external to
+  orchestration consumers.
+* Docs continue to describe PlatformDeployment as deployment/hosting and
   ExecutorRuntime as the runtime backend/driver.
 
 When projection implementation lands, add executable projection fixtures to

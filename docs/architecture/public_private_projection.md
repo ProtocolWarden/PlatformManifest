@@ -117,16 +117,15 @@ Relationship handling rules:
 ## Repository Ownership
 
 The `PrivateManifest` *shape* is owned by `PlatformManifest`, but the
-private topology *data* may live in a separate repository such as
-`ProtocolWarden/PrivateManifest`.
+private topology *data* may live in a separate private topology repository.
 
 That split is intentional:
 
 * `PlatformManifest` owns schemas, composition rules, projection behavior,
   and visibility invariants.
-* `PrivateManifest` repos own private manifest documents like
-  `manifests/videofoundry/private_manifest.yaml`.
-* Managed project repos such as `VideoFoundry` may keep only project/local
+* Private topology repositories own private manifest documents like
+  `manifests/<project_slug>/private_manifest.yaml`.
+* Managed project repos may keep only project/local
   overlays and should not become the authoritative source of private
   platform topology.
 * Public projections may expose only the safe side of a relationship or an
@@ -199,23 +198,23 @@ graph TD
     ProjectionRules -. redact/drop .-> PublicManifest
 ```
 
-## VideoFoundry In Private Topology
+## Managed Projects In Private Topology
 
-VideoFoundry is one managed private project inside the private-manifest
-layer. It is not the special-case root of private topology.
+A managed private project is one entry inside the private-manifest layer.
+It is not the special-case root of private topology.
 
 ```mermaid
 graph TD
     PrivateManifest[PrivateManifest]
-    VF[VideoFoundry\nManaged private project]
+    MP[Managed private project]
     FuturePrivate[Future private project]
     PublicProjection[Public Manifest Projection]
 
-    PrivateManifest -->|contains managed project| VF
+    PrivateManifest -->|contains managed project| MP
     PrivateManifest -->|can contain| FuturePrivate
     PrivateManifest -->|projects safe subset| PublicProjection
 
-    VF -. not special-case root .-> PrivateManifest
+    MP -. not special-case root .-> PrivateManifest
 ```
 
 ## Publication Validation Contract

@@ -41,10 +41,10 @@ repos:
     runtime_role: lane_selection
 
   workstation:
-    canonical_name: WorkStation
+    canonical_name: PlatformDeployment
     visibility: public
-    legacy_names: []
-    github_url: https://github.com/ProtocolWarden/WorkStation
+    legacy_names: [WorkStation]
+    github_url: https://github.com/ProtocolWarden/PlatformDeployment
     runtime_role: local_runtime
 
   cxrp:

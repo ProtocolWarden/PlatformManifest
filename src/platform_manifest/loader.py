@@ -10,21 +10,27 @@ from typing import Any
 
 import yaml
 
-from .models import (
+from .errors import RepoGraphConfigError
+from .ontology import (
     LOCAL_ANNOTATION_FIELDS,
-    EntityKind,
     ManifestKind,
-    OntologyRelationship,
-    OntologyRelationshipKind,
-    ProjectionBehavior,
-    RepoEdge,
-    RepoEdgeType,
-    RepoGraph,
-    RepoGraphConfigError,
     RepoNode,
     Source,
     Visibility,
-    default_projection_behavior_for_visibility,
+    enforce_platform_public_only,
+    parse_entity_projection_behavior,
+    parse_kind,
+    parse_owner_kind,
+    parse_plane,
+    parse_visibility,
+)
+from .topology import (
+    OntologyRelationship,
+    RepoEdge,
+    RepoGraph,
+    parse_relationship_kind,
+    parse_relationship_projection_behavior,
+    parse_repo_edge_type,
 )
 
 
@@ -83,7 +89,7 @@ def load_repo_graph(
     nodes = [_parse_node(repo_id, fields, source=source) for repo_id, fields in repos_raw.items()]
 
     if expected_kind is ManifestKind.PLATFORM:
-        _enforce_platform_public_only(nodes)
+        enforce_platform_public_only(nodes)
 
     name_to_id: dict[str, str] = {}
     for node in nodes:
@@ -221,7 +227,7 @@ def _parse_node(
     if not canonical or not isinstance(canonical, str):
         raise RepoGraphConfigError(f"repo '{repo_id}' missing canonical_name")
     legacy = _parse_string_list(repo_id, fields, "legacy_names")
-    visibility = _parse_visibility(repo_id, fields)
+    visibility = parse_visibility(repo_id, fields)
     return RepoNode(
         repo_id=str(repo_id),
         canonical_name=canonical,
@@ -229,72 +235,24 @@ def _parse_node(
         legacy_names=legacy,
         github_url=_opt_str(fields, "github_url"),
         runtime_role=_opt_str(fields, "runtime_role"),
-        kind=_parse_kind(repo_id, fields),
+        kind=parse_kind(repo_id, fields),
         owner=_opt_str(fields, "owner"),
         scope=_opt_str(fields, "scope"),
         metadata=_parse_metadata(repo_id, fields),
         projection_policy=_opt_str(fields, "projection_policy"),
-        projection_behavior=_parse_projection_behavior(repo_id, fields, visibility=visibility),
+        projection_behavior=parse_entity_projection_behavior(
+            repo_id,
+            fields,
+            visibility=visibility,
+        ),
         public_alias=_opt_str(fields, "public_alias"),
         redaction_label=_opt_str(fields, "redaction_label"),
         private_binding_refs=_parse_string_list(repo_id, fields, "private_binding_refs"),
         local_overlay_refs=_parse_string_list(repo_id, fields, "local_overlay_refs"),
         source=source,
+        plane=parse_plane(repo_id, fields),
+        owner_kind=parse_owner_kind(repo_id, fields),
     )
-
-
-def _parse_visibility(repo_id: object, fields: dict[str, Any]) -> Visibility:
-    raw = fields.get("visibility")
-    if raw is None:
-        raise RepoGraphConfigError(
-            f"repo '{repo_id}' missing required 'visibility' field "
-            f"(allowed: {[v.value for v in Visibility]})"
-        )
-    try:
-        return Visibility(raw)
-    except ValueError as exc:
-        raise RepoGraphConfigError(
-            f"repo '{repo_id}' has unknown visibility={raw!r}; "
-            f"allowed: {[v.value for v in Visibility]}"
-        ) from exc
-
-
-def _parse_projection_behavior(
-    repo_id: object,
-    fields: dict[str, Any],
-    *,
-    visibility: Visibility,
-) -> ProjectionBehavior:
-    raw = fields.get("projection_behavior")
-    if raw is None:
-        return default_projection_behavior_for_visibility(visibility)
-    try:
-        return ProjectionBehavior(raw)
-    except ValueError as exc:
-        raise RepoGraphConfigError(
-            f"repo '{repo_id}' has unknown projection_behavior={raw!r}; "
-            f"allowed: {[b.value for b in ProjectionBehavior]}"
-        ) from exc
-
-
-def _parse_kind(repo_id: object, fields: dict[str, Any]) -> EntityKind:
-    raw = fields.get("kind", EntityKind.REPOSITORY.value)
-    try:
-        return EntityKind(raw)
-    except ValueError as exc:
-        raise RepoGraphConfigError(
-            f"repo '{repo_id}' has unknown kind={raw!r}; "
-            f"allowed: {[k.value for k in EntityKind]}"
-        ) from exc
-
-
-def _enforce_platform_public_only(nodes: list[RepoNode]) -> None:
-    private = [n.repo_id for n in nodes if n.visibility is not Visibility.PUBLIC]
-    if private:
-        raise RepoGraphConfigError(
-            f"PlatformManifest may only contain public nodes; "
-            f"non-public node(s): {private}"
-        )
 
 
 def _parse_edges(
@@ -312,13 +270,7 @@ def _parse_edges(
         edge_type_raw = item.get("type")
         if not (src_name and dst_name and edge_type_raw):
             raise RepoGraphConfigError(f"edge #{idx} requires 'from', 'to', and 'type'")
-        try:
-            edge_type = RepoEdgeType(edge_type_raw)
-        except ValueError as exc:
-            raise RepoGraphConfigError(
-                f"edge #{idx} has unknown type '{edge_type_raw}'; "
-                f"allowed: {[t.value for t in RepoEdgeType]}"
-            ) from exc
+        edge_type = parse_repo_edge_type(idx, edge_type_raw)
         src_id = _resolve_name(name_to_id, str(src_name), f"edge #{idx} 'from'")
         dst_id = _resolve_name(name_to_id, str(dst_name), f"edge #{idx} 'to'")
         edges.append(RepoEdge(src=src_id, dst=dst_id, type=edge_type, source=source))
@@ -343,16 +295,12 @@ def _parse_relationships(
             raise RepoGraphConfigError(
                 f"relationship #{idx} requires 'source', 'target', and 'kind'"
             )
-        try:
-            kind = OntologyRelationshipKind(kind_raw)
-        except ValueError as exc:
-            raise RepoGraphConfigError(
-                f"relationship #{idx} has unknown kind '{kind_raw}'; "
-                f"allowed: {[k.value for k in OntologyRelationshipKind]}"
-            ) from exc
+        kind = parse_relationship_kind(idx, kind_raw)
         visibility = _parse_relationship_visibility(item, idx)
-        projection_behavior = _parse_relationship_projection_behavior(
-            item, idx, visibility=visibility
+        projection_behavior = parse_relationship_projection_behavior(
+            idx,
+            raw=item.get("projection_behavior"),
+            visibility=visibility,
         )
         relationships.append(
             OntologyRelationship(
@@ -387,27 +335,6 @@ def _parse_relationship_visibility(
         raise RepoGraphConfigError(
             f"relationship #{idx} has unknown visibility={raw!r}; "
             f"allowed: {[v.value for v in Visibility]}"
-        ) from exc
-
-
-def _parse_relationship_projection_behavior(
-    item: dict[str, Any],
-    idx: int,
-    *,
-    visibility: Visibility,
-) -> ProjectionBehavior:
-    raw = item.get("projection_behavior")
-    if raw is None:
-        raise RepoGraphConfigError(
-            f"relationship #{idx} missing required 'projection_behavior' field "
-            f"(allowed: {[b.value for b in ProjectionBehavior]})"
-        )
-    try:
-        return ProjectionBehavior(raw)
-    except ValueError as exc:
-        raise RepoGraphConfigError(
-            f"relationship #{idx} has unknown projection_behavior={raw!r}; "
-            f"allowed: {[b.value for b in ProjectionBehavior]}"
         ) from exc
 
 

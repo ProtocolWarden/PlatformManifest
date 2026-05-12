@@ -29,8 +29,8 @@
       "finding_id": "BDR-004",
       "repo": "OperationsCenter",
       "status": "PASS",
-      "invariant": "VideoFoundry must remain separately managed.",
-      "observed": "Docs explicitly keep VideoFoundry external and no VideoFoundry code imports are introduced by this remediation.",
+      "invariant": "managed private project must remain separately managed.",
+      "observed": "Docs explicitly keep managed private project external and no managed private project code imports are introduced by this remediation.",
       "expected": "Managed project, not OC subsystem."
     },
     {

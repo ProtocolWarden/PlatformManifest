@@ -23,8 +23,8 @@ def test_platform_manifest_boundary_invariants_remain_documented() -> None:
         "RxP owns runtime invocation semantics.",
         "OperationsCenter owns governance and orchestration implementation.",
         "ExecutorRuntime performs runtime invocation for OperationsCenter.",
-        "WorkStation deploys and hosts runtime environments.",
-        "VideoFoundry is a separate managed project and reference testbed.",
+        "PlatformDeployment deploys and hosts runtime environments.",
+        "Managed private projects remain external to orchestration consumers.",
         "Custodian detects leaks and hygiene violations against declared policy.",
         "Private manifests are supersets.",
         "Public manifests are safe projections.",
@@ -56,6 +56,6 @@ def test_visibility_boundary_roles_remain_explicit() -> None:
     docs = _read_all_architecture_docs()
 
     assert "references CxRP and RxP rather than owning their schemas" in docs
-    assert "VideoFoundry fits as an external managed project" in docs
-    assert "WorkStation is the deployment and hosting layer" in docs
+    assert "Managed private projects stay external to orchestration consumers" in docs
+    assert "PlatformDeployment is the deployment and hosting layer" in docs
     assert "ExecutorRuntime is the runtime backend and driver" in docs

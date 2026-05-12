@@ -45,8 +45,8 @@ _PRIVATE_VALID = """\
 manifest_kind: private
 manifest_version: "1.0.0"
 repos:
-  vf:
-    canonical_name: VideoFoundry
+  private_project:
+    canonical_name: ManagedPrivateProject
     visibility: private
     kind: ManagedProject
 relationships: []
@@ -153,11 +153,11 @@ class TestSchemaFailures:
                 'manifest_kind: platform\n'
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
-                '  vf:\n'
-                '    canonical_name: VideoFoundry\n'
+                '  private_project:\n'
+                '    canonical_name: ManagedPrivateProject\n'
                 '    visibility: public\n'
-                '    private_url: https://github.com/private/video-foundry\n'
-                '    internal_path: /home/dev/private/VideoFoundry\n'
+                '    private_url: https://example.invalid/private/project\n'
+                '    internal_path: /home/dev/private/managed-project\n'
                 '    private_bindings: secret-runtime\n'
             )
         )
@@ -174,15 +174,15 @@ class TestSchemaFailures:
                 'manifest_kind: project\n'
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
-                '  video_foundry:\n'
-                '    canonical_name: VideoFoundry\n'
+                '  managed_project:\n'
+                '    canonical_name: ManagedPrivateProject\n'
                 '    visibility: private\n'
                 '    kind: ManagedProject\n'
                 '    owner: ProtocolWarden\n'
                 '    scope: managed_project\n'
                 '    metadata:\n'
                 '      reference_testbed: true\n'
-                '      public_projection: VideoFoundryPublic\n'
+                '      public_projection: ManagedProjectPublic\n'
                 'edges: []\n'
             )
         )

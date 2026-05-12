@@ -12,6 +12,7 @@ from typing import Any
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from .errors import RepoGraphConfigError
 from .loader import (
     load_repo_graph,
     parse_edges,
@@ -26,7 +27,6 @@ from .models import (
     OntologyRelationship,
     RepoEdge,
     RepoGraph,
-    RepoGraphConfigError,
     RepoNode,
     Source,
 )

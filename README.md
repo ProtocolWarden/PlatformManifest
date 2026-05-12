@@ -1,12 +1,15 @@
 # PlatformManifest
 
-Canonical repo map for the platform: who exists, what they're called (and were called), and how they relate.
+Public graph instance and projection publisher for the platform.
 
 Read-only context for OperationsCenter planning, SwitchBoard lane decisions, and OperatorConsole displays. One source of truth so legacy → canonical name resolution and contract-impact queries match across consumers.
 
+`PlatformManifest` now consumes shared ontology/topology/projection semantics
+from `RepoGraph` instead of owning that vocabulary itself.
+
 ## What this repo is
 
-- A Python package (`platform_manifest`) exposing the repo map model + loader
+- A Python package (`platform_manifest`) exposing the public graph loader and projection tooling
 - The bundled platform manifest at `src/platform_manifest/data/repo_graph.yaml`
 - A read-only CLI: `platform-manifest list / resolve / upstream / downstream / impact`
 
@@ -37,7 +40,11 @@ platform-manifest impact cxrp
 
 ## Architecture
 
-A bundled YAML at `src/platform_manifest/data/repo_graph.yaml` declares every platform repo (`RepoNode`s) and their relationships (`RepoEdge`s). The loader composes three layers — Platform (this bundle) + optional Project / WorkScope (consumer-provided) + Local (per-machine annotations) — into one `EffectiveRepoGraph`. Consumers query the merged graph via the **Public API** below; querying the bundled graph alone is the **Quick start** path. Edges follow the **Edge vocabulary** table; new types land only when a real query needs them.
+A bundled YAML at `src/platform_manifest/data/repo_graph.yaml` declares the
+public graph instance. `RepoGraph` owns the reusable semantics: ontology,
+topology, projection, and boundary-artifact vocabulary. `PlatformManifest`
+imports those definitions, validates public graph data against them, and
+publishes public-safe projections for downstream consumers.
 
 ## Edge vocabulary (v1)
 
