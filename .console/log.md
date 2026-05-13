@@ -1,5 +1,11 @@
 # Log
 
+## 2026-05-13 — Add RepoGraph to manifest; declare PlatformManifest → RepoGraph edge
+
+- Added `repograph:` entry to platform_manifest.yaml (canonical_name: RepoGraph, runtime_role: graph_language).
+- Added edge: PlatformManifest → RepoGraph (depends_on_contracts_from).
+- Closes X2 blind spot: PlatformManifest/errors.py imports `repograph` at runtime; undeclared edge was silently passing X2 because RepoGraph had no manifest entry.
+
 ## 2026-05-13 — WorkStation → PlatformDeployment hard cutover
 
 - Renamed `workstation:` key to `platformdeployment:` in `platform_manifest.yaml`.

@@ -74,6 +74,12 @@ repos:
     github_url: https://github.com/ProtocolWarden/PlatformManifest
     runtime_role: platform_map
 
+  repograph:
+    canonical_name: RepoGraph
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/RepoGraph
+    runtime_role: graph_language
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
@@ -102,3 +108,7 @@ edges:
   - {from: OperationsCenter, to: PlatformManifest, type: depends_on_contracts_from}
   - {from: SwitchBoard,      to: PlatformManifest, type: depends_on_contracts_from}
   - {from: OperatorConsole,  to: PlatformManifest, type: depends_on_contracts_from}
+
+  # PlatformManifest consumes RepoGraph for graph-semantics vocabulary
+  # (ontology, topology, projection, boundary artifact schemas).
+  - {from: PlatformManifest, to: RepoGraph, type: depends_on_contracts_from}
