@@ -106,3 +106,8 @@ AGPL-3.0-or-later).
 - `to_public_manifest_dict()` now emits `schema_kind`, `schema_version`, and `projection_profile` at the root level. Schema had `"additionalProperties": false` and no entry for these fields, causing validation failures in test_projection.py and test_project_public_cli.py.
 - Added all three as optional string properties in platform_manifest.schema.json.
 - All 157 tests pass.
+
+## 2026-05-13 — Add CLAUDE.md and .custodian/tmp*.yaml to .gitignore
+
+- Added CLAUDE.md to .gitignore
+- Added .custodian/tmp*.yaml to exclude custodian audit temp files
