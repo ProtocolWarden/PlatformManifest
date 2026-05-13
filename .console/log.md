@@ -8,6 +8,12 @@ Pre-push Custodian guard was already present; now both hooks are active.
 _Chronological continuity log. Decisions, stop points, what changed and why._
 _Not a task tracker — that's backlog.md. Keep entries concise and dated._
 
+## 2026-05-12 — RepoGraph projection profile export sync
+
+Re-exported RepoGraph projection profile types and defaults through the
+PlatformManifest projection module so the public manifest stays aligned with
+the hardened projection model without defining its own semantic vocabulary.
+
 ## Recent Decisions
 
 _Log significant choices here so they survive context resets._

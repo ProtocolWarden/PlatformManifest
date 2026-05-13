@@ -10,3 +10,7 @@ _models = import_repograph("repograph.projection.models")
 
 ProjectionBehavior = _models.ProjectionBehavior
 ProjectionProfile = _models.ProjectionProfile
+ProjectionProfileKind = _models.ProjectionProfileKind
+ProjectionProfileRules = _models.ProjectionProfileRules
+DEFAULT_PROJECTION_PROFILE_RULES = _models.DEFAULT_PROJECTION_PROFILE_RULES
+build_projection_profile = _models.build_projection_profile

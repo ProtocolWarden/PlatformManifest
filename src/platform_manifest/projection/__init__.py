@@ -10,20 +10,28 @@ _projection = import_repograph("repograph.projection")
 
 ProjectionBehavior = _projection.ProjectionBehavior
 ProjectionProfile = _projection.ProjectionProfile
+ProjectionProfileKind = _projection.ProjectionProfileKind
+ProjectionProfileRules = _projection.ProjectionProfileRules
+DEFAULT_PROJECTION_PROFILE_RULES = _projection.DEFAULT_PROJECTION_PROFILE_RULES
 PUBLIC_RELATIONSHIP_BEHAVIORS = _projection.PUBLIC_RELATIONSHIP_BEHAVIORS
 can_project_node = _projection.can_project_node
 can_project_relationship = _projection.can_project_relationship
 default_projection_behavior_for_visibility = _projection.default_projection_behavior_for_visibility
+build_projection_profile = _projection.build_projection_profile
 parse_projection_behavior = _projection.parse_projection_behavior
 public_name = _projection.public_name
 to_public_manifest_dict = _projection.to_public_manifest_dict
 
 __all__ = [
+    "DEFAULT_PROJECTION_PROFILE_RULES",
     "ProjectionBehavior",
     "ProjectionProfile",
+    "ProjectionProfileKind",
+    "ProjectionProfileRules",
     "PUBLIC_RELATIONSHIP_BEHAVIORS",
     "can_project_node",
     "can_project_relationship",
+    "build_projection_profile",
     "default_projection_behavior_for_visibility",
     "parse_projection_behavior",
     "public_name",
