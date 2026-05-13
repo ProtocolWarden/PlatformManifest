@@ -38,7 +38,7 @@ repos:
     github_url: https://github.com/ProtocolWarden/SwitchBoard
     runtime_role: lane_selection
 
-  workstation:
+  platformdeployment:
     canonical_name: PlatformDeployment
     visibility: public
     github_url: https://github.com/ProtocolWarden/PlatformDeployment

@@ -1,5 +1,10 @@
 # Log
 
+## 2026-05-13 — WorkStation → PlatformDeployment hard cutover
+
+- Renamed `workstation:` key to `platformdeployment:` in `platform_manifest.yaml`.
+- Added custodian config exclusions for pre-existing LOW findings in new ontology/projection/topology modules.
+
 ## 2026-05-08 — Wire pre-commit hook
 
 Added .hooks/pre-commit (log.md enforcement) and set core.hooksPath = .hooks.
