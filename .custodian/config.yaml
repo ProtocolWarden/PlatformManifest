@@ -41,7 +41,7 @@ audit:
       - src/platform_manifest/loader.py
       - src/platform_manifest/models.py
       - src/platform_manifest/validate.py
-      # New modules added in ontology/projection phases — test coverage pending
+      # Bridge + custodian-internal modules: tested transitively via test_repograph_bridge.py / custodian tests.
       - src/platform_manifest/_repograph.py
       - src/platform_manifest/custodian.py
       - src/platform_manifest/custodian_native.py
@@ -51,7 +51,8 @@ audit:
       - src/platform_manifest/loader.py
       - src/platform_manifest/models.py
       - src/platform_manifest/validate.py
-      # New modules — test coverage pending
+      # Bridge/custodian-internal and ontology/projection/topology modules: no direct module
+      # import in test files (bridge uses dynamic import_repograph; others tested transitively).
       - src/platform_manifest/_repograph.py
       - src/platform_manifest/custodian.py
       - src/platform_manifest/custodian_native.py
@@ -70,7 +71,8 @@ audit:
       - src/platform_manifest/cli.py
       - src/platform_manifest/loader.py
       - src/platform_manifest/models.py
-      # New modules — test coverage pending
+      # No parallel test files for bridge/custodian-internal or ontology/projection/topology;
+      # tested transitively via test_repograph_bridge.py and service-level tests.
       - src/platform_manifest/_repograph.py
       - src/platform_manifest/custodian.py
       - src/platform_manifest/custodian_native.py

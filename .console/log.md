@@ -92,3 +92,11 @@ AGPL-3.0-or-later).
 - Added first-class `PrivateManifest` support, ontology relationships, and explicit projection metadata in the PlatformManifest model and schema surface.
 - Hardened public projection so the safe publication command always validates before producing final output, with unsafe generation split onto an explicit dev-only command.
 - Extended PlatformManifest-owned PMV detection so relationship-level projection violations are enforced alongside legacy edge checks.
+
+## 2026-05-13 — RepoGraph manifest edge + test coverage
+
+- Added `repograph` repo entry (`runtime_role: graph_language`) and `PlatformManifest → RepoGraph depends_on_contracts_from` edge to `platform_manifest.yaml`. Closes X2 blind spot (PM imports `RepoGraphConfigError` at runtime).
+- Added `tests/test_repograph_bridge.py` (14 tests) covering all re-exporter bridge modules: _repograph import_repograph, ontology enums/models/validation, projection models/redaction/rules/validation, topology edges/models/validation, and errors.
+- Added 5 PMV1 detector tests in `tests/test_platform_manifest_detectors.py`.
+- Updated `.custodian/config.yaml` comments from "test coverage pending" to accurate transitive-test descriptions.
+- custodian audit: 0 findings.
