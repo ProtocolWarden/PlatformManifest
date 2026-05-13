@@ -307,14 +307,14 @@ class TestSchemaFailures:
 
 class TestLoaderStage:
     def test_duplicate_repo_id_caught_by_loader(self, tmp_path: Path) -> None:
-        # Schema can't catch alias collisions across nodes — the loader does
+        # Schema can't catch label collisions across nodes — the loader does
         report = validate_manifest(
             _write(tmp_path, "p.yaml",
                 'manifest_kind: platform\n'
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
-                '  a: {canonical_name: Same, visibility: public, legacy_names: [Common]}\n'
-                '  b: {canonical_name: Other, visibility: public, legacy_names: [Common]}\n'
+                '  a: {canonical_name: Same, visibility: public, public_alias: Common}\n'
+                '  b: {canonical_name: Other, visibility: public, public_alias: Common}\n'
             )
         )
         assert not report.ok

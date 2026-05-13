@@ -135,10 +135,6 @@
       "properties": {
         "canonical_name": { "type": "string", "minLength": 1 },
         "visibility": { "$ref": "#/$defs/Visibility" },
-        "legacy_names": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 }
-        },
         "github_url": { "type": "string", "format": "uri" },
         "runtime_role": { "type": "string", "minLength": 1 },
         "kind": { "$ref": "#/$defs/EntityKind" },

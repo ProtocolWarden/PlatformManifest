@@ -9,7 +9,7 @@
       "severity": "low",
       "status": "PASS",
       "invariant": "Ontology and boundary ownership must be explicit in docs.",
-      "observed": "Architecture docs explicitly assign ownership to PlatformManifest, CxRP, RxP, OperationsCenter, ExecutorRuntime, WorkStation, managed private project, and Custodian.",
+      "observed": "Architecture docs explicitly assign ownership to PlatformManifest, CxRP, RxP, OperationsCenter, ExecutorRuntime, PlatformDeployment, managed private project, and Custodian.",
       "expected": "No ambiguous or overlapping ownership language.",
       "recommendation": "Keep docs and ownership tests in sync when roles evolve."
     },

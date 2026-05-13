@@ -420,8 +420,6 @@ def _build_name_index(nodes: tuple[RepoNode, ...] | list[RepoNode]) -> dict[str,
     for node in nodes:
         out[node.canonical_name.lower()] = node.repo_id
         out[node.repo_id.lower()] = node.repo_id
-        for alias in node.legacy_names:
-            out[alias.lower()] = node.repo_id
         if node.public_alias:
             out[node.public_alias.lower()] = node.repo_id
     return out

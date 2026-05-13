@@ -17,7 +17,7 @@ layer.
 | `RepoNode.owner` | Already ontology-level | Optional owner boundary for platform, project, or organization. |
 | `RepoNode.scope` | Already ontology-level | Optional scope boundary for platform, project, or work scope. |
 | `RepoNode.metadata` | Visibility-related | Structured descriptive metadata; public projection must allow or redact fields by policy. |
-| `RepoNode.legacy_names` | Already ontology-level | Alias resolution for repo identity. |
+| `RepoNode.public_alias` | Projection-related | Disclosure-safe label for a repository identity. |
 | `RepoNode.github_url` | Visibility-related | Public manifests may expose public URLs only. |
 | `RepoNode.runtime_role` | Already ontology-level | High-level role only; must not become runtime invocation config. |
 | `RepoEdge` | Already ontology-level | Queryable relationships between repository entities. |
@@ -58,7 +58,7 @@ These concepts must stay in their owning repositories:
 * RxP owns runtime invocation semantics.
 * OperationsCenter owns governance and orchestration implementation.
 * ExecutorRuntime owns backend runtime invocation behavior.
-* WorkStation owns deployment and hosting behavior.
+* PlatformDeployment owns deployment and hosting behavior.
 * Custodian owns leak and hygiene detector implementation.
 
 PlatformManifest may point at those components as entities or relationships,

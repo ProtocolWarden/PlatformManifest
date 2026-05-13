@@ -46,8 +46,8 @@
       "repo": "PlatformManifest",
       "status": "NOT_APPLICABLE",
       "invariant": "Deterministic placeholder redaction applies only if placeholder-redaction output is implemented.",
-      "observed": "The current implementation emits public-safe aliases and redacted stubs but still follows a drop-first design for most private data.",
-      "expected": "Placeholder tests remain scoped to fields that actually use alias or stub behavior."
+      "observed": "The current implementation emits public-safe labels and redacted stubs but still follows a drop-first design for most private data.",
+      "expected": "Placeholder tests remain scoped to fields that actually use label or stub behavior."
     }
   ]
 }

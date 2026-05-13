@@ -95,7 +95,7 @@ Evidence:
 CxRP owns canonical cross-repo proposal, routing, and execution semantics.
 OperationsCenter keeps stricter internal `OcPlanningProposal`,
 `OcRoutingDecision`, `OcExecutionRequest`, and `OcExecutionResult` models with
-explicit boundary mapping and compatibility aliases only.
+explicit boundary mapping and explicit boundary mapping only.
 
 ## Verification runs
 

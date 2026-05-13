@@ -51,7 +51,7 @@ PlatformManifest describes the platform; it does not run it. Contributions must 
 ## Pull Requests
 
 - Keep PRs focused — one concern per PR
-- YAML changes: include the rationale (new repo, alias retirement, edge correction) in the PR description
+- YAML changes: include the rationale (new repo, label retirement, edge correction) in the PR description
 - New `RepoEdgeType` values must come with a real consumer query that needs them
 - Update `README.md` if the public API changes
 

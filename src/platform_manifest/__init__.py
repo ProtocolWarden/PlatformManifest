@@ -2,8 +2,8 @@
 # Copyright (C) 2026 ProtocolWarden
 """platform_manifest — canonical platform repo map + composition.
 
-Treats repos as graph nodes with canonical identity + legacy-name resolution
-+ direct upstream/downstream queries. Three trust slots:
+Treats repos as graph nodes with canonical identity + disclosure-safe
+projection labels + direct upstream/downstream queries. Three trust slots:
 
     PlatformManifest  — public, reusable
     PrivateManifest   — private platform superset

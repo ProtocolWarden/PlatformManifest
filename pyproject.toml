@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "platform-manifest"
 version = "1.0.0"
-description = "Canonical platform repo map: identity, legacy aliases, and edges between repos"
+description = "Canonical platform repo map: identity, disclosure-safe labels, and edges between repos"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 requires-python = ">=3.11"

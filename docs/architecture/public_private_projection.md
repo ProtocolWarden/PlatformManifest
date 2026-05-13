@@ -55,7 +55,7 @@ relationships:
 * `visibility`
 * `projection_policy`
 * `projection_behavior`
-* `public_alias`
+* `public_label`
 * `redaction_label`
 * `private_binding_refs`
 * `local_overlay_refs`

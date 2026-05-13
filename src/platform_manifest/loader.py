@@ -226,13 +226,11 @@ def _parse_node(
     canonical = fields.get("canonical_name")
     if not canonical or not isinstance(canonical, str):
         raise RepoGraphConfigError(f"repo '{repo_id}' missing canonical_name")
-    legacy = _parse_string_list(repo_id, fields, "legacy_names")
     visibility = parse_visibility(repo_id, fields)
     return RepoNode(
         repo_id=str(repo_id),
         canonical_name=canonical,
         visibility=visibility,
-        legacy_names=legacy,
         github_url=_opt_str(fields, "github_url"),
         runtime_role=_opt_str(fields, "runtime_role"),
         kind=parse_kind(repo_id, fields),

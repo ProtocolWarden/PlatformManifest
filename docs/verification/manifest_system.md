@@ -602,11 +602,11 @@ OC ships a static denylist at `tools/boundary/switchboard_denylist.py` that scan
 
 ---
 
-## V14 — WorkStation Boundary
+## V14 — PlatformDeployment Boundary
 
 ### Requirement
 
-`WorkStation` may own LocalManifest *path discovery*, not platform or project manifest ownership.
+`PlatformDeployment` may own LocalManifest *path discovery*, not platform or project manifest ownership.
 
 ### Allowed
 
@@ -625,9 +625,9 @@ OC ships a static denylist at `tools/boundary/switchboard_denylist.py` that scan
 
 ### Tests
 
-* WorkStation returns local manifest path or `None` — no YAML parsing.
+* PlatformDeployment returns local manifest path or `None` — no YAML parsing.
 * OperationsCenter consumes returned path.
-* WorkStation does not merge manifests.
+* PlatformDeployment does not merge manifests.
 
 ---
 
@@ -702,8 +702,8 @@ If many repos together form one OperationsCenter work scope, author a `WorkScope
 ### Migration history
 
 * PM v0.8.0 introduced multi-repo composition via `manifest_kind: project` + `includes:` (the "project-shell" pattern).
-* PM v0.9.0 promoted multi-repo composition to a first-class `manifest_kind: work_scope` with its own schema and provenance (`Source.WORK_SCOPE`); the legacy project-shell shape still loaded but emitted `DeprecationWarning`.
-* PM v1.0.0 removed the legacy compatibility entirely. `manifest_kind: project` with `includes:` is rejected at the schema layer (the `includes` field is gone from `project_manifest.schema.json`) and at the loader layer (with an explicit migration-hint `RepoGraphConfigError`).
+* PM v0.9.0 promoted multi-repo composition to a first-class `manifest_kind: work_scope` with its own schema and provenance (`Source.WORK_SCOPE`); the earlier project-shell shape still loaded but emitted `DeprecationWarning`.
+* PM v1.0.0 removed the earlier compatibility entirely. `manifest_kind: project` with `includes:` is rejected at the schema layer (the `includes` field is gone from `project_manifest.schema.json`) and at the loader layer (with an explicit migration-hint `RepoGraphConfigError`).
 
 ### Expected layout
 

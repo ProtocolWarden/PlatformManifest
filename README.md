@@ -2,10 +2,11 @@
 
 Public graph instance and projection publisher for the platform.
 
-Read-only context for OperationsCenter planning, SwitchBoard lane decisions, and OperatorConsole displays. One source of truth so legacy → canonical name resolution and contract-impact queries match across consumers.
+Read-only context for OperationsCenter planning, SwitchBoard lane decisions, and OperatorConsole displays. One source of truth so disclosure-safe projection labels and contract-impact queries match across consumers.
 
 `PlatformManifest` now consumes shared ontology/topology/projection semantics
 from `RepoGraph` instead of owning that vocabulary itself.
+RepoGraph defines the graph language. It does not own graph instances.
 
 ## What this repo is
 
@@ -27,14 +28,14 @@ pip install -e .
 ```python
 from platform_manifest import load_default_repo_graph
 graph = load_default_repo_graph()
-graph.resolve("ControlPlane")               # → OperationsCenter (legacy alias)
+graph.resolve("OperationsCenter")
 ```
 
 CLI:
 
 ```bash
 platform-manifest list
-platform-manifest resolve ControlPlane
+platform-manifest resolve OperationsCenter
 platform-manifest impact cxrp
 ```
 
@@ -67,7 +68,7 @@ from platform_manifest import (
 )
 
 graph = load_default_repo_graph()
-graph.resolve("ControlPlane")              # → OperationsCenter (legacy alias)
+graph.resolve("OperationsCenter")
 graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
 graph.who_dispatches_to("executor_runtime") # → [OperationsCenter]
 ```
@@ -109,7 +110,7 @@ Worked example: see `examples/work_scope/`.
 
 ```
 platform-manifest list
-platform-manifest resolve ControlPlane
+platform-manifest resolve OperationsCenter
 platform-manifest impact cxrp
 
 # Validate a manifest against its JSON schema + loader rules.

@@ -37,7 +37,7 @@
       "finding_id": "BDR-005",
       "repo": "OperationsCenter",
       "status": "PASS",
-      "invariant": "ExecutorRuntime and WorkStation must not collapse conceptually.",
+      "invariant": "ExecutorRuntime and PlatformDeployment must not collapse conceptually.",
       "observed": "Docs and runtime boundaries still distinguish invocation from hosting and deployment.",
       "expected": "Clear runtime-versus-hosting split."
     },
@@ -54,8 +54,8 @@
       "repo": "OperationsCenter",
       "status": "PASS",
       "invariant": "No repo should drift toward god-repo behavior through protocol duplication.",
-      "observed": "OC internal proposal, routing, and execution-boundary models now use explicit OC-native names or compatibility aliases with documented CxRP ownership at the wire boundary.",
-      "expected": "Compatibility aliases remain bounded while canonical cross-repo ownership stays in CxRP/RxP.",
+      "observed": "OC internal proposal, routing, and execution-boundary models now use explicit OC-native names or explicit boundary mappings with documented CxRP ownership at the wire boundary.",
+      "expected": "Disclosure-safe labels remain bounded while canonical cross-repo ownership stays in CxRP/RxP.",
       "recommendation": "Keep the contract ownership tests and mapper checks as a drift guard."
     }
   ]

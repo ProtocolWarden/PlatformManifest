@@ -44,24 +44,23 @@ class TestModelBuild:
         self,
         repo_id: str,
         canonical: str,
-        legacy: tuple[str, ...] = (),
+        public_label: str | None = None,
         visibility: Visibility = Visibility.PUBLIC,
     ) -> RepoNode:
         return RepoNode(
             repo_id=repo_id,
             canonical_name=canonical,
             visibility=visibility,
-            legacy_names=legacy,
+            public_alias=public_label,
         )
 
-    def test_build_indexes_canonical_and_legacy(self) -> None:
+    def test_build_indexes_canonical_only(self) -> None:
         g = RepoGraph.build(
-            nodes=[self._node("oc", "OperationsCenter", ("ControlPlane",))],
+            nodes=[self._node("oc", "OperationsCenter")],
             edges=[],
         )
         assert g.resolve("OperationsCenter").repo_id == "oc"
-        assert g.resolve("ControlPlane").repo_id == "oc"
-        assert g.resolve("controlplane").repo_id == "oc"  # case-insensitive
+        assert g.resolve("operationscenter").repo_id == "oc"  # case-insensitive
         assert g.resolve("nope") is None
 
     def test_duplicate_repo_id_rejected(self) -> None:
@@ -71,12 +70,12 @@ class TestModelBuild:
                 edges=[],
             )
 
-    def test_alias_collision_rejected(self) -> None:
+    def test_label_collision_rejected(self) -> None:
         with pytest.raises(RepoGraphConfigError, match="maps to both"):
             RepoGraph.build(
                 nodes=[
-                    self._node("a", "A", legacy=("Common",)),
-                    self._node("b", "B", legacy=("Common",)),
+                    self._node("a", "A", public_label="Common"),
+                    self._node("b", "B", public_label="Common"),
                 ],
                 edges=[],
             )
@@ -103,9 +102,9 @@ class TestModelBuild:
 def small_graph() -> RepoGraph:
     return RepoGraph.build(
         nodes=[
-            RepoNode(repo_id="oc", canonical_name="OperationsCenter", legacy_names=("ControlPlane",)),
+            RepoNode(repo_id="oc", canonical_name="OperationsCenter"),
             RepoNode(repo_id="sb", canonical_name="SwitchBoard"),
-            RepoNode(repo_id="op", canonical_name="OperatorConsole", legacy_names=("FOB",)),
+            RepoNode(repo_id="op", canonical_name="OperatorConsole"),
             RepoNode(repo_id="cx", canonical_name="CxRP"),
         ],
         edges=[
@@ -224,8 +223,7 @@ class TestLoader:
         cfg.write_text(
             _platform_yaml(
                 "repos:\n"
-                "  oc: {canonical_name: OperationsCenter, visibility: public,"
-                " legacy_names: [ControlPlane]}\n"
+                "  oc: {canonical_name: OperationsCenter, visibility: public}\n"
                 "  cx: {canonical_name: CxRP, visibility: public}\n"
                 "edges:\n"
                 "  - {from: OperationsCenter, to: CxRP, type: depends_on_contracts_from}\n"
@@ -301,7 +299,7 @@ class TestLoader:
         cfg = tmp_path / "g.yaml"
         cfg.write_text(
             _platform_yaml(
-                "repos:\n  bad: {visibility: public, legacy_names: [X]}\n"
+                "repos:\n  bad: {visibility: public, public_alias: X}\n"
             ),
             encoding="utf-8",
         )
@@ -401,8 +399,8 @@ class TestVisibility:
 
 
 class TestLiveConfig:
-    """The bundled platform_manifest.yaml must load cleanly and resolve the
-    canonical legacy aliases the rest of the platform relies on."""
+    """The bundled platform_manifest.yaml must load cleanly and resolve
+    canonical repo names only."""
 
     def test_default_config_path_exists(self) -> None:
         assert _LIVE_CONFIG.exists(), _LIVE_CONFIG
@@ -418,11 +416,11 @@ class TestLiveConfig:
             n.visibility is Visibility.PUBLIC for n in graph.list_nodes()
         )
 
-    def test_live_legacy_aliases_resolve(self) -> None:
+    def test_live_canonical_names_resolve(self) -> None:
         graph = load_repo_graph(_LIVE_CONFIG)
-        assert graph.resolve("ControlPlane").canonical_name == "OperationsCenter"
-        assert graph.resolve("FOB").canonical_name == "OperatorConsole"
-        assert graph.resolve("ExecutionContractProtocol").canonical_name == "CxRP"
+        assert graph.resolve("OperationsCenter").canonical_name == "OperationsCenter"
+        assert graph.resolve("OperatorConsole").canonical_name == "OperatorConsole"
+        assert graph.resolve("CxRP").canonical_name == "CxRP"
 
     def test_live_contract_change_in_cxrp_lists_consumers(self) -> None:
         graph = load_repo_graph(_LIVE_CONFIG)
@@ -482,8 +480,8 @@ class TestCLI:
         assert result.exit_code == 0, result.output
         assert "OperationsCenter" in result.output
 
-    def test_resolve_legacy(self) -> None:
-        result = self.runner.invoke(app, ["resolve", "ControlPlane"])
+    def test_resolve_canonical(self) -> None:
+        result = self.runner.invoke(app, ["resolve", "OperationsCenter"])
         assert result.exit_code == 0, result.output
         assert "OperationsCenter" in result.output
 

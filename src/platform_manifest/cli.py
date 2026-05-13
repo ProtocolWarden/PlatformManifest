@@ -4,7 +4,7 @@
 
 Read-only inspection of the platform repo map. Subcommands:
   list            — show canonical repos
-  resolve NAME    — resolve canonical or legacy name
+  resolve NAME    — resolve a canonical name or public projection label
   upstream ID     — direct upstream nodes
   downstream ID   — direct downstream nodes
   impact ID       — repos affected by a contract change in ID
@@ -30,7 +30,7 @@ app = typer.Typer(help="Platform Manifest — repo map inspection.")
 _console = Console()
 
 
-_default_config_path = default_config_path  # back-compat alias for tests
+_default_config_path = default_config_path  # retained for tests
 
 
 def _load(config: Path | None):
@@ -51,13 +51,13 @@ def list_cmd(
     table = Table(title="Platform Repo Map")
     table.add_column("repo_id")
     table.add_column("canonical")
-    table.add_column("legacy")
+    table.add_column("label")
     table.add_column("role")
     for node in graph.list_nodes():
         table.add_row(
             node.repo_id,
             node.canonical_name,
-            ", ".join(node.legacy_names) or "-",
+            node.public_alias or "-",
             node.runtime_role or "-",
         )
     _console.print(table)
@@ -68,7 +68,7 @@ def resolve_cmd(
     name: str,
     config: Path | None = typer.Option(None, "--config"),
 ) -> None:
-    """Resolve a canonical or legacy name."""
+    """Resolve a canonical name or disclosure-safe projection label."""
     graph = _load(config)
     node = graph.resolve(name)
     if node is None:
@@ -252,12 +252,11 @@ def effective_cmd(
                     "scope": n.scope,
                     "source": n.source.value,
                     "runtime_role": n.runtime_role,
-                    "legacy_names": list(n.legacy_names),
                     "github_url": n.github_url,
                     "metadata": dict(n.metadata),
                     "projection_policy": n.projection_policy,
                     "projection_behavior": n.projection_behavior.value,
-                    "public_alias": n.public_alias,
+                    "public_label": n.public_alias,
                     "redaction_label": n.redaction_label,
                     "private_binding_refs": list(n.private_binding_refs),
                     "local_overlay_refs": list(n.local_overlay_refs),
