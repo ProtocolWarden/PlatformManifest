@@ -100,3 +100,9 @@ AGPL-3.0-or-later).
 - Added 5 PMV1 detector tests in `tests/test_platform_manifest_detectors.py`.
 - Updated `.custodian/config.yaml` comments from "test coverage pending" to accurate transitive-test descriptions.
 - custodian audit: 0 findings.
+
+## 2026-05-13 — Add projection metadata fields to platform manifest schema
+
+- `to_public_manifest_dict()` now emits `schema_kind`, `schema_version`, and `projection_profile` at the root level. Schema had `"additionalProperties": false` and no entry for these fields, causing validation failures in test_projection.py and test_project_public_cli.py.
+- Added all three as optional string properties in platform_manifest.schema.json.
+- All 157 tests pass.

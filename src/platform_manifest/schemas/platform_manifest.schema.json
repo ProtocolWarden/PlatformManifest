@@ -7,6 +7,15 @@
   "required": ["manifest_kind", "manifest_version", "repos"],
   "additionalProperties": false,
   "properties": {
+    "schema_kind": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "projection_profile": {
+      "type": "string"
+    },
     "manifest_kind": {
       "type": "string",
       "const": "platform"
