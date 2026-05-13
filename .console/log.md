@@ -4,6 +4,7 @@
 
 - Renamed `workstation:` key to `platformdeployment:` in `platform_manifest.yaml`.
 - Added custodian config exclusions for pre-existing LOW findings in new ontology/projection/topology modules.
+- Added doc_conventions.exclude_path_patterns (with default **/history/** re-included) to suppress DC7 orphan on verification doc.
 
 ## 2026-05-08 — Wire pre-commit hook
 

@@ -17,6 +17,10 @@ privacy:
 # ---------------------------------------------------------------------------
 doc_conventions:
   exclude_path_patterns:
+    # Defaults (must re-include when overriding)
+    - "**/archive/**"
+    - "**/history/**"
+    # Verification artifacts — linked from context, not the doc tree
     - docs/verification/**
 
 # ---------------------------------------------------------------------------
