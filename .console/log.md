@@ -118,3 +118,8 @@ Added three new execution backend repos to platform_manifest.yaml (repos + edges
 - dag_executor: replaces Archon (rustworkx DAG, 5 node types)
 - critique_executor: new capability (adversarial + reflexion subtypes)
 Each gets depends_on_contracts_from edges to RxP and CxRP, and dispatches_to from OperationsCenter.
+
+### Add documentation surface repos + org profile to manifest (2026-05-18)
+Added github_pages_site (ProtocolWarden.github.io) and org_profile (ProtocolWarden) with
+runtime_role: documentation_surface. Both get depends_on_contracts_from edges to PlatformManifest
+since they consume it as the public repo catalog source.

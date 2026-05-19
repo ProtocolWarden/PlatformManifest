@@ -98,6 +98,18 @@ repos:
     github_url: https://github.com/ProtocolWarden/CritiqueExecutor
     runtime_role: execution_backend
 
+  github_pages_site:
+    canonical_name: ProtocolWarden.github.io
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ProtocolWarden.github.io
+    runtime_role: documentation_surface
+
+  org_profile:
+    canonical_name: ProtocolWarden
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ProtocolWarden
+    runtime_role: documentation_surface
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
@@ -145,3 +157,7 @@ edges:
   - {from: TeamExecutor,     to: CxRP, type: depends_on_contracts_from}
   - {from: DagExecutor,      to: CxRP, type: depends_on_contracts_from}
   - {from: CritiqueExecutor, to: CxRP, type: depends_on_contracts_from}
+
+  # Documentation surfaces — consume PlatformManifest as the repo catalog source.
+  - {from: "ProtocolWarden.github.io", to: PlatformManifest, type: depends_on_contracts_from}
+  - {from: ProtocolWarden,             to: PlatformManifest, type: depends_on_contracts_from}
