@@ -111,3 +111,10 @@ AGPL-3.0-or-later).
 
 - Added CLAUDE.md to .gitignore
 - Added .custodian/tmp*.yaml to exclude custodian audit temp files
+
+### ADR 0005 — Add TeamExecutor/DagExecutor/CritiqueExecutor (2026-05-18)
+Added three new execution backend repos to platform_manifest.yaml (repos + edges).
+- team_executor: replaces kodo (coordinator+worker+verifier pattern)
+- dag_executor: replaces Archon (rustworkx DAG, 5 node types)
+- critique_executor: new capability (adversarial + reflexion subtypes)
+Each gets depends_on_contracts_from edges to RxP and CxRP, and dispatches_to from OperationsCenter.
