@@ -87,9 +87,9 @@ repos:
     runtime_role: execution_backend
 
   dag_executor:
-    canonical_name: DagExecutor
+    canonical_name: DAGExecutor
     visibility: public
-    github_url: https://github.com/ProtocolWarden/DagExecutor
+    github_url: https://github.com/ProtocolWarden/DAGExecutor
     runtime_role: execution_backend
 
   critique_executor:
@@ -151,17 +151,17 @@ edges:
 
   # OperationsCenter dispatches to the three owned execution backends (ADR 0005).
   - {from: OperationsCenter, to: TeamExecutor,     type: dispatches_to}
-  - {from: OperationsCenter, to: DagExecutor,      type: dispatches_to}
+  - {from: OperationsCenter, to: DAGExecutor,      type: dispatches_to}
   - {from: OperationsCenter, to: CritiqueExecutor, type: dispatches_to}
 
   # Executor backends depend on RxP for the runtime invocation/result contract.
   - {from: TeamExecutor,     to: RxP, type: depends_on_contracts_from}
-  - {from: DagExecutor,      to: RxP, type: depends_on_contracts_from}
+  - {from: DAGExecutor,      to: RxP, type: depends_on_contracts_from}
   - {from: CritiqueExecutor, to: RxP, type: depends_on_contracts_from}
 
   # Executor backends depend on CxRP for BackendName/ExecutorName vocabulary.
   - {from: TeamExecutor,     to: CxRP, type: depends_on_contracts_from}
-  - {from: DagExecutor,      to: CxRP, type: depends_on_contracts_from}
+  - {from: DAGExecutor,      to: CxRP, type: depends_on_contracts_from}
   - {from: CritiqueExecutor, to: CxRP, type: depends_on_contracts_from}
 
   # Documentation surfaces — consume PlatformManifest as the repo catalog source.
