@@ -12,7 +12,7 @@ not a runtime registry and not a protocol-schema repository.
 | RxP | Runtime invocation and return contracts. |
 | OperationsCenter | Governance, validation, orchestration, enforcement. |
 | SwitchBoard | Lane and runtime recommendation. |
-| ExecutorRuntime | Runtime backend/driver used by OperationsCenter. |
+| CoreRunner | Runtime backend/driver used by OperationsCenter. |
 | PlatformDeployment | Deployment and hosting layer for runtime environments. |
 | Managed private project | Example managed project and artifact producer. |
 | SourceFoundry | Source/corpus producer. |
@@ -28,7 +28,7 @@ graph TD
     RX[RxP\nRuntime Invocation Contracts]
     OC[OperationsCenter\nGovernance + Orchestration]
     SB[SwitchBoard\nLane/Runtime Recommendation]
-    ER[ExecutorRuntime\nOC Backend Runtime Driver]
+    ER[CoreRunner\nOC Backend Runtime Driver]
     WS[PlatformDeployment\nDeployment + Hosting Layer]
     MP[Managed Private Project\nArtifact Producer]
     SF[SourceFoundry\nSource/Corpus Producer]
@@ -65,7 +65,7 @@ sequenceDiagram
     participant OC as OperationsCenter
     participant PM as PlatformManifest
     participant SB as SwitchBoard
-    participant ER as ExecutorRuntime
+    participant ER as CoreRunner
     participant WS as PlatformDeployment
     participant MP as ManagedProject
     participant CUST as Custodian
@@ -91,7 +91,7 @@ sequenceDiagram
 
 OperationsCenter reads PlatformManifest to resolve managed projects,
 repositories, topology, and visibility metadata. It can validate proposals
-against CxRP and invoke ExecutorRuntime using RxP semantics, but those
+against CxRP and invoke CoreRunner using RxP semantics, but those
 contract schemas stay in their owning protocol repositories.
 
 SwitchBoard can consume repo context as input for lane/runtime

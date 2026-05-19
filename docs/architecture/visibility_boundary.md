@@ -13,7 +13,7 @@ into one component.
 | PlatformManifest | Entity ontology, topology, visibility policy, projection rules. | CxRP/RxP contract schemas, runtime execution. |
 | Custodian | Leak detection, hygiene checks, invariant detection, policy validation results. | The ontology itself or orchestration policy. |
 | OperationsCenter | Governance, validation, orchestration, enforcement workflow. | PlatformManifest ontology or Custodian detector internals. |
-| ExecutorRuntime | Runtime invocation driver for OperationsCenter. | Deployment hosting and visibility policy. |
+| CoreRunner | Runtime invocation driver for OperationsCenter. | Deployment hosting and visibility policy. |
 | PlatformDeployment | Deployment and hosting layer. | OC execution backend ownership. |
 
 ## Custodian Checks
@@ -90,7 +90,7 @@ graph LR
     end
 
     subgraph Runtime[Runtime Execution]
-        ER[ExecutorRuntime]
+        ER[CoreRunner]
         WS[PlatformDeployment]
     end
 
@@ -128,7 +128,7 @@ should assert:
 * Docs continue to describe managed private projects as external to
   orchestration consumers.
 * Docs continue to describe PlatformDeployment as deployment/hosting and
-  ExecutorRuntime as the runtime backend/driver.
+  CoreRunner as the runtime backend/driver.
 
 When projection implementation lands, add executable projection fixtures to
 prove public manifests cannot contain private-only fields, private-only

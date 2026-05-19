@@ -201,14 +201,14 @@ class TestQueries:
     def test_who_dispatches_to_on_live_graph(self) -> None:
         # The bundled platform manifest has OperatorConsole -> OperationsCenter
         # as its only dispatches_to into operations_center; the reverse
-        # direction (OperationsCenter -> ExecutorRuntime / SourceRegistry)
+        # direction (OperationsCenter -> CoreRunner / SourceRegistry)
         # is what dispatches OUT of OC.
         graph = load_repo_graph(_LIVE_CONFIG)
         oc_dispatchers = {n.canonical_name for n in graph.who_dispatches_to("operations_center")}
         assert "OperatorConsole" in oc_dispatchers
-        # ExecutorRuntime is dispatched-TO by OC, so OC should appear as a
-        # dispatcher of ExecutorRuntime.
-        er_dispatchers = {n.canonical_name for n in graph.who_dispatches_to("executor_runtime")}
+        # CoreRunner is dispatched-TO by OC, so OC should appear as a
+        # dispatcher of CoreRunner.
+        er_dispatchers = {n.canonical_name for n in graph.who_dispatches_to("core_runner")}
         assert "OperationsCenter" in er_dispatchers
 
 

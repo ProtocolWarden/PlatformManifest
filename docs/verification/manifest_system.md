@@ -589,7 +589,7 @@ OperationsCenter: source=platform, local_path=...
 OC ships a static denylist at `tools/boundary/switchboard_denylist.py` that scans the SwitchBoard source tree for forbidden symbol names. The denylist is forward-looking — it includes symbols that don't yet exist in SB so accidental adoption fails the boundary check. Currently covers:
 
 * ER-001…ER-004 primitives (`SwarmCoordinator`, `LifecycleRunner`, `RunMemoryIndexWriter`, `RepoGraphLoader`, `RepoGraphIndexer`, etc.)
-* Runtime dispatch (`ExecutorRuntime`, `RuntimeRunner`, `SubprocessRunner`, `RuntimeInvocation`, `RuntimeResult`)
+* Runtime dispatch (`CoreRunner`, `RuntimeRunner`, `SubprocessRunner`, `RuntimeInvocation`, `RuntimeResult`)
 * Fork management (`SourceRegistry`)
 * Manifest/composition symbols (PM v0.9.0+): `load_repo_graph`, `load_effective_graph`, `load_default_repo_graph`, `PlatformManifestSettings`, `build_effective_repo_graph`, `build_effective_repo_graph_from_settings`, `WorkScopeManifest`, `ManifestKind`
 

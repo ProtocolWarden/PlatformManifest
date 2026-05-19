@@ -57,7 +57,7 @@ These concepts must stay in their owning repositories:
 * CxRP owns execution/routing contract semantics.
 * RxP owns runtime invocation semantics.
 * OperationsCenter owns governance and orchestration implementation.
-* ExecutorRuntime owns backend runtime invocation behavior.
+* CoreRunner owns backend runtime invocation behavior.
 * PlatformDeployment owns deployment and hosting behavior.
 * Custodian owns leak and hygiene detector implementation.
 

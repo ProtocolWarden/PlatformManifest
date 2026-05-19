@@ -11,7 +11,7 @@ PlatformManifest owns what exists and what may be disclosed.
 CxRP owns execution/routing contract semantics.
 RxP owns runtime invocation semantics.
 OperationsCenter owns governance and orchestration implementation.
-ExecutorRuntime performs runtime invocation for OperationsCenter.
+CoreRunner performs runtime invocation for OperationsCenter.
 PlatformDeployment deploys and hosts runtime environments.
 Managed private projects remain external to orchestration consumers.
 Custodian detects leaks and hygiene violations against declared policy.
@@ -46,7 +46,7 @@ OperationsCenter consumes PlatformManifest as validated topology and
 visibility metadata. It does not own the PlatformManifest ontology, and it
 does not redefine public/private policy.
 
-ExecutorRuntime is the runtime backend and driver used by OperationsCenter
+CoreRunner is the runtime backend and driver used by OperationsCenter
 to invoke work using RxP semantics. PlatformDeployment is the deployment
 and hosting layer for runtime environments; it is not the OperationsCenter
 execution backend.
@@ -120,7 +120,7 @@ projection metadata used for public/private policy enforcement.
 | `ProtocolRepository` | Repository owning protocol schemas. | CxRP and RxP are referenced, not absorbed. |
 | `ArtifactProducer` | Entity that produces artifacts or reports. | Example: a managed project. |
 | `DeploymentLayer` | Hosting/deployment environment layer. | Example: PlatformDeployment. |
-| `ExecutionBackend` | Runtime backend/driver. | Example: ExecutorRuntime. |
+| `ExecutionBackend` | Runtime backend/driver. | Example: CoreRunner. |
 | `Manifest` | Manifest document or generated manifest output. | Public manifests are projections of private manifests. |
 | `Artifact` | Produced file, bundle, report, or metadata object. | Public-safe metadata may be projected. |
 | `Run` | Execution or workflow run record. | May reference RxP/CxRP identifiers. |

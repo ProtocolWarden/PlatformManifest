@@ -1,5 +1,12 @@
 # Log
 
+## 2026-05-19 — ADR 0006 Phase 4: rename executor_runtime → core_runner in manifest + tests
+
+- platform_manifest.yaml: node key executor_runtime → core_runner, canonical_name → CoreRunner, github_url → CoreRunner, all edge refs updated.
+- tests/test_ontology_relationships.py, test_repo_graph.py, test_architecture_docs.py, test_validate.py: all executor_runtime/ExecutorRuntime strings updated.
+- docs/architecture/platformmanifest_ontology.md, visibility_boundary.md, vocabulary_audit.md, platform_topology.md, verification/manifest_system.md, README.md, CONTRIBUTING.md, docs/README.md: global rename.
+- 157 tests pass.
+
 ## 2026-05-13 — Add RepoGraph to manifest; declare PlatformManifest → RepoGraph edge
 
 - Added `repograph:` entry to platform_manifest.yaml (canonical_name: RepoGraph, runtime_role: graph_language).

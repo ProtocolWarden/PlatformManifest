@@ -17,7 +17,7 @@ RepoGraph defines the graph language. It does not own graph instances.
 ## What this repo is not
 
 - A deployment config store. Per-consumer local config (Plane URLs, kodo settings, etc.) stays in each consumer repo with its own `<repo>.example.yaml` + gitignored `<repo>.local.yaml`.
-- A runtime registry. ExecutorRuntime owns runner registration; PlatformManifest only describes which repos play which platform roles.
+- A runtime registry. CoreRunner owns runner registration; PlatformManifest only describes which repos play which platform roles.
 
 ## Quick start
 
@@ -70,7 +70,7 @@ from platform_manifest import (
 graph = load_default_repo_graph()
 graph.resolve("OperationsCenter")
 graph.affected_by_contract_change("cxrp")  # → [OC, SB, OperatorConsole]
-graph.who_dispatches_to("executor_runtime") # → [OperationsCenter]
+graph.who_dispatches_to("core_runner") # → [OperationsCenter]
 ```
 
 ## Multi-repo work scope — `WorkScopeManifest` (v0.9+)
