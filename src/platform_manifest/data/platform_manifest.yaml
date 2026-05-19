@@ -110,6 +110,12 @@ repos:
     github_url: https://github.com/ProtocolWarden/ProtocolWarden
     runtime_role: documentation_surface
 
+  custodian:
+    canonical_name: Custodian
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/Custodian
+    runtime_role: audit_maintenance
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
