@@ -22,7 +22,7 @@ def test_platform_manifest_boundary_invariants_remain_documented() -> None:
         "CxRP owns execution/routing contract semantics.",
         "RxP owns runtime invocation semantics.",
         "OperationsCenter owns governance and orchestration implementation.",
-        "ExecutorRuntime performs runtime invocation for OperationsCenter.",
+        "CoreRunner performs runtime invocation for OperationsCenter.",
         "PlatformDeployment deploys and hosts runtime environments.",
         "Managed private projects remain external to orchestration consumers.",
         "Custodian detects leaks and hygiene violations against declared policy.",
@@ -58,4 +58,4 @@ def test_visibility_boundary_roles_remain_explicit() -> None:
     assert "references CxRP and RxP rather than owning their schemas" in docs
     assert "Managed private projects stay external to orchestration consumers" in docs
     assert "PlatformDeployment is the deployment and hosting layer" in docs
-    assert "ExecutorRuntime is the runtime backend and driver" in docs
+    assert "CoreRunner is the runtime backend and driver" in docs

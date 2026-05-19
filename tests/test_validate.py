@@ -240,9 +240,9 @@ class TestSchemaFailures:
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
                 '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
-                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                '  er: {canonical_name: CoreRunner, visibility: public}\n'
                 'relationships:\n'
-                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, projection_behavior: public_safe}\n',
+                '  - {id: r1, source: OperationsCenter, target: CoreRunner, kind: orchestrates, projection_behavior: public_safe}\n',
             )
         )
         assert not report.ok
@@ -257,9 +257,9 @@ class TestSchemaFailures:
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
                 '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
-                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                '  er: {canonical_name: CoreRunner, visibility: public}\n'
                 'relationships:\n'
-                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: public}\n',
+                '  - {id: r1, source: OperationsCenter, target: CoreRunner, kind: orchestrates, visibility: public}\n',
             )
         )
         assert not report.ok
@@ -274,9 +274,9 @@ class TestSchemaFailures:
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
                 '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
-                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                '  er: {canonical_name: CoreRunner, visibility: public}\n'
                 'relationships:\n'
-                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: bogus, projection_behavior: public_safe}\n',
+                '  - {id: r1, source: OperationsCenter, target: CoreRunner, kind: orchestrates, visibility: bogus, projection_behavior: public_safe}\n',
             )
         )
         assert not report.ok
@@ -291,9 +291,9 @@ class TestSchemaFailures:
                 'manifest_version: "1.0.0"\n'
                 'repos:\n'
                 '  oc: {canonical_name: OperationsCenter, visibility: public}\n'
-                '  er: {canonical_name: ExecutorRuntime, visibility: public}\n'
+                '  er: {canonical_name: CoreRunner, visibility: public}\n'
                 'relationships:\n'
-                '  - {id: r1, source: OperationsCenter, target: ExecutorRuntime, kind: orchestrates, visibility: public, projection_behavior: bogus}\n',
+                '  - {id: r1, source: OperationsCenter, target: CoreRunner, kind: orchestrates, visibility: public, projection_behavior: bogus}\n',
             )
         )
         assert not report.ok

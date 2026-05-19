@@ -29,8 +29,8 @@ repos:
     projection_behavior: public_safe
     plane: control
     owner_kind: control_plane
-  executor_runtime:
-    canonical_name: ExecutorRuntime
+  core_runner:
+    canonical_name: CoreRunner
     visibility: public
     projection_behavior: public_safe
     plane: runtime
@@ -42,7 +42,7 @@ repos:
 relationships:
   - id: oc-orchestrates-er
     source: OperationsCenter
-    target: ExecutorRuntime
+    target: CoreRunner
     kind: orchestrates
     visibility: public
     projection_behavior: public_safe
@@ -54,7 +54,7 @@ relationships:
     projection_behavior: public_safe
   - id: oc-consumes-manifest
     source: OperationsCenter
-    target: ExecutorRuntime
+    target: CoreRunner
     kind: consumes_manifest
     visibility: public
     projection_behavior: public_safe
@@ -76,12 +76,12 @@ def test_relationship_queries_are_first_class(tmp_path: Path) -> None:
     assert rels[0].visibility is Visibility.PUBLIC
     assert rels[0].projection_behavior is ProjectionBehavior.PUBLIC_SAFE
     assert graph.resolve("OperationsCenter").plane is PlatformPlane.CONTROL
-    assert graph.resolve("ExecutorRuntime").owner_kind is OwnerKind.CONTROL_PLANE
+    assert graph.resolve("CoreRunner").owner_kind is OwnerKind.CONTROL_PLANE
     assert [rel.relationship_id for rel in graph.relationships_from("operations_center")] == [
         "oc-consumes-manifest",
         "oc-orchestrates-er",
     ]
-    assert [rel.relationship_id for rel in graph.relationships_to("executor_runtime")] == [
+    assert [rel.relationship_id for rel in graph.relationships_to("core_runner")] == [
         "oc-consumes-manifest",
         "oc-orchestrates-er",
     ]
@@ -92,7 +92,7 @@ def test_projection_uses_explicit_projection_metadata(tmp_path: Path) -> None:
     projected = to_public_manifest_dict(graph)
 
     assert "hidden_public" not in projected["repos"]
-    assert set(projected["repos"]) == {"operations_center", "executor_runtime"}
+    assert set(projected["repos"]) == {"operations_center", "core_runner"}
     assert [rel["id"] for rel in projected["relationships"]] == [
         "oc-consumes-manifest",
         "oc-orchestrates-er",
@@ -109,13 +109,13 @@ def test_relationship_without_visibility_fails_closed(tmp_path: Path) -> None:
         '  operations_center:\n'
         '    canonical_name: OperationsCenter\n'
         '    visibility: public\n'
-        '  executor_runtime:\n'
-        '    canonical_name: ExecutorRuntime\n'
+        '  core_runner:\n'
+        '    canonical_name: CoreRunner\n'
         '    visibility: public\n'
         'relationships:\n'
         '  - id: bad-rel\n'
         '    source: OperationsCenter\n'
-        '    target: ExecutorRuntime\n'
+        '    target: CoreRunner\n'
         '    kind: orchestrates\n'
         '    projection_behavior: public_safe\n'
         'edges: []\n',
@@ -137,13 +137,13 @@ def test_relationship_without_projection_behavior_fails_closed(tmp_path: Path) -
         '  operations_center:\n'
         '    canonical_name: OperationsCenter\n'
         '    visibility: public\n'
-        '  executor_runtime:\n'
-        '    canonical_name: ExecutorRuntime\n'
+        '  core_runner:\n'
+        '    canonical_name: CoreRunner\n'
         '    visibility: public\n'
         'relationships:\n'
         '  - id: bad-rel\n'
         '    source: OperationsCenter\n'
-        '    target: ExecutorRuntime\n'
+        '    target: CoreRunner\n'
         '    kind: orchestrates\n'
         '    visibility: public\n'
         'edges: []\n',

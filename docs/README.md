@@ -17,7 +17,7 @@ verification specs and design notes.
   participation, and execution timeline.
 - [architecture/visibility_boundary.md](architecture/visibility_boundary.md) —
   Visibility boundary between PlatformManifest, Custodian, OperationsCenter,
-  ExecutorRuntime, and PlatformDeployment.
+  CoreRunner, and PlatformDeployment.
 - [architecture/vocabulary_audit.md](architecture/vocabulary_audit.md) —
   Classification of current manifest vocabulary as ontology-level,
   visibility-related, projection-related, implementation-specific, or owned

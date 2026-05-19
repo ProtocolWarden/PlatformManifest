@@ -56,10 +56,10 @@ repos:
     github_url: https://github.com/ProtocolWarden/RxP
     runtime_role: contracts
 
-  executor_runtime:
-    canonical_name: ExecutorRuntime
+  core_runner:
+    canonical_name: CoreRunner
     visibility: public
-    github_url: https://github.com/ProtocolWarden/ExecutorRuntime
+    github_url: https://github.com/ProtocolWarden/CoreRunner
     runtime_role: runtime_dispatch
 
   source_registry:
@@ -131,11 +131,11 @@ edges:
 
   # Contract dependencies on RxP — runtime invocation/result shape.
   - {from: OperationsCenter, to: RxP, type: depends_on_contracts_from}
-  - {from: ExecutorRuntime,  to: RxP, type: depends_on_contracts_from}
+  - {from: CoreRunner,  to: RxP, type: depends_on_contracts_from}
 
-  # OperationsCenter dispatches to ExecutorRuntime for actual runtime
+  # OperationsCenter dispatches to CoreRunner for actual runtime
   # execution and to SourceRegistry for fork-management commands.
-  - {from: OperationsCenter, to: ExecutorRuntime, type: dispatches_to}
+  - {from: OperationsCenter, to: CoreRunner, type: dispatches_to}
   - {from: OperationsCenter, to: SourceRegistry,  type: dispatches_to}
 
   # PlatformManifest is consumed by OC + SB + OperatorConsole as the

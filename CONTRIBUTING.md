@@ -44,7 +44,7 @@ tests/
 
 PlatformManifest describes the platform; it does not run it. Contributions must not:
 
-- Add execution, dispatch, or routing logic (belongs in OperationsCenter / SwitchBoard / ExecutorRuntime)
+- Add execution, dispatch, or routing logic (belongs in OperationsCenter / SwitchBoard / CoreRunner)
 - Add per-deployment configuration (belongs in each consumer repo's `<repo>.local.yaml`)
 - Add fuzzy matching, scoring, or inferred edges — the map is explicit, fail-fast, and operator-authored
 
