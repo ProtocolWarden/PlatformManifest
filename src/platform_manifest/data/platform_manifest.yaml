@@ -80,6 +80,24 @@ repos:
     github_url: https://github.com/ProtocolWarden/RepoGraph
     runtime_role: graph_language
 
+  team_executor:
+    canonical_name: TeamExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/TeamExecutor
+    runtime_role: execution_backend
+
+  dag_executor:
+    canonical_name: DagExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/DagExecutor
+    runtime_role: execution_backend
+
+  critique_executor:
+    canonical_name: CritiqueExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/CritiqueExecutor
+    runtime_role: execution_backend
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
@@ -112,3 +130,18 @@ edges:
   # PlatformManifest consumes RepoGraph for graph-semantics vocabulary
   # (ontology, topology, projection, boundary artifact schemas).
   - {from: PlatformManifest, to: RepoGraph, type: depends_on_contracts_from}
+
+  # OperationsCenter dispatches to the three owned execution backends (ADR 0005).
+  - {from: OperationsCenter, to: TeamExecutor,     type: dispatches_to}
+  - {from: OperationsCenter, to: DagExecutor,      type: dispatches_to}
+  - {from: OperationsCenter, to: CritiqueExecutor, type: dispatches_to}
+
+  # Executor backends depend on RxP for the runtime invocation/result contract.
+  - {from: TeamExecutor,     to: RxP, type: depends_on_contracts_from}
+  - {from: DagExecutor,      to: RxP, type: depends_on_contracts_from}
+  - {from: CritiqueExecutor, to: RxP, type: depends_on_contracts_from}
+
+  # Executor backends depend on CxRP for BackendName/ExecutorName vocabulary.
+  - {from: TeamExecutor,     to: CxRP, type: depends_on_contracts_from}
+  - {from: DagExecutor,      to: CxRP, type: depends_on_contracts_from}
+  - {from: CritiqueExecutor, to: CxRP, type: depends_on_contracts_from}
