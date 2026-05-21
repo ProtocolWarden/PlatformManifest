@@ -1,5 +1,12 @@
 # Log
 
+## 2026-05-21 — Add CLP participation metadata to platform manifest
+
+Added context_lifecycle participation metadata to OperationsCenter and
+ContextLifecycleProtocol nodes. OC: participates=true, workspace_capsules=true,
+contextguard=true. CLP: schema_owner=true, contextguard=true. PlatformManifest
+describes capability/participation only — not live runtime state.
+
 ## 2026-05-21 — Add closing fence to console-context block
 
 Added <!-- /console-context --> end marker so OperatorConsole only replaces its

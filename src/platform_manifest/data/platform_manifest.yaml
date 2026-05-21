@@ -31,6 +31,10 @@ repos:
     visibility: public
     github_url: https://github.com/ProtocolWarden/OperationsCenter
     runtime_role: orchestration
+    context_lifecycle:
+      participates: true
+      workspace_capsules: true
+      contextguard: true
 
   switchboard:
     canonical_name: SwitchBoard
@@ -127,6 +131,9 @@ repos:
     visibility: public
     github_url: https://github.com/ProtocolWarden/ContextLifecycleProtocol
     runtime_role: cognition_lifecycle
+    context_lifecycle:
+      schema_owner: true
+      contextguard: true
 
 edges:
 
