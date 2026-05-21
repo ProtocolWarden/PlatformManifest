@@ -181,5 +181,5 @@ edges:
   - {from: ProtocolWarden,             to: PlatformManifest, type: depends_on_contracts_from}
 
   # ContextLifecycleProtocol — consumed by OC as the cognition lifecycle runtime.
-  # (VideoFoundry is private — its CLP dependency is tracked in PrivateManifest.)
+  # Private project consumers are tracked in their respective project manifests.
   - {from: OperationsCenter, to: ContextLifecycleProtocol, type: depends_on_contracts_from}

@@ -1,5 +1,10 @@
 # Log
 
+## 2026-05-21 — Fix B1 boundary violation in platform_manifest.yaml
+
+Removed VideoFoundry name from inline comment — Custodian B1 flags private repo names in
+tracked public files. Replaced with generic "Private project consumers" phrasing.
+
 ## 2026-05-21 — Add Warehouse and ContextLifecycleProtocol to manifest
 
 Added two repos missing from the public platform graph:
