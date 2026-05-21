@@ -116,6 +116,18 @@ repos:
     github_url: https://github.com/ProtocolWarden/Custodian
     runtime_role: audit_maintenance
 
+  warehouse:
+    canonical_name: Warehouse
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/Warehouse
+    runtime_role: context_staging
+
+  context_lifecycle_protocol:
+    canonical_name: ContextLifecycleProtocol
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ContextLifecycleProtocol
+    runtime_role: cognition_lifecycle
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
@@ -167,3 +179,7 @@ edges:
   # Documentation surfaces — consume PlatformManifest as the repo catalog source.
   - {from: "ProtocolWarden.github.io", to: PlatformManifest, type: depends_on_contracts_from}
   - {from: ProtocolWarden,             to: PlatformManifest, type: depends_on_contracts_from}
+
+  # ContextLifecycleProtocol — consumed by OC as the cognition lifecycle runtime.
+  # (VideoFoundry is private — its CLP dependency is tracked in PrivateManifest.)
+  - {from: OperationsCenter, to: ContextLifecycleProtocol, type: depends_on_contracts_from}
