@@ -1,5 +1,17 @@
 # Log
 
+## 2026-05-21 — Fix B1 boundary violation in platform_manifest.yaml
+
+Removed VideoFoundry name from inline comment — Custodian B1 flags private repo names in
+tracked public files. Replaced with generic "Private project consumers" phrasing.
+
+## 2026-05-21 — Add Warehouse and ContextLifecycleProtocol to manifest
+
+Added two repos missing from the public platform graph:
+- Warehouse (context_staging) — already referenced in github.io catalog and org profile but absent from manifest
+- ContextLifecycleProtocol (cognition_lifecycle) — new public repo; added OC→CLP depends_on_contracts_from edge
+VideoFoundry→CLP edge excluded: VF is private and belongs in PrivateManifest per trust boundary.
+
 ## 2026-05-19 — ADR 0006 Phase 4: rename executor_runtime → core_runner in manifest + tests
 
 - platform_manifest.yaml: node key executor_runtime → core_runner, canonical_name → CoreRunner, github_url → CoreRunner, all edge refs updated.
