@@ -1,5 +1,10 @@
 # Log
 
+## 2026-05-21 — Add closing fence to console-context block
+
+Added <!-- /console-context --> end marker so OperatorConsole only replaces its
+managed block and leaves repo-owned content below it untouched.
+
 ## 2026-05-21 — Fix B1 boundary violation in platform_manifest.yaml
 
 Removed VideoFoundry name from inline comment — Custodian B1 flags private repo names in
