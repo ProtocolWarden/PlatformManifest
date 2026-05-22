@@ -16,7 +16,7 @@ RepoGraph defines the graph language. It does not own graph instances.
 
 ## What this repo is not
 
-- A deployment config store. Per-consumer local config (Plane URLs, kodo settings, etc.) stays in each consumer repo with its own `<repo>.example.yaml` + gitignored `<repo>.local.yaml`.
+- A deployment config store. Per-consumer local config (Plane URLs, team_executor settings, etc.) stays in each consumer repo with its own `<repo>.example.yaml` + gitignored `<repo>.local.yaml`.
 - A runtime registry. CoreRunner owns runner registration; PlatformManifest only describes which repos play which platform roles.
 
 ## Quick start
