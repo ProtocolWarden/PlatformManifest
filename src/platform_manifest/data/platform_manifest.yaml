@@ -127,9 +127,9 @@ repos:
     runtime_role: context_staging
 
   context_lifecycle_protocol:
-    canonical_name: ContextLifecycleProtocol
+    canonical_name: ContextLifecycle
     visibility: public
-    github_url: https://github.com/ProtocolWarden/ContextLifecycleProtocol
+    github_url: https://github.com/ProtocolWarden/ContextLifecycle
     runtime_role: cognition_lifecycle
     context_lifecycle:
       schema_owner: true
@@ -187,6 +187,6 @@ edges:
   - {from: "ProtocolWarden.github.io", to: PlatformManifest, type: depends_on_contracts_from}
   - {from: ProtocolWarden,             to: PlatformManifest, type: depends_on_contracts_from}
 
-  # ContextLifecycleProtocol — consumed by OC as the cognition lifecycle runtime.
+  # ContextLifecycle — consumed by OC as the cognition lifecycle runtime.
   # Private project consumers are tracked in their respective project manifests.
-  - {from: OperationsCenter, to: ContextLifecycleProtocol, type: depends_on_contracts_from}
+  - {from: OperationsCenter, to: ContextLifecycle, type: depends_on_contracts_from}

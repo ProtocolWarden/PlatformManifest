@@ -3,7 +3,7 @@
 ## 2026-05-21 — Add CLP participation metadata to platform manifest
 
 Added context_lifecycle participation metadata to OperationsCenter and
-ContextLifecycleProtocol nodes. OC: participates=true, workspace_capsules=true,
+ContextLifecycle nodes. OC: participates=true, workspace_capsules=true,
 contextguard=true. CLP: schema_owner=true, contextguard=true. PlatformManifest
 describes capability/participation only — not live runtime state.
 
@@ -17,11 +17,11 @@ managed block and leaves repo-owned content below it untouched.
 Removed VideoFoundry name from inline comment — Custodian B1 flags private repo names in
 tracked public files. Replaced with generic "Private project consumers" phrasing.
 
-## 2026-05-21 — Add Warehouse and ContextLifecycleProtocol to manifest
+## 2026-05-21 — Add Warehouse and ContextLifecycle to manifest
 
 Added two repos missing from the public platform graph:
 - Warehouse (context_staging) — already referenced in github.io catalog and org profile but absent from manifest
-- ContextLifecycleProtocol (cognition_lifecycle) — new public repo; added OC→CLP depends_on_contracts_from edge
+- ContextLifecycle (cognition_lifecycle) — new public repo; added OC→CLP depends_on_contracts_from edge
 VideoFoundry→CLP edge excluded: VF is private and belongs in PrivateManifest per trust boundary.
 
 ## 2026-05-19 — ADR 0006 Phase 4: rename executor_runtime → core_runner in manifest + tests
