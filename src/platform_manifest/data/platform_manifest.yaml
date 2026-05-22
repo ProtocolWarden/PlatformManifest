@@ -39,6 +39,9 @@ repos:
     runtime_role: orchestration
     context_lifecycle:
       participates: true
+      cognition_host: false
+      shim_only: true              # CL shim in .claude/hooks/ (ADR 0002 P5)
+      dispatcher_integration: true # ExecutionCoordinator wraps adapter calls in cl_dispatch_wrap (ADR 0002 P4)
       workspace_capsules: true
       contextguard: true
 
@@ -83,6 +86,11 @@ repos:
     visibility: public
     github_url: https://github.com/ProtocolWarden/PlatformManifest
     runtime_role: platform_map
+    context_lifecycle:
+      participates: true
+      cognition_host: true            # hosts .context/sessions/ for public-scope work (ADR 0002 P3)
+      manifest_scope_declared: true   # visibility_scope: public declared at top of file
+      contextguard: true
 
   repograph:
     canonical_name: RepoGraph
@@ -95,18 +103,30 @@ repos:
     visibility: public
     github_url: https://github.com/ProtocolWarden/TeamExecutor
     runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
 
   dag_executor:
     canonical_name: DAGExecutor
     visibility: public
     github_url: https://github.com/ProtocolWarden/DAGExecutor
     runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
 
   critique_executor:
     canonical_name: CritiqueExecutor
     visibility: public
     github_url: https://github.com/ProtocolWarden/CritiqueExecutor
     runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
 
   github_pages_site:
     canonical_name: ProtocolWarden.github.io
@@ -139,6 +159,7 @@ repos:
     runtime_role: cognition_lifecycle
     context_lifecycle:
       schema_owner: true
+      cli_provider: true   # ships `cl` CLI + hydrate/capture/peek API (ADR 0002 P1)
       contextguard: true
 
 edges:

@@ -1,5 +1,17 @@
 # Log
 
+## 2026-05-22 — P6: declare cognition_host participation metadata
+
+Branch: `feat/p6-cleanup`. Phase 6 of work order `PlatformDeployment/docs/architecture/adr/0002-work-order-manifest-cognition.md`.
+
+Updated `src/platform_manifest/data/platform_manifest.yaml` `context_lifecycle` blocks to reflect the post-P5 world:
+- PlatformManifest: `cognition_host: true`, `manifest_scope_declared: true` (it now hosts `.context/sessions/` for public-scope work).
+- OperationsCenter: `cognition_host: false`, `shim_only: true`, `dispatcher_integration: true` (CL shim in `.claude/hooks/`; `cl_dispatch_wrap` around adapter calls per P4).
+- TeamExecutor / DAGExecutor / CritiqueExecutor: `cognition_host: false`, `shim_only: true` (9-line shim only, no local `.context/` per P5).
+- ContextLifecycle: added `cli_provider: true` (ships `cl` CLI + hydrate/capture/peek API per P1).
+
+Public-manifest metadata is now an honest catalog of who actually hosts CL state vs who only carries a shim.
+
 ## 2026-05-22 — Link context-layout.md from docs README (fix DC7)
 
 Custodian flagged `docs/context-layout.md` (added in P3) as orphan — not linked from any tracked doc. Added link from `docs/README.md` under a new "Cognition Hosting" section.
