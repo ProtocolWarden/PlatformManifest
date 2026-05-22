@@ -29,3 +29,9 @@ verification specs and design notes.
   Verification spec for the manifest composition system: edge resolution,
   asset producer/consumer graph, privacy boundaries, and the test
   scenarios that validate end-to-end correctness.
+
+## Cognition Hosting
+
+- [context-layout.md](context-layout.md) —
+  `.context/` layout for hosting cognition state of anchored sessions
+  (public-scope; per Phase 3 of PlatformDeployment ADR 0002).

@@ -1,5 +1,9 @@
 # Log
 
+## 2026-05-22 — Link context-layout.md from docs README (fix DC7)
+
+Custodian flagged `docs/context-layout.md` (added in P3) as orphan — not linked from any tracked doc. Added link from `docs/README.md` under a new "Cognition Hosting" section.
+
 ## 2026-05-22 — P3: become cognition host (`.context/` skeleton)
 
 Branch: `feat/p3-context-host`.
