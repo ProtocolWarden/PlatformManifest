@@ -1,5 +1,23 @@
 # Log
 
+## 2026-05-22 — "Manifest" locked in as a first-class repo type
+
+Design session in CL (see `ContextLifecycle/.console/log.md` 2026-05-22 entry for the full walkthrough). Recording the manifest-specific outcomes here so future-PM sees them.
+
+**Repo type — manifest:** a manifest is a repo whose job is to (1) declare what's in an ecosystem, (2) host that ecosystem's cognition state under `.context/`, and (3) anchor sessions that operate on it. PM and PrivateManifest are the current instances; the pattern is extensible.
+
+**Visibility scope:** PM is `public`. PrivateManifest is `private` (superset — can host state involving public repos; PM cannot host state involving private repos).
+
+**Info-flow rule (general, not cognition-specific):** a manifest can host state involving any repo at or below its visibility scope. Enforced by RepoGraph at write time. Applies to any state a manifest hosts, not just cognition.
+
+**What this means for PM going forward:**
+- PM gains a `.context/` directory as the cognition host for public-scope sessions (capsules, checkpoints, handoffs).
+- PM becomes a session anchor — operators launch sessions via `cl session start PlatformManifest` (sets `CL_ANCHOR` env var). Hard error if anchor missing.
+- Consumer repos (executors, etc.) carry only a 1-line shim hook; they no longer host their own `.context/` data.
+- PM's existing repo-membership declarations become the source RepoGraph reads for visibility checks.
+
+**Stop point:** PM doesn't need to change yet — implementation lands in CL first (CLI + shim). Once CL ships, add `.context/` skeleton here and update repo-membership schema for RepoGraph consumption.
+
 ## 2026-05-21 — Add CLP participation metadata to platform manifest
 
 Added context_lifecycle participation metadata to OperationsCenter and
