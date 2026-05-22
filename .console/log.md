@@ -1,5 +1,23 @@
 # Log
 
+## 2026-05-22 — P3: become cognition host (`.context/` skeleton)
+
+Branch: `feat/p3-context-host`.
+
+Phase 3 of work order `PlatformDeployment/docs/architecture/adr/0002-work-order-manifest-cognition.md`. PM now hosts durable CL state for any session anchored here (`CL_ANCHOR=<PM>`). Consumer repos (OC, executors) stop carrying their own `.context/`.
+
+Added:
+- `.context/sessions/` and `.context/archived/` (runtime session dirs land under sessions/; `cl session end` moves them to archived/).
+- `.context/templates/{investigation_capsule,worker_handoff,loop_checkpoint}.template.yaml` — copied from OC and stripped of OC-specific text (no `repo: "OperationsCenter"` defaults, no OC paths in `allowed_paths`). `loop_checkpoint` renamed from `watchdog_checkpoint` since it's the generic name.
+- `.context/config.yaml` — manifest-wide CL config. Guard flags only (`require_capsule: false`, `enforce_lease: true`, capsule/checkpoint/handoff paths relative to session subdir). Explicitly does NOT carry consumer-repo operational config (worker definitions, watchdog cycle) — those stay in consumer `.console/`.
+- `docs/context-layout.md` — explains the layout and the public-scope contract for what PM can host (per RepoGraph clause 1 + 2; cannot host private-owned repo cognition).
+
+Companion changes:
+- PrivM: same skeleton on its own `feat/p3-context-host` branch.
+- OC: `.context/` removed on `feat/p3-remove-local-context`; OC's worker config moved to `.console/workers.yaml`, runtime schedule file moved to `.console/loop_schedule.json`; watchdog controller + session prompt updated to the new paths.
+
+Not committed yet — staged for parent review.
+
 ## 2026-05-22 — P2: add visibility_scope + also_hosts top-level fields
 
 Branch: `feat/p2-add-visibility-scope`.
