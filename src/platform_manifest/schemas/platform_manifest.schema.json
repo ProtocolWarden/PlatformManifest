@@ -176,7 +176,24 @@
         "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
         "public_alias": { "type": "string", "minLength": 1 },
         "redaction_label": { "type": "string", "minLength": 1 },
-        "metadata": { "$ref": "#/$defs/PublicMetadata" }
+        "metadata": { "$ref": "#/$defs/PublicMetadata" },
+        "context_lifecycle": { "$ref": "#/$defs/RepoContextLifecycleFlags" }
+      }
+    },
+    "RepoContextLifecycleFlags": {
+      "type": "object",
+      "description": "Per-repo CL participation declared in the public manifest catalog. See ADR 0002.",
+      "additionalProperties": false,
+      "properties": {
+        "participates": { "type": "boolean" },
+        "cognition_host": { "type": "boolean" },
+        "manifest_scope_declared": { "type": "boolean" },
+        "shim_only": { "type": "boolean" },
+        "dispatcher_integration": { "type": "boolean" },
+        "cli_provider": { "type": "boolean" },
+        "schema_owner": { "type": "boolean" },
+        "contextguard": { "type": "boolean" },
+        "workspace_capsules": { "type": "boolean" }
       }
     },
     "PublicMetadata": {

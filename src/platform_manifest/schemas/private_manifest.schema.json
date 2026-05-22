@@ -183,7 +183,24 @@
           "additionalProperties": {
             "type": ["string", "integer", "number", "boolean"]
           }
-        }
+        },
+        "context_lifecycle": { "$ref": "#/$defs/RepoContextLifecycleFlags" }
+      }
+    },
+    "RepoContextLifecycleFlags": {
+      "type": "object",
+      "description": "Per-repo CL participation flags. See ADR 0002.",
+      "additionalProperties": false,
+      "properties": {
+        "participates": { "type": "boolean" },
+        "cognition_host": { "type": "boolean" },
+        "manifest_scope_declared": { "type": "boolean" },
+        "shim_only": { "type": "boolean" },
+        "dispatcher_integration": { "type": "boolean" },
+        "cli_provider": { "type": "boolean" },
+        "schema_owner": { "type": "boolean" },
+        "contextguard": { "type": "boolean" },
+        "workspace_capsules": { "type": "boolean" }
       }
     },
     "Edge": {

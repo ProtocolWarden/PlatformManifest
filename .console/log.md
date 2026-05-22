@@ -1,4 +1,8 @@
 # Log
+## 2026-05-22 — Fix bundled-validation: add RepoContextLifecycleFlags to schema
+
+Pre-existing `test_bundled_validates_clean` failure: PM YAML had `context_lifecycle:` blocks per repo (added 2026-05-21 + extended in ADR 0002 P6), but `PublicRepoNode` / `RepoNode` schemas declared `additionalProperties: false` without naming the field. Added `RepoContextLifecycleFlags` $def to both `platform_manifest.schema.json` and `private_manifest.schema.json` with the full set of flags currently in use (participates, cognition_host, manifest_scope_declared, shim_only, dispatcher_integration, cli_provider, schema_owner, contextguard, workspace_capsules). All 168 tests now pass.
+
 
 ## 2026-05-22 — P6: declare cognition_host participation metadata
 
