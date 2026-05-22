@@ -41,6 +41,27 @@
     "relationships": {
       "type": "array",
       "items": { "$ref": "#/$defs/PublicRelationship" }
+    },
+    "visibility_scope": {
+      "type": "string",
+      "enum": ["public"],
+      "description": "RepoGraph manifest-cognition scope (ADR 0002 P0.4). Platform manifests are always public."
+    },
+    "also_hosts": {
+      "type": "array",
+      "description": "Cross-private grants (ADR 0002 P0.4). Empty / absent on public manifests in practice — public manifests have no use for grants.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "repos"],
+        "properties": {
+          "manifest": { "type": "string", "minLength": 1 },
+          "repos": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
     }
   },
   "$defs": {

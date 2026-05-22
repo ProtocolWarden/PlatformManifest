@@ -112,6 +112,67 @@ def read_manifest_raw(path: Path) -> dict[str, Any]:
     return _read_manifest(path)
 
 
+# ----------------------------------------------------------------------
+# RepoGraph manifest-cognition fields (ADR 0002 P0.4 / P2)
+# ----------------------------------------------------------------------
+
+
+def parse_visibility_scope(raw: dict[str, Any], *, path: Path) -> str:
+    """Parse top-level ``visibility_scope``; derive from repos[*].visibility
+    when missing (all-public → public; otherwise error)."""
+    declared = raw.get("visibility_scope")
+    if declared is not None:
+        if not isinstance(declared, str) or declared not in ("public", "private"):
+            raise RepoGraphConfigError(
+                f"{path}: visibility_scope must be 'public' or 'private', got {declared!r}"
+            )
+        return declared
+
+    repos_raw = raw.get("repos") or {}
+    items: list[dict[str, Any]] = []
+    if isinstance(repos_raw, dict):
+        items = [v for v in repos_raw.values() if isinstance(v, dict)]
+    elif isinstance(repos_raw, list):
+        items = [v for v in repos_raw if isinstance(v, dict)]
+    if items and all((v.get("visibility") == "public") for v in items):
+        return "public"
+    raise RepoGraphConfigError(
+        f"{path}: manifest declares no top-level 'visibility_scope' and scope "
+        "could not be inferred from repos[*].visibility (mixed or absent). "
+        "Add a top-level `visibility_scope: public|private`."
+    )
+
+
+def parse_also_hosts(raw: dict[str, Any], *, path: Path) -> list[dict[str, Any]]:
+    """Parse top-level ``also_hosts`` cross-private grants. Returns a list of
+    ``{'manifest': str, 'repos': list[str]}`` dicts. Empty when absent."""
+    items = raw.get("also_hosts")
+    if items is None:
+        return []
+    if not isinstance(items, list):
+        raise RepoGraphConfigError(
+            f"{path}: 'also_hosts' must be a list of {{manifest, repos}} entries"
+        )
+    out: list[dict[str, Any]] = []
+    for idx, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise RepoGraphConfigError(
+                f"{path}: also_hosts[{idx}] must be a mapping"
+            )
+        manifest = item.get("manifest")
+        repos = item.get("repos") or []
+        if not isinstance(manifest, str) or not manifest:
+            raise RepoGraphConfigError(
+                f"{path}: also_hosts[{idx}].manifest must be a non-empty string"
+            )
+        if not isinstance(repos, list) or not all(isinstance(r, str) for r in repos):
+            raise RepoGraphConfigError(
+                f"{path}: also_hosts[{idx}].repos must be a list of strings"
+            )
+        out.append({"manifest": manifest, "repos": list(repos)})
+    return out
+
+
 def validate_header(
     raw: dict[str, Any],
     *,

@@ -28,6 +28,27 @@
     "relationships": {
       "type": "array",
       "items": { "$ref": "#/$defs/Relationship" }
+    },
+    "visibility_scope": {
+      "type": "string",
+      "enum": ["public", "private"],
+      "description": "RepoGraph manifest-cognition scope (ADR 0002 P0.4). Private manifests declare 'private'."
+    },
+    "also_hosts": {
+      "type": "array",
+      "description": "Cross-private grants (ADR 0002 P0.4). Each entry names another private manifest and the specific repos this manifest is allowed to host cognition about.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "repos"],
+        "properties": {
+          "manifest": { "type": "string", "minLength": 1 },
+          "repos": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
     }
   },
   "$defs": {

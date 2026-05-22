@@ -1,5 +1,24 @@
 # Log
 
+## 2026-05-22 — P2: add visibility_scope + also_hosts top-level fields
+
+Branch: `feat/p2-add-visibility-scope`.
+
+- `src/platform_manifest/data/platform_manifest.yaml`: declared
+  `visibility_scope: public` and `also_hosts: []` at top level.
+- `src/platform_manifest/schemas/platform_manifest.schema.json` +
+  `private_manifest.schema.json`: added `visibility_scope` and `also_hosts`
+  properties (without unsetting `additionalProperties: false`).
+- `src/platform_manifest/loader.py`: new `parse_visibility_scope()` and
+  `parse_also_hosts()` helpers, exposed from the loader module. Backward-compat
+  rule: when `visibility_scope` is absent, derive `public` only if every
+  `repos[*].visibility` is `public`; otherwise raise (forces explicit
+  declaration for any mixed-scope manifest).
+- New `tests/test_visibility_scope.py` (11 tests) covers helper behavior +
+  asserts the bundled YAML still loads after the schema change. PM suite:
+  167 pass / 1 pre-existing failure (unrelated: `context_lifecycle` repo
+  field rejected by current PublicRepoNode schema).
+
 ## 2026-05-22 — "Manifest" locked in as a first-class repo type
 
 Design session in CL (see `ContextLifecycle/.console/log.md` 2026-05-22 entry for the full walkthrough). Recording the manifest-specific outcomes here so future-PM sees them.

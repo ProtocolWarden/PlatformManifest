@@ -18,6 +18,12 @@
 manifest_kind: platform
 manifest_version: "1.0.0"
 
+# RepoGraph manifest-cognition fields (ADR 0002 P0.4, P2).
+# Public manifests are universally visible — any anchor can host cognition
+# about repos owned here without an explicit grant.
+visibility_scope: public
+also_hosts: []
+
 repos:
 
   operator_console:
