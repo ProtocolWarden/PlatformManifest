@@ -95,23 +95,81 @@ If you're on a **GitHub organization**, set these once as *organization
 secrets* and scope them to the consuming repos. Single source, free tier
 includes this.
 
-If you're on a **personal account**, there are no org-level secrets. Use
-`gh secret set` in a loop to set both secrets in each repo:
+#### Personal-account tutorial: `scripts/bootstrap-boundary-secrets.sh`
+
+If you're on a **personal account**, there are no org-level secrets. This
+repo ships a script that sets both secrets across every consuming repo in
+one pass and shreds the local PAT file when it's done.
+
+**Step 4.1 — Write the PAT to a temp file with no trailing newline.**
+
+Two safe ways. Pick one.
+
+Option A — interactive prompt, no shell-history record of the token:
 
 ```bash
-REPOS=(RepoA RepoB RepoC)  # every repo that runs custodian-audit
-BOUNDARY_URL="https://raw.githubusercontent.com/<owner>/<PrivateManifest-name>/main/boundary/boundary_disclosure_artifact.json"
-
-printf '%s' 'YOUR_NEW_PAT_HERE' > /tmp/pat
-for repo in "${REPOS[@]}"; do
-  gh secret set PRIVATEMANIFEST_READ_TOKEN --repo "<owner>/$repo" < /tmp/pat
-  gh secret set REPOGRAPH_BOUNDARY_ARTIFACT_FILE --repo "<owner>/$repo" --body "$BOUNDARY_URL"
-done
-shred -u /tmp/pat
+read -s -p 'PAT: ' p && printf '%s' "$p" > /tmp/pat && unset p && echo
 ```
 
-When you rotate the PAT (annual or after a leak), run the same loop with the
-new token.
+Option B — direct write (only safe in a private terminal session):
+
+```bash
+printf '%s' 'github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx' > /tmp/pat
+```
+
+Avoid `echo "..." > /tmp/pat` — it appends a trailing newline that breaks the
+token. Always `printf '%s'`.
+
+**Step 4.2 — Run the bootstrap script.**
+
+```bash
+./scripts/bootstrap-boundary-secrets.sh \
+    --owner <your-github-username> \
+    --token-file /tmp/pat
+```
+
+By default, the script targets the platform's reference list of consumer
+repos and reads the artifact from
+`<owner>/PrivateManifest/main/boundary/boundary_disclosure_artifact.json`.
+Use `--private-repo`, `--branch`, `--artifact-path`, or `--repos-file` to
+point at a different layout.
+
+**Step 4.3 — Verify shredding.**
+
+The script registers an `EXIT` trap that runs `shred -u /tmp/pat` on success
+**and on failure** (Ctrl-C, network errors, anything). If you see `Token file
+shredded.` at the end, you're clean. If the script was killed before the trap
+fired, run `shred -u /tmp/pat` manually. To verify the file is gone:
+
+```bash
+test -f /tmp/pat && echo "STILL THERE — shred manually" || echo "clean"
+```
+
+**Step 4.4 — Confirm secrets propagated.**
+
+```bash
+gh secret list --repo <owner>/<one-of-the-consumer-repos>
+```
+
+You should see `PRIVATEMANIFEST_READ_TOKEN` and `REPOGRAPH_BOUNDARY_ARTIFACT_FILE`
+with recent timestamps.
+
+**Rotation.**
+
+When the PAT expires (annual) or after a suspected leak: revoke the old PAT
+in GitHub settings, generate a new one with the same scope, then re-run the
+same script with the new token file. Old secret values are overwritten
+in-place; no per-repo cleanup needed.
+
+**Why a script and not just a copy-pasted loop?**
+
+The script:
+- Validates the token file is non-empty before sending anything to GitHub
+- Shreds the file on **any** exit path (success, error, Ctrl-C) via a trap —
+  more reliable than a manual `shred` at the end of a loop
+- Supports `--dry-run` so you can preview what would be set before any
+  network call
+- Reports which repo failed if `gh secret set` errors out (rare, but useful)
 
 ### 5. Confirm the audit gate works
 
@@ -140,6 +198,15 @@ PrivateManifest. If you host private overlays for multiple unrelated tenants
 in the same PrivateManifest repo, every consumer sees every tenant's
 forbidden names. If that's a concern, run **one PrivateManifest per tenant**
 and configure each consuming repo with the appropriate URL.
+
+The decision to ship single-tenant today and the binding migration plan to
+multi-tenant are documented in
+[`PlatformDeployment/docs/architecture/adr/0003-boundary-artifact-tenancy-model.md`](https://github.com/ProtocolWarden/PlatformDeployment/blob/main/docs/architecture/adr/0003-boundary-artifact-tenancy-model.md).
+Read it before adding a second tenant or before designing per-project
+cognition anchoring — the ADR captures which pieces are already
+multi-tenant-ready (the artifact schema and generator) and which still need
+work (Custodian multi-artifact union, ContextLifecycle per-project
+anchoring, per-tenant secret routing in bootstrap tooling).
 
 ## Threat model summary
 
