@@ -35,3 +35,9 @@ verification specs and design notes.
 - [context-layout.md](context-layout.md) —
   `.context/` layout for hosting cognition state of anchored sessions
   (public-scope; per Phase 3 of PlatformDeployment ADR 0002).
+
+## Forking + private overlay
+
+- [forking-guide.md](forking-guide.md) —
+  How to fork the platform and bootstrap your own PrivateManifest, boundary
+  artifact publishing, and the secrets each consumer repo needs.
