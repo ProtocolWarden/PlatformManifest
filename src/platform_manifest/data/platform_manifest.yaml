@@ -162,6 +162,12 @@ repos:
       cli_provider: true   # ships `cl` CLI + hydrate/capture/peek API (ADR 0002 P1)
       contextguard: true
 
+  sync_mechanism:
+    canonical_name: SyncMechanism
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/SyncMechanism
+    runtime_role: fleet_sync_mechanism
+
 edges:
 
   # OperatorConsole dispatches into OperationsCenter
