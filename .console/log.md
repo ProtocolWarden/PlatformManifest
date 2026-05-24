@@ -233,3 +233,7 @@ since they consume it as the public repo catalog source.
 ## 2026-05-23 — Add CritiqueExecutor→CoreRunner edge
 
 - platform_manifest.yaml: declared dispatches_to edge CritiqueExecutor→CoreRunner (CE imports core_runner; clears custodian X2 in CritiqueExecutor).
+
+## 2026-05-23 — Register SyncMechanism node
+
+- platform_manifest.yaml: added SyncMechanism (public, runtime_role fleet_sync_mechanism) — the public Syncthing install/runtime mechanism extracted from the private fleet layer.
