@@ -229,3 +229,7 @@ Each gets depends_on_contracts_from edges to RxP and CxRP, and dispatches_to fro
 Added github_pages_site (ProtocolWarden.github.io) and org_profile (ProtocolWarden) with
 runtime_role: documentation_surface. Both get depends_on_contracts_from edges to PlatformManifest
 since they consume it as the public repo catalog source.
+
+## 2026-05-23 — Add CritiqueExecutor→CoreRunner edge
+
+- platform_manifest.yaml: declared dispatches_to edge CritiqueExecutor→CoreRunner (CE imports core_runner; clears custodian X2 in CritiqueExecutor).
