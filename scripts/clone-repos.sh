@@ -104,11 +104,13 @@ _process_yaml "$PM_DIR/src/platform_manifest/data/platform_manifest.yaml"
 
 if [[ "$WITH_PRIVATE" == true ]]; then
   PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
-  PRIV_YAML="$PRIVM_DIR/manifests/videofoundry/private_manifest.yaml"
   echo ""
   echo "▶ Private repos (PrivateManifest)"
   if [[ -d "$PRIVM_DIR" ]]; then
-    _process_yaml "$PRIV_YAML"
+    # Discover manifest YAMLs dynamically — no private names hardcoded here.
+    while IFS= read -r yaml_file; do
+      _process_yaml "$yaml_file"
+    done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
   else
     echo "  skip: PrivateManifest not cloned yet at $PRIVM_DIR"
     echo "  Hint: clone PrivateManifest first, then re-run with --with-private"

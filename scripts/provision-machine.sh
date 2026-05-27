@@ -36,6 +36,34 @@ done
 CL_DIR="$GITHUB_DIR/ContextLifecycle"
 RG_DIR="$GITHUB_DIR/RepoGraph"
 
+# Extract canonical_name + github_url pairs from a manifest YAML.
+# Output: tab-separated "canonical_name\tgithub_url" lines.
+_extract_names_from_yaml() {
+  local yaml_file="$1"
+  [[ -f "$yaml_file" ]] || return 0
+  python3 - "$yaml_file" <<'PY'
+import sys, pathlib, re
+try:
+    import yaml
+    data = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text())
+    repos = data.get("repos", {})
+    if isinstance(repos, dict):
+        for _k, f in repos.items():
+            if isinstance(f, dict):
+                name = f.get("canonical_name"); url = f.get("github_url", "")
+                if name: print(f"{name}\t{url}")
+    elif isinstance(repos, list):
+        for item in repos:
+            if isinstance(item, dict):
+                name = item.get("canonical_name") or item.get("name"); url = item.get("github_url", "")
+                if name: print(f"{name}\t{url}")
+except ImportError:
+    text = pathlib.Path(sys.argv[1]).read_text()
+    for name, url in re.findall(r'canonical_name:\s*(\S+).*?github_url:\s*(\S+)', text, re.DOTALL):
+        print(f"{name}\t{url}")
+PY
+}
+
 _require_repo() {
   local dir="$1" name="$2"
   if [[ ! -d "$dir/.git" ]]; then
@@ -204,16 +232,23 @@ for repo in "${FULL_ADAPTER_REPOS[@]}"; do _install_full_adapter "$repo"; done
 for repo in "${SHIM_REPOS[@]}";         do _install_shim "$repo"; done
 
 if [[ "$WITH_PRIVATE" == true ]]; then
-  # Private repos that need the full adapter (already have custom hooks — skip by default)
-  for repo in VideoFoundry SyncControl; do
-    dir="$GITHUB_DIR/$repo"
-    [[ -d "$dir/.git" ]] || continue
-    if [[ -f "$dir/.claude/hooks/pre_tool_use.sh" && "$FORCE_HOOKS" != true ]]; then
-      echo "  ✓ $repo (hooks already present)"
-    else
-      _install_full_adapter "$repo"
-    fi
-  done
+  # Install full adapter for private repos — discover names from PrivateManifest YAML,
+  # no private repo names hardcoded in this public script.
+  PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
+  if [[ -d "$PRIVM_DIR/.git" ]]; then
+    while IFS= read -r yaml_file; do
+      while IFS=$'\t' read -r canonical_name _url; do
+        [[ -z "$canonical_name" ]] && continue
+        dir="$GITHUB_DIR/$canonical_name"
+        [[ -d "$dir/.git" ]] || continue
+        if [[ -f "$dir/.claude/hooks/pre_tool_use.sh" && "$FORCE_HOOKS" != true ]]; then
+          echo "  ✓ $canonical_name (hooks already present)"
+        else
+          _install_full_adapter "$canonical_name"
+        fi
+      done < <(_extract_names_from_yaml "$yaml_file")
+    done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
+  fi
 fi
 
 # ── Smoke test ────────────────────────────────────────────────────────────────
@@ -224,9 +259,15 @@ declare -A EXPECTED_ANCHORS=(
   ["OperationsCenter"]="PlatformManifest"
   ["PlatformManifest"]="PlatformManifest"
 )
-if [[ -d "$GITHUB_DIR/PrivateManifest/.git" ]]; then
-  EXPECTED_ANCHORS["VideoFoundry"]="PrivateManifest"
-  EXPECTED_ANCHORS["SyncControl"]="PrivateManifest"
+# Add private repo smoke-test entries dynamically from PrivateManifest YAML.
+PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
+if [[ -d "$PRIVM_DIR/.git" ]]; then
+  while IFS= read -r yaml_file; do
+    while IFS=$'\t' read -r canonical_name _url; do
+      [[ -z "$canonical_name" ]] && continue
+      [[ -d "$GITHUB_DIR/$canonical_name/.git" ]] && EXPECTED_ANCHORS["$canonical_name"]="PrivateManifest"
+    done < <(_extract_names_from_yaml "$yaml_file")
+  done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
 fi
 
 SMOKE_PASS=true

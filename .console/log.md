@@ -1,4 +1,8 @@
 # Log
+## 2026-05-27 — Fix B1: remove hardcoded private names from provision/clone scripts
+
+Dynamic discovery replaces hardcoded private repo names — private manifest YAMLs discovered via `find` at runtime, canonical names parsed by Python. No private names appear in this public repo's source.
+
 ## 2026-05-27 — Populate RepoGraph registry; wire boundary artifact to custodian
 
 Registered PlatformManifest and PrivateManifest in the machine RepoGraph registry (`~/.config/repograph/manifests.yaml`). Added `CL_HOME`/`PATH` setup to `~/.bashrc` so bare `cl` is available to loop controllers and bootstrap scripts. Added `boundary_artifact_file` to `.custodian/config.yaml` so B2 (require_boundary_artifact) resolves correctly against PrivateManifest's generated artifact. SyncControl is private and belongs to PrivateManifest (not here).
