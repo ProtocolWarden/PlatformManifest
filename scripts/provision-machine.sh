@@ -104,9 +104,9 @@ _ensure_venv() {
 _ensure_venv "$CL_DIR" "ContextLifecycle"
 _ensure_venv "$RG_DIR" "RepoGraph"
 
-# ── 3. Shell profile: CL_HOME + PATH ─────────────────────────────────────────
+# ── 3. Shell profile + Claude Code env ───────────────────────────────────────
 echo ""
-echo "▶ [3/5] Shell profile (~/.bashrc)"
+echo "▶ [3/5] Shell profile (~/.bashrc) + ~/.claude/settings.json"
 
 BASHRC="$HOME/.bashrc"
 MARKER="# ContextLifecycle: point CL_HOME at the CL repo so shims and loops find \`cl\`"
@@ -122,6 +122,23 @@ SHELL
   echo "  ✓ Added CL_HOME + PATH to ~/.bashrc"
   echo "    (run: source ~/.bashrc  or open a new shell)"
 fi
+
+# Wire CL_HOME into ~/.claude/settings.json so Claude Code's process (and its
+# hook subprocesses) can find `cl` without sourcing ~/.bashrc. Idempotent.
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+python3 - "$CLAUDE_SETTINGS" "$CL_DIR" <<'PY'
+import json, sys, pathlib
+settings_path = pathlib.Path(sys.argv[1])
+cl_home = sys.argv[2]
+base = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+env = base.setdefault("env", {})
+if env.get("CL_HOME") == cl_home:
+    print("  ✓ CL_HOME already in ~/.claude/settings.json")
+else:
+    env["CL_HOME"] = cl_home
+    settings_path.write_text(json.dumps(base, indent=2) + "\n")
+    print("  ✓ Added CL_HOME to ~/.claude/settings.json")
+PY
 
 # Make cl available in this session too
 export CL_HOME="$CL_DIR"
