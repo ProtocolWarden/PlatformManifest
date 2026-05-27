@@ -249,3 +249,7 @@ since they consume it as the public repo catalog source.
 ## 2026-05-27 — Add machine provisioning scripts
 
 Added `scripts/provision-machine.sh` (idempotent: builds CL+RG venvs, wires CL_HOME in ~/.bashrc, registers manifests in RepoGraph, installs adapter hooks into repos missing them) and `scripts/clone-repos.sh` (clones all repos from platform_manifest.yaml via SSH, --with-private extends to PrivateManifest). Also installed ContextGuard full adapter into PlatformManifest itself (.claude/hooks/). OperatorConsole/setup.sh now calls provision-machine.sh as part of its flow.
+
+## 2026-05-27 — Track today's CL session capsules
+
+Three e2e-verification capsules from today's RepoGraph registry + CL integration work.
