@@ -253,3 +253,7 @@ Added `scripts/provision-machine.sh` (idempotent: builds CL+RG venvs, wires CL_H
 ## 2026-05-27 — Track today's CL session capsules
 
 Three e2e-verification capsules from today's RepoGraph registry + CL integration work.
+
+## 2026-05-27 — Fix provision: wire CL_HOME into ~/.claude/settings.json
+
+provision-machine.sh step 3 now also writes CL_HOME into ~/.claude/settings.json env section. This makes CL_HOME available to Claude Code's process and its hook subprocesses, which don't source ~/.bashrc. CL_ANCHOR is still session-dynamic (set via eval "$(cl session start)" before launching).
