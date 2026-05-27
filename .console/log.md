@@ -1,4 +1,8 @@
 # Log
+## 2026-05-27 — Fix B1: remove hardcoded private names from provision/clone scripts
+
+Dynamic discovery replaces hardcoded private repo names — private manifest YAMLs discovered via `find` at runtime, canonical names parsed by Python. No private names appear in this public repo's source.
+
 ## 2026-05-27 — Populate RepoGraph registry; wire boundary artifact to custodian
 
 Registered PlatformManifest and PrivateManifest in the machine RepoGraph registry (`~/.config/repograph/manifests.yaml`). Added `CL_HOME`/`PATH` setup to `~/.bashrc` so bare `cl` is available to loop controllers and bootstrap scripts. Added `boundary_artifact_file` to `.custodian/config.yaml` so B2 (require_boundary_artifact) resolves correctly against PrivateManifest's generated artifact. SyncControl is private and belongs to PrivateManifest (not here).
@@ -241,3 +245,7 @@ since they consume it as the public repo catalog source.
 ## 2026-05-23 — Register SyncMechanism node
 
 - platform_manifest.yaml: added SyncMechanism (public, runtime_role fleet_sync_mechanism) — the public Syncthing install/runtime mechanism extracted from the private fleet layer.
+
+## 2026-05-27 — Add machine provisioning scripts
+
+Added `scripts/provision-machine.sh` (idempotent: builds CL+RG venvs, wires CL_HOME in ~/.bashrc, registers manifests in RepoGraph, installs adapter hooks into repos missing them) and `scripts/clone-repos.sh` (clones all repos from platform_manifest.yaml via SSH, --with-private extends to PrivateManifest). Also installed ContextGuard full adapter into PlatformManifest itself (.claude/hooks/). OperatorConsole/setup.sh now calls provision-machine.sh as part of its flow.
