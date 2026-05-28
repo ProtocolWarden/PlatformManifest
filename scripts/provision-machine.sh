@@ -93,12 +93,12 @@ _ensure_venv() {
   if [[ ! -x "$venv/bin/python" ]]; then
     echo "  building $name venv..."
     python3 -m venv "$venv"
-    "$venv/bin/pip" install --quiet --upgrade pip
-    "$venv/bin/pip" install --quiet -e "$dir"
-    echo "  ✓ $name venv built"
-  else
-    echo "  ✓ $name venv OK"
   fi
+  # Always (re)install editable so dependency changes from a git pull are
+  # picked up on re-provision. pip is a near-no-op when nothing changed.
+  "$venv/bin/pip" install --quiet --upgrade pip
+  "$venv/bin/pip" install --quiet -e "$dir"
+  echo "  ✓ $name venv ready"
 }
 
 _ensure_venv "$CL_DIR" "ContextLifecycle"
@@ -185,10 +185,17 @@ INSTALL_SH="$CL_DIR/adapters/install.sh"
 
 # Repos that need the FULL canonical ContextGuard adapter (not the executor shim).
 # Skip repos that already have hooks unless --force-hooks was passed.
-FULL_ADAPTER_REPOS=("PlatformManifest")  # OC has custom patched hooks — skip by default
+FULL_ADAPTER_REPOS=("PlatformManifest")
 
 # Repos that need the 9-LINE EXECUTOR SHIM (delegates enforcement to CL).
-SHIM_REPOS=("DAGExecutor")  # TE + CE already have it; OC/VF have custom hooks
+# TeamExecutor + CritiqueExecutor already carry committed hooks in-repo.
+SHIM_REPOS=("DAGExecutor")
+
+# Repos whose ContextGuard hooks are committed in-repo (not installed here).
+# Listed so the hook-health check below can verify they're actually present —
+# catches drift if a committed hook is removed or broken. (OperatorConsole is
+# the launcher TUI and intentionally carries no hooks.)
+COMMITTED_HOOK_REPOS=("OperationsCenter" "TeamExecutor" "CritiqueExecutor")
 
 _install_full_adapter() {
   local name="$1"
@@ -267,6 +274,33 @@ if [[ "$WITH_PRIVATE" == true ]]; then
     done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
   fi
 fi
+
+# ── Hook health ───────────────────────────────────────────────────────────────
+# Verify hooks are actually present + executable for every repo that should have
+# them — both the ones installed above and the ones carrying committed hooks.
+# This surfaces drift (a removed or non-executable hook) that the install step's
+# "already present, skipping" path would otherwise hide. Warn-only; the smoke
+# test below is the hard gate.
+echo ""
+echo "▶ Hook health"
+
+_check_hook() {
+  local name="$1"
+  local dir="$GITHUB_DIR/$name"
+  [[ -d "$dir/.git" ]] || return 0
+  local hook="$dir/.claude/hooks/pre_tool_use.sh"
+  if [[ -x "$hook" ]]; then
+    printf "  ✓ %-20s hooks present\n" "$name"
+  elif [[ -f "$hook" ]]; then
+    printf "  ⚠ %-20s hook present but NOT executable\n" "$name"
+  else
+    printf "  ⚠ %-20s MISSING ContextGuard hook\n" "$name"
+  fi
+}
+
+for repo in "${FULL_ADAPTER_REPOS[@]}" "${SHIM_REPOS[@]}" "${COMMITTED_HOOK_REPOS[@]}"; do
+  _check_hook "$repo"
+done
 
 # ── Smoke test ────────────────────────────────────────────────────────────────
 echo ""

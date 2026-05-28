@@ -1,4 +1,23 @@
 # Log
+## 2026-05-28 — Provisioning: orchestrator, venv refresh, hook-health, doc
+
+Closed gaps from a self-provision design review:
+- **provision.sh** (new): single entrypoint chaining clone-repos → provision-machine
+  in the only order that works (CL+RG must clone before provision-machine requires
+  them). Flags pass through. README documents the sequence + the manual
+  boundary-secrets follow-up.
+- **Stale venvs**: `_ensure_venv` now always re-runs `pip install -e` so a
+  re-provision after a dependency-changing `git pull` is picked up (was: only
+  built when the venv was missing).
+- **Hook drift**: added a warn-only "Hook health" step verifying every managed
+  repo's `pre_tool_use.sh` is present + executable — surfaces drift the install
+  step's "already present, skipping" path hid. Corrected the stale comment that
+  claimed OperatorConsole carries custom hooks (it carries none; it's the
+  launcher TUI). Added COMMITTED_HOOK_REPOS so committed-hook repos are verified.
+
+Not changed: the systemd VF-loop unit lacking CL_HOME — it's a temporary local
+watcher, out of scope.
+
 ## 2026-05-27 — Fix B1: remove hardcoded private names from provision/clone scripts
 
 Dynamic discovery replaces hardcoded private repo names — private manifest YAMLs discovered via `find` at runtime, canonical names parsed by Python. No private names appear in this public repo's source.

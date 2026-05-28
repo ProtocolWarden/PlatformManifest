@@ -145,6 +145,25 @@ platform-manifest custodian-policy
 CI-friendly: exit 0 = clean, 1 = validation failed, 2 = bad invocation.
 Pass `--json` to get a structured report consumable by automation.
 
+## Provisioning a machine
+
+From a fresh PlatformManifest clone, one entrypoint runs everything in order:
+
+```
+scripts/provision.sh                  # public repos only
+scripts/provision.sh --with-private   # also clone/register/hook PrivateManifest repos
+```
+
+This chains `clone-repos.sh` (clone the ecosystem; ContextLifecycle + RepoGraph
+must land first) then `provision-machine.sh` (venvs, `CL_HOME` wiring, RepoGraph
+registry, ContextGuard hooks, smoke test). Both are idempotent — safe to re-run.
+
+One manual step remains (needs a GitHub PAT, run once per account):
+
+```
+scripts/bootstrap-boundary-secrets.sh --help   # sets CI secrets on public repos
+```
+
 ## Install
 
 ```
