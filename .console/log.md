@@ -1,4 +1,10 @@
 # Log
+## 2026-05-28 — Track OperatorConsole in hook-health
+
+OperatorConsole now carries committed ContextGuard hooks (previously had none).
+Added it to COMMITTED_HOOK_REPOS so the hook-health check verifies its hooks are
+present + executable on every provision.
+
 ## 2026-05-28 — Provisioning: orchestrator, venv refresh, hook-health, doc
 
 Closed gaps from a self-provision design review:

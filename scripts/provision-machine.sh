@@ -193,9 +193,8 @@ SHIM_REPOS=("DAGExecutor")
 
 # Repos whose ContextGuard hooks are committed in-repo (not installed here).
 # Listed so the hook-health check below can verify they're actually present —
-# catches drift if a committed hook is removed or broken. (OperatorConsole is
-# the launcher TUI and intentionally carries no hooks.)
-COMMITTED_HOOK_REPOS=("OperationsCenter" "TeamExecutor" "CritiqueExecutor")
+# catches drift if a committed hook is removed or broken.
+COMMITTED_HOOK_REPOS=("OperationsCenter" "OperatorConsole" "TeamExecutor" "CritiqueExecutor")
 
 _install_full_adapter() {
   local name="$1"
