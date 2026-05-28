@@ -1,4 +1,15 @@
 # Log
+## 2026-05-28 — Document the ContextLifecycle anchoring architecture
+
+Added docs/architecture/contextlifecycle-anchoring.md — the cross-cutting design
+behind session anchoring: CL_HOME (machine state) vs CL_ANCHOR (session state),
+the canonical cl resolution order (CL_HOME → settings.json → PATH) and why
+`source ~/.bashrc` fails in non-interactive shells, where each consumer resolves
+cl (OC panes bake the path; OC + tenant loop controllers use _resolve_command
+with the settings.json fallback; committed hooks delegate to `cl hook`; provisioning
+records CL_HOME), and the hook exit-code enforcement model (2=block, 1=non-block)
+that makes a fresh clone bootstrap-safe. Linked from the README.
+
 ## 2026-05-28 — Track OperatorConsole in hook-health
 
 OperatorConsole now carries committed ContextGuard hooks (previously had none).

@@ -164,6 +164,10 @@ One manual step remains (needs a GitHub PAT, run once per account):
 scripts/bootstrap-boundary-secrets.sh --help   # sets CI secrets on public repos
 ```
 
+How sessions get anchored (and how `cl` is located across panes, loop
+controllers, hooks, and provisioning) is documented in
+[docs/architecture/contextlifecycle-anchoring.md](docs/architecture/contextlifecycle-anchoring.md).
+
 ## Install
 
 ```
