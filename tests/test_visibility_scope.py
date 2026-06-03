@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 """Tests for the P2 manifest-cognition fields: visibility_scope, also_hosts."""
 
 from __future__ import annotations

@@ -1,4 +1,34 @@
 # Log
+## 2026-06-03 — Make CI green (5 pre-existing failures, none from recent work)
+
+CI had been red on `main` and PR #39 merged over it. Root-caused and fixed all
+five checks on branch `fix/ci-health`:
+- ruff F401 in `errors.py` (RepoGraph re-export) → added `__all__`.
+- `tests/test_visibility_scope.py` missing SPDX header → added it.
+- pytest `conftest.py` venv-guard rejected CI's interpreter → set
+  `CUSTODIAN_SKIP_VENV_GUARD=1` in the test job (its documented opt-out).
+- `repograph` never installed in CI → pip-install from public git in
+  test/validate jobs.
+- audit boundary-artifact secret held a machine-local *path* (impossible on a
+  runner) → switched to base64 *content* secret `REPOGRAPH_BOUNDARY_ARTIFACT_B64`,
+  decoded to a runner file. **Requires the operator to set that secret.**
+
+Local: ruff clean, 189 tests pass, both workflows parse, base64 round-trip OK.
+
+Follow-ups after first CI run (down to 1 failure from many):
+- `custodian` also wasn't installed in the test job (imported by
+  `custodian_native`) → added it from public git.
+- `test_no_validate_is_not_allowed_on_safe_command` failed only under CI's
+  `FORCE_COLOR`: rich interleaves ANSI codes inside the option name, breaking a
+  raw `"--no-validate" in output` check. Reproduced on a pyenv 3.11.9 venv with
+  `FORCE_COLOR=1`. Fixed by stripping ANSI before the assertion (`_strip_ansi`).
+- Audit never re-ran (pull_request[synchronize] doesn't fire in this repo) →
+  trigger custodian-audit on `push: ["**"]` like ci.yml.
+- Audit then surfaced 3 MED: custodian reads the boundary path from
+  `.custodian/config.yaml` (`../PrivateManifest/dist/...`), NOT an env var →
+  materialize the base64 secret to that exact path; and set `core.hooksPath`
+  in CI to clear W2. All six checks green.
+
 ## 2026-06-03 — Verify PreToolUse protocol + draft Phase 2-wire (still dark)
 
 Verified the Claude Code PreToolUse context-injection protocol and drafted the

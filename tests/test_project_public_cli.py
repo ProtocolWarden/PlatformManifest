@@ -5,12 +5,25 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from typer.testing import CliRunner
 
 from platform_manifest.cli import app
 from platform_manifest.validate import ValidationIssue, ValidationReport
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _strip_ansi(text: str) -> str:
+    """Drop ANSI style codes so substring checks survive forced color.
+
+    Rich styles error text (e.g. in CI where FORCE_COLOR is set), interleaving
+    escape codes inside option names — so a raw `"--opt" in output` check fails
+    even though the user sees the option. Strip the codes before asserting.
+    """
+    return _ANSI_RE.sub("", text)
 
 
 _PLATFORM_YAML = """\
@@ -148,7 +161,7 @@ class TestProjectPublicCLI:
         )
 
         assert result.exit_code != 0
-        assert "--no-validate" in result.output
+        assert "--no-validate" in _strip_ansi(result.output)
 
     def test_unsafe_command_emits_warning(self, tmp_path: Path) -> None:
         result = self.runner.invoke(

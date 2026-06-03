@@ -2,9 +2,9 @@ name: custodian-audit
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
-    branches: [main]
+    branches: ["**"]
 
 jobs:
   audit:
@@ -29,28 +29,38 @@ jobs:
           fi
 
       - name: Materialize boundary artifact file
+        # The boundary disclosure artifact is produced by the private repo
+        # (PrivateManifest) and cannot live on a public runner as a filesystem
+        # path. Ship its CONTENT as the base64 secret REPOGRAPH_BOUNDARY_ARTIFACT_B64
+        # and decode it to a runner-local file here. Generate the secret with:
+        #   base64 -w0 ../PrivateManifest/dist/boundary_disclosure_artifact.json
         env:
-          REPOGRAPH_BOUNDARY_ARTIFACT_FILE: ${{ secrets.REPOGRAPH_BOUNDARY_ARTIFACT_FILE }}
+          REPOGRAPH_BOUNDARY_ARTIFACT_B64: ${{ secrets.REPOGRAPH_BOUNDARY_ARTIFACT_B64 }}
         run: |
-          if [ -z "${REPOGRAPH_BOUNDARY_ARTIFACT_FILE:-}" ]; then
-            echo "Missing REPOGRAPH_BOUNDARY_ARTIFACT_FILE secret" >&2
+          if [ -z "${REPOGRAPH_BOUNDARY_ARTIFACT_B64:-}" ]; then
+            echo "Missing REPOGRAPH_BOUNDARY_ARTIFACT_B64 secret." >&2
+            echo "Set it to the base64-encoded boundary disclosure artifact JSON:" >&2
+            echo "  base64 -w0 ../PrivateManifest/dist/boundary_disclosure_artifact.json" >&2
             exit 1
           fi
-          if [ ! -f "$REPOGRAPH_BOUNDARY_ARTIFACT_FILE" ]; then
-            echo "Boundary artifact file not found at $REPOGRAPH_BOUNDARY_ARTIFACT_FILE" >&2
-            exit 1
-          fi
-          python - <<'PY'
+          # custodian reads .custodian/config.yaml's boundary_artifact_file
+          # (../PrivateManifest/dist/...), resolved relative to the repo root —
+          # NOT an env var. Materialize the artifact at exactly that path.
+          dest="${GITHUB_WORKSPACE}/../PrivateManifest/dist/boundary_disclosure_artifact.json"
+          mkdir -p "$(dirname "$dest")"
+          printf '%s' "$REPOGRAPH_BOUNDARY_ARTIFACT_B64" | base64 -d > "$dest"
+          python - "$dest" <<'PY'
           import json
-          import os
+          import sys
           from pathlib import Path
 
-          p = Path(os.environ["REPOGRAPH_BOUNDARY_ARTIFACT_FILE"])
-          data = json.loads(p.read_text(encoding="utf-8"))
+          data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
           print(f"boundary_provenance={data.get('source_graph_id')}@{data.get('source_ref_or_commit')}")
           PY
-          echo "REPOGRAPH_BOUNDARY_ARTIFACT_FILE=$REPOGRAPH_BOUNDARY_ARTIFACT_FILE" >> "$GITHUB_ENV"
 
       - name: Run Custodian audit
         run: |
+          # .custodian/config.yaml flags an unset core.hooksPath (W2); wire it
+          # like a developer checkout would.
+          git config core.hooksPath .hooks
           custodian-multi --repos . --fail-on-findings --no-color
