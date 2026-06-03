@@ -28,6 +28,13 @@ treated as **intent only**: we adopt the idea (inject the right doc right before
 the edit), not the implementation (Node, co-located docs). Constraints: bash +
 python3, no Node runtime, one engine serving multiple CLIs.
 
+### 0.2 Key terminology
+
+- **Anchor** — always-loaded repository truths.
+- **Router** — glob matcher triggering injection.
+- **Consolidation** — campaign-scoped distillation of findings.
+- **Injection** — passing docs to agent pre-edit based on file path.
+
 ### 0.1 Relationship to the memory stores that already exist
 
 This spec must **not** create a fourth parallel memory store. The boundary:
