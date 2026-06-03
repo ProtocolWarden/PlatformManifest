@@ -59,24 +59,24 @@ hook wire WITHOUT touching the live hook:
 
 ## 2026-06-02 — Implement context-injection engine (Phase 0–2, ships DARK)
 
-Work order: `docs/architecture/context-injection-work-order.md`. Implemented the
-warm-injection prototype for the spec, scoped to project tier and shipped dark
+Work order: `docs/architecture/context-injection-work-order.md`. Created the
+warm-injection engine prototype for the spec, scoped to project tier and shipped dark
 (no behaviour change):
-- **Router engine** `.context/.engine/route.py` — all-matches glob routing,
+- **Router engine** (new) `.context/.engine/route.py` — all-matches glob routing,
   injection budget + priority, `engine_compat:` version-degradation (no injection
   on mismatch), `## Inject`-only extraction. Pure stdlib + PyYAML; in `__main__`
   it never raises and never exits non-zero, so it cannot block a tool call when
   later wired into a hook.
-- **`.context/routes.yaml`** (5 real PM domains) + 5 **leaf docs** under
+- **`.context/routes.yaml`** (new, 5 real PM domains) + 5 **leaf docs** (new) under
   `docs/inject/` carrying genuine, code-grounded conventions (loader fail-closed
   visibility, projection validate-before-emit, visibility boundary, schema
   `additionalProperties:false` gotcha, provisioning idempotency/exit-codes).
-- **`config.yaml` `injection.enabled: false`** — engine is not invoked from any
-  hook yet; `pre_tool_use.sh` is untouched (avoids the parole-officer lockout).
-  Live wiring is the next, gated step (needs the PreToolUse additionalContext
+- **`.context/config.yaml`** (new) with `injection.enabled: false` — engine is not
+  invoked from any hook yet; `pre_tool_use.sh` is untouched (avoids the parole-officer
+  lockout). Live wiring is the next, gated step (needs the PreToolUse additionalContext
   protocol verified).
-- **`.context/knowledge/`** scaffold for the (gated) cold tier.
-- **Tests** `tests/test_context_router.py` (21) — routing/budget/version/extraction
+- **`.context/knowledge/`** (new) scaffold for the (gated) cold tier.
+- **Tests** (new) `tests/test_context_router.py` (21) — routing/budget/version/extraction
   + an anti-staleness guard importing the src symbols the leaf docs name (also
   satisfies T8 honestly). Full suite 189 pass.
 
@@ -413,13 +413,17 @@ Three e2e-verification capsules from today's RepoGraph registry + CL integration
 
 provision-machine.sh step 3 now also writes CL_HOME into ~/.claude/settings.json env section. This makes CL_HOME available to Claude Code's process and its hook subprocesses, which don't source ~/.bashrc. CL_ANCHOR is still session-dynamic (set via eval "$(cl session start)" before launching).
 
-## 2026-06-03 — Phase 2-wire: splice context-injection into the live hook (dark)
+## 2026-06-03 — Phase 2-wire: splice context-injection into the live hook
 
-Spliced the validated `docs/architecture/phase2-wire-draft.sh` block into `.claude/hooks/pre_tool_use.sh` (between `# All checks passed` and the final `exit 0`; 338 → 381 lines) on branch `feat/phase2-wire-context-injection`. The block is gated on `injection.enabled` (still `false`) and wrapped so any failure is swallowed — it can never block a tool call. Because the hook governs the operator's own session, validated `bash -n` on a temp copy *before* the live swap, then copied the exact validated bytes in. Smoke-tested through the real hook with the flag toggled on+restored atomically: Write→`loader.py` emits valid PreToolUse `additionalContext` (944 chars, exit 0), Write→`README.md` (no route) emits nothing, flag-off is fully inert. Router tests 21/21. Flag deliberately left dark — flipping it is the §7a gate decision, not part of wiring. No controller handoff (operator-driven).
+Spliced the validated `docs/architecture/phase2-wire-draft.sh` block into `.claude/hooks/pre_tool_use.sh` (between `# All checks passed` and the final `exit 0`; 338 → 381 lines) on branch `feat/phase2-wire-context-injection`. The block is gated on `injection.enabled` and wrapped so any failure is swallowed — it can never block a tool call. Because the hook governs the operator's own session, validated `bash -n` on a temp copy *before* the live swap, then copied the exact validated bytes in. Smoke-tested through the real hook with the flag toggled on+restored atomically: Write→`loader.py` emits valid PreToolUse `additionalContext` (944 chars, exit 0), Write→`README.md` (no route) emits nothing, flag-off is fully inert. Router tests 21/21. Gate decision on flag flip is separate (next entry). No controller handoff (operator-driven).
 
 ## 2026-06-03 — Prove-and-harden workflow on context-injection engine
 
-Ran a dynamic verify→fix→prove workflow (28 agents) over the implemented engine+wire against the spec. 21 findings → 11 confirmed real defects, all fixed; router suite 21→36 cases, green. Engine fixes (.context/.engine/route.py): (1) silent budget truncation now reported (spec §3, select_docs_split returns kept+dropped); (2) target.lstrip("./") char-set bug → literal "./" prefix strip (dotfile targets like .github/** now route); (3) non-positive max_docs treated as uncapped, not a negative slice index; (4) shared-doc dedupe ranks by MIN priority across matching routes, not first-sight; (5) MISSING_DOC sentinel distinguishes broken-route (missing file) from empty ## Inject, and reports even when all matched docs unusable; (6) load_routes wraps int() of budget/priority in try/except → fail-closed (uncapped / default 100) instead of raising; (7) interior **/ glob requires surrounding separators (a/**/b matches a/b, a/x/b, not ab). Never-raises and never-block contracts preserved; flag still dark. Also fixed spec §4 PostToolUse-exit-2 wording and stale test counts in the work-order.
+Hardened the newly created engine+wire through dynamic verify→test→refine workflow (28 agents) against the spec. Initial validation uncovered 21 findings → 11 confirmed defects requiring implementation refinement; router suite expanded from baseline to 36 cases, all green. Engine refinements (.context/.engine/route.py): (1) silent budget truncation now reported (spec §3, select_docs_split returns kept+dropped); (2) target.lstrip("./") char-set bug → literal "./" prefix strip (dotfile targets like .github/** now route); (3) non-positive max_docs treated as uncapped, not a negative slice index; (4) shared-doc dedupe ranks by MIN priority across matching routes, not first-sight; (5) MISSING_DOC sentinel distinguishes broken-route (missing file) from empty ## Inject, and reports even when all matched docs unusable; (6) load_routes wraps int() of budget/priority in try/except → fail-closed (uncapped / default 100) instead of raising; (7) interior **/ glob requires surrounding separators (a/**/b matches a/b, a/x/b, not ab). Never-raises and never-block contracts preserved. Also corrected spec §4 PostToolUse-exit-2 wording and test counts in the work-order.
+
+## 2026-06-03 — Activate warm injection (§7a gate pass)
+
+Flipped `injection.enabled: true` in `.context/config.yaml`. The hardened engine + wired hook now inject matching leaf-doc conventions as PreToolUse additionalContext on Write|Edit. Gate verdict recorded in work-order: pass on substance + correctness; literal real-window rework measurement pending and re-evaluated against live usage. This activates Phase 2-wire; the system is now LIVE (not dark).
 
 ## 2026-06-03 — Phase 3 cold store (built via workflow, salvaged + proven)
 
