@@ -1,4 +1,30 @@
 # Log
+## 2026-06-02 — Implement context-injection engine (Phase 0–2, ships DARK)
+
+Work order: `docs/architecture/context-injection-work-order.md`. Implemented the
+warm-injection prototype for the spec, scoped to project tier and shipped dark
+(no behaviour change):
+- **Router engine** `.context/.engine/route.py` — all-matches glob routing,
+  injection budget + priority, `engine_compat:` version-degradation (no injection
+  on mismatch), `## Inject`-only extraction. Pure stdlib + PyYAML; in `__main__`
+  it never raises and never exits non-zero, so it cannot block a tool call when
+  later wired into a hook.
+- **`.context/routes.yaml`** (5 real PM domains) + 5 **leaf docs** under
+  `docs/inject/` carrying genuine, code-grounded conventions (loader fail-closed
+  visibility, projection validate-before-emit, visibility boundary, schema
+  `additionalProperties:false` gotcha, provisioning idempotency/exit-codes).
+- **`config.yaml` `injection.enabled: false`** — engine is not invoked from any
+  hook yet; `pre_tool_use.sh` is untouched (avoids the parole-officer lockout).
+  Live wiring is the next, gated step (needs the PreToolUse additionalContext
+  protocol verified).
+- **`.context/knowledge/`** scaffold for the (gated) cold tier.
+- **Tests** `tests/test_context_router.py` (21) — routing/budget/version/extraction
+  + an anti-staleness guard importing the src symbols the leaf docs name (also
+  satisfies T8 honestly). Full suite 189 pass.
+
+Custodian-clean: only added a `docs/inject/**` orphan exclusion (injected
+fragments aren't human doc-tree), same rationale as verification artifacts.
+
 ## 2026-06-02 — Draft spec: tiered memory & context injection
 
 Added `docs/architecture/context-injection-spec.md` — design checkpoint for the

@@ -30,6 +30,9 @@ verification specs and design notes.
   four-tier memory (hot/warm/cold/ephemeral), edit-time injection, the
   capture→consolidate lifecycle, and cross-repo publish-down. Not yet approved
   for build; the build is gated after the warm-injection phase.
+- [architecture/context-injection-work-order.md](architecture/context-injection-work-order.md) —
+  Phased build order for the spec above. Phase 0–2 (router engine, routes, leaf
+  docs, tests) implemented and shipped dark; phases 3–5 gated.
 
 ## Verification
 

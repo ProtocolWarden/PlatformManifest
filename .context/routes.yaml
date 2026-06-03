@@ -1,0 +1,34 @@
+# PlatformManifest — context-injection routing table (PROTOTYPE, ships dark)
+#
+# glob -> leaf docs, ALL-MATCHES (every matching rule fires). See
+# docs/architecture/context-injection-spec.md §3. Consumed by
+# .context/.engine/route.py; only active when config.yaml injection.enabled=true.
+#
+# `**` matches across path segments; `*` matches within one segment.
+# `priority` (lower = wins first) orders docs when more match than the budget allows.
+
+engine_compat: ">=0.2 <0.3"      # must satisfy route.py SCHEMA_VERSION, else no injection
+
+budget:
+  max_docs_per_edit: 3           # cap injected breadth at the high-attention position
+
+routes:
+  - match: "src/platform_manifest/loader.py"
+    inject: ["docs/inject/loader.md"]
+    priority: 10
+
+  - match: "src/platform_manifest/projection/**"
+    inject: ["docs/inject/projection.md", "docs/inject/visibility.md"]
+    priority: 20
+
+  - match: "src/platform_manifest/topology/**"
+    inject: ["docs/inject/visibility.md"]
+    priority: 30
+
+  - match: "src/platform_manifest/schemas/*.json"
+    inject: ["docs/inject/schemas.md"]
+    priority: 10
+
+  - match: "scripts/provision*.sh"
+    inject: ["docs/inject/provisioning.md"]
+    priority: 10

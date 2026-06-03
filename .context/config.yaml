@@ -17,3 +17,11 @@ guard:
   capsule_path: "active/"
   checkpoint_path: "checkpoints/"
   handoff_path: "handoffs/"
+
+# Context injection (warm tier) — PROTOTYPE, ships DARK.
+# Routing/leaf-doc engine lives at .context/.engine/route.py; routes in
+# .context/routes.yaml. While disabled the engine is never invoked from hooks,
+# so live tool-call behaviour is unchanged. Flip to true only after the
+# phase-2 validation window (see docs/architecture/context-injection-spec.md §7a).
+injection:
+  enabled: false

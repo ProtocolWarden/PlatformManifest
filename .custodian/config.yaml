@@ -23,6 +23,9 @@ doc_conventions:
     - "**/history/**"
     # Verification artifacts — linked from context, not the doc tree
     - docs/verification/**
+    # Warm-tier leaf docs — injected at edit time by the context router, not
+    # part of the human doc tree (see docs/architecture/context-injection-spec.md).
+    - docs/inject/**
 
 # ---------------------------------------------------------------------------
 # Audit: per-detector exclusions + known values
