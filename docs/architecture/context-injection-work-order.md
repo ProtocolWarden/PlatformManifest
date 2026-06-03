@@ -18,7 +18,7 @@ is unchanged until someone deliberately wires + flips it.
 **Verify you're in a good state (any machine):**
 - `git -C PlatformManifest pull` → engine at `.context/.engine/route.py`, routes at
   `.context/routes.yaml`, leaf docs in `docs/inject/`.
-- `.venv/bin/pytest tests/test_context_router.py -q` → 21 pass (or full suite 189).
+- `.venv/bin/pytest tests/test_context_router.py -q` → 36 pass (or full suite 204).
 - `grep -nA1 injection .context/config.yaml` → `enabled: false` (still dark).
 
 **Phase 2-wire is DONE** (branch `feat/phase2-wire-context-injection`): the draft
@@ -62,7 +62,7 @@ the `~/.claude` merge stay deferred.
 - [x] **Cold-store scaffold** — `.context/knowledge/` (empty until phase 3).
 - [x] **Dark flag** — `config.yaml` `injection.enabled: false`; engine is not
       invoked from any hook, so live behaviour is unchanged.
-- [x] **Tests** — `tests/test_context_router.py` (20 cases): globbing, all-matches,
+- [x] **Tests** — `tests/test_context_router.py` (36 cases): globbing, all-matches,
       budget/priority, version degradation, `## Inject` extraction, e2e.
 
 ## Phase 2-wire — connect to the live hook (NOT in this PR; do next, carefully)
@@ -100,7 +100,7 @@ hook mid-session is the lockout risk itself).
       as a subprocess (flag flipped on+restored atomically, session never hot):
       Write→`loader.py` emits valid PreToolUse `additionalContext` JSON (944
       chars, exit 0); Write→`README.md` (no route) emits nothing, exit 0;
-      flag-off → fully inert. Router unit tests 21/21.
+      flag-off → fully inert. Router unit tests 36/36.
 - [ ] Keep `injection.enabled: false` until validated; flip per §7a. **Still
       dark** — the flip is the gate decision, deliberately not done here.
 
