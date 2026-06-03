@@ -39,10 +39,12 @@ It is **still dark** (`injection.enabled: false`) — wiring ≠ activation.
      consolidation).
 
 **Status (2026-06-03):** Phases 2-wire, 3, 5 merged to `main` (PR #42); warm
-injection LIVE. Both remaining live-hook drafts now **SPLICED**: phase3-capture
-in `stop.sh`, phase5-trigger in `pre_tool_use.sh` (both flag-gated, warn/dry-run,
-never block). **Remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo),
-productionization (engine → ContextLifecycle), doc-reconciliation (§7c).
+injection LIVE. Both live-hook drafts **SPLICED** (PR #43): phase3-capture in
+`stop.sh`, phase5-trigger in `pre_tool_use.sh` (flag-gated, warn/dry-run, never
+block). **Productionized into ContextLifecycle** (CL PR #12): engine is now a CL
+package + `cl context init`; this repo's `.context/.engine/` tracks it.
+**Remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo) and
+doc-reconciliation (§7c). Platform/cross-repo tier + `~/.claude` merge stay deferred.
 
 **Independent of the gate:** productionization (move the engine into ContextLifecycle)
 and the doc-reconciliation track can happen any time. Platform/cross-repo tier and
@@ -173,9 +175,17 @@ hook mid-session is the lockout risk itself).
 
 ## Productionization (separate, spec §1)
 
-- [ ] Relocate the engine from `.context/.engine/` (prototype home) into the
-      **ContextLifecycle** repo; install via `provision.sh` / `cl context init`.
-      Keep `routes.yaml`, leaf docs, and cold store in-repo.
+- [x] **DONE** (ContextLifecycle PR #12, 2026-06-03). The engine now lives in CL
+      at `src/context_lifecycle/context_engine/` (the canonical source); `cl context
+      init` idempotently scaffolds it into a repo's `.context/.engine/` plus
+      `routes.yaml` / `docs/inject/` / `.context/knowledge/` (engine refreshed each
+      run, authored state never clobbered). The three hook blocks were ported into
+      CL's canonical `adapters/claude/hooks/`, so `install.sh` propagates them to
+      every repo. Scaffold-into-repo model (hooks call the local file — no import
+      path needed at hook time). This repo's `.context/.engine/` is byte-identical
+      to CL's package and now tracks it (re-sync with `cl context init`). Engine
+      tests moved to CL (227 green); the 6 engine modules are marked vendored in
+      CL's custodian config. (Also greened CL's CI, red since 5/30.)
 
 ## Deferred (spec §7b / §0.1)
 
