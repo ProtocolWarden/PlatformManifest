@@ -1,4 +1,39 @@
 # Log
+## 2026-06-02 — Draft spec: tiered memory & context injection
+
+Added `docs/architecture/context-injection-spec.md` — design checkpoint for the
+next-gen context system (DRAFT, not approved for build). Captures a long design
+session that started from the Patterson hook-injection article and the
+realization that `.context/` is enforcement-only with no knowledge store.
+
+Key decisions reached (recorded so future-PM sees the reasoning, not just the
+conclusion):
+- **Four-tier memory** by lifespan/cost: hot (always-loaded anchor) / warm
+  (`docs/inject/*.md`, pushed by a router on matching edit) / cold
+  (`.context/knowledge/`, surfaced on match) / ephemeral (session capsule).
+  Injection timing — right doc right before the edit — is the core value, not
+  volume.
+- **Promotion gate is consequence-veto + usage-decay-with-pinning**, NOT
+  vote-counting. Retired self-reported confidence, `cited_sessions`, and
+  change-based TTL after adversarial passes showed each was agent-gameable,
+  injection-contaminated, or anti-correlated with validation.
+- **Cross-repo is publish-down, not bubble-up**: authority flows from the
+  manifest that OWNS a contract (oracle = its schema/tests), downward to
+  anchorers; consumer discoveries are reports into the owner's cold store, never
+  unsupervised global writes. Design-locked, build-deferred.
+- **Capture/consolidate intake has forcing functions** (Stop-hook capture +
+  automatic campaign-close trigger) because the 54 orphaned session dirs prove
+  manual lifecycle commands don't get run.
+- **Build is gated** after phase 2 (warm injection): prove it helps before
+  building the cold/consolidation pipeline. Store boundary explicit — cold is
+  repo-committed `.context/knowledge/`; `~/.claude` operator memory is untouched.
+
+Engine lives in the CL repo (provisioned), not `.context/`. Open questions
+parked in §9 (forcing-function hardness, consequence attribution, owned-contract
+definition). Linked from `docs/README.md` (Design drafts) and made Custodian-clean
+(K1 phantom-symbol avoided via the existing `engine_compat:` colon convention; no
+config exclusions added).
+
 ## 2026-05-28 — Document the ContextLifecycle anchoring architecture
 
 Added docs/architecture/contextlifecycle-anchoring.md — the cross-cutting design

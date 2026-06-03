@@ -23,6 +23,14 @@ verification specs and design notes.
   visibility-related, projection-related, implementation-specific, or owned
   elsewhere.
 
+## Design drafts
+
+- [architecture/context-injection-spec.md](architecture/context-injection-spec.md) —
+  **DRAFT** design checkpoint for tiered memory & hook-based context injection:
+  four-tier memory (hot/warm/cold/ephemeral), edit-time injection, the
+  capture→consolidate lifecycle, and cross-repo publish-down. Not yet approved
+  for build; the build is gated after the warm-injection phase.
+
 ## Verification
 
 - [verification/manifest_system.md](verification/manifest_system.md) —
