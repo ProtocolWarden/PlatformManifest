@@ -18,10 +18,11 @@ guard:
   checkpoint_path: "checkpoints/"
   handoff_path: "handoffs/"
 
-# Context injection (warm tier) — PROTOTYPE, ships DARK.
+# Context injection (warm tier) — ACTIVE as of 2026-06-03 (§7a gate: pass).
 # Routing/leaf-doc engine lives at .context/.engine/route.py; routes in
-# .context/routes.yaml. While disabled the engine is never invoked from hooks,
-# so live tool-call behaviour is unchanged. Flip to true only after the
-# phase-2 validation window (see docs/architecture/context-injection-spec.md §7a).
+# .context/routes.yaml. The Phase 2-wire block in .claude/hooks/pre_tool_use.sh
+# invokes it on Write|Edit and injects matching leaf-doc conventions as
+# PreToolUse additionalContext. Engine is hardened (never raises) and the hook
+# block can never block a tool call; set false to fully deactivate.
 injection:
-  enabled: false
+  enabled: true

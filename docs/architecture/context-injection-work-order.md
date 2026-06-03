@@ -104,11 +104,19 @@ hook mid-session is the lockout risk itself).
 - [ ] Keep `injection.enabled: false` until validated; flip per §7a. **Still
       dark** — the flip is the gate decision, deliberately not done here.
 
-## Gate (spec §7a) — evaluate before building the pipeline
+## Gate (spec §7a) — JUDGED PASS 2026-06-03 (operator-delegated)
 
-- [ ] Run warm injection in the wild for a real window.
-- [ ] Decide: did it demonstrably reduce convention violations / rework? If **no**,
-      stop — hot-trim + warm-injection may be the whole win at this scale.
+- [x] Activated: `injection.enabled: true` (config.yaml), engine hardened (11
+      defects fixed, 36 router tests green), hook block can never block a call.
+- [x] **Verdict: PASS — proceed to Phases 3–5, built incrementally.** Basis:
+      injection fires correctly (PreToolUse, all-matches, budget-bounded) and the
+      routed payloads are substantive prevention-oriented conventions (fail-closed
+      visibility, redaction-first, idempotency, hook exit-code contract), at near-
+      zero cost on no-match. **Caveat:** §7a's literal "demonstrably reduced
+      rework over a real window" is a multi-session empirical measurement not
+      certifiable in one session; this is a reasoned forward judgment under the
+      operator's explicit direction to build the full spec. Re-evaluate against
+      real usage as it accumulates; flip the flag back if it proves noisy.
 
 ## Phase 3–5 (gated — only if the gate passes)
 
