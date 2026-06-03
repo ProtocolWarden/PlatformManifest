@@ -1,5 +1,7 @@
 # =============================================================================
-# Phase 5-trigger — DRAFT  (NOT yet spliced into any .claude/hooks/*.sh)
+# Phase 5-trigger — SPLICED 2026-06-03 into .claude/hooks/pre_tool_use.sh (with
+# changes — see the work-order: sys.modules registration, SESSION_MARKER mtime
+# throttle, whole-repo dry-run). This file is the retained design-of-record.
 # =============================================================================
 # Tracks: docs/architecture/context-injection-spec.md §2.2, §2.3, §2.4, §5.
 # Sibling of phase2-wire-draft.sh and phase3-capture-draft.sh.

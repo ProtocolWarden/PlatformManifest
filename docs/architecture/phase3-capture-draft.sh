@@ -1,5 +1,6 @@
 # =============================================================================
-# Phase 3-capture — DRAFT  (NOT yet spliced into .claude/hooks/stop.sh)
+# Phase 3-capture — SPLICED 2026-06-03 into .claude/hooks/stop.sh (this is the
+# retained source-of-record; the live hook is the spliced copy of the block below)
 # =============================================================================
 # Tracks: docs/architecture/context-injection-spec.md §2.3 (capture forcing
 # function), §2.2 (continuous capture intake). Sibling of phase2-wire-draft.sh.

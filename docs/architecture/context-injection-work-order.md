@@ -38,6 +38,12 @@ It is **still dark** (`injection.enabled: false`) — wiring ≠ activation.
    - **Yes →** build Phase 3–5 (cold store, hot-trim, campaign formalization,
      consolidation).
 
+**Status (2026-06-03):** Phases 2-wire, 3, 5 merged to `main` (PR #42); warm
+injection LIVE. Both remaining live-hook drafts now **SPLICED**: phase3-capture
+in `stop.sh`, phase5-trigger in `pre_tool_use.sh` (both flag-gated, warn/dry-run,
+never block). **Remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo),
+productionization (engine → ContextLifecycle), doc-reconciliation (§7c).
+
 **Independent of the gate:** productionization (move the engine into ContextLifecycle)
 and the doc-reconciliation track can happen any time. Platform/cross-repo tier and
 the `~/.claude` merge stay deferred.
@@ -130,9 +136,12 @@ hook mid-session is the lockout risk itself).
       additive (surfaces even with no warm route), bounded, double-wrapped to
       never raise — verified under adversarial malformed cold items (exit 0, no
       traceback). 2 fixture items + `tests/test_cold_store.py` (30 tests green).
-      Stop-hook capture forcing-function is **PARKED** at
-      `docs/architecture/phase3-capture-draft.sh` (live Stop-hook splice = lockout
-      risk; splice manually like Phase 2-wire). Built via workflow (failed on a
+      Stop-hook capture forcing-function **SPLICED LIVE** into
+      `.claude/hooks/stop.sh` (2026-06-03) — `bash -n`-validated before swap;
+      smoke-tested (fires when an active capsule has `changed_files` but no
+      `findings`; silent when findings present / "no durable findings" recorded /
+      flag off / no edits). Warn-only, never blocks. Draft retained at
+      `docs/architecture/phase3-capture-draft.sh`. Built via workflow (failed on a
       post-impl schema hiccup; salvaged + proven by hand).
 - [ ] **Hot trim** — shrink `.console/.context` to the anchor (§5). **NOT
       prototyped here** — the compiled blob (currently ~139 KB) is produced by
@@ -142,9 +151,16 @@ hook mid-session is the lockout risk itself).
 - [x] **Campaign formalization (§2.2b)** — DONE (prototype). `.console/task.md`
       carries additive `campaign_id`/`status` front-matter; `.context/.engine/campaign.py`
       `parse_task()` reads it (front-matter-less fallback intact). The boundary is
-      the campaign_id change. The **automatic trigger (§2.3)** is **PARKED** at
-      `docs/architecture/phase5-trigger-draft.sh` (SessionStart-hook splice =
-      lockout risk; splice manually).
+      the campaign_id change. The **automatic trigger (§2.3)** is **SPLICED LIVE**
+      into `.claude/hooks/pre_tool_use.sh` (2026-06-03), once-per-boundary via a
+      cheap `task.md`-mtime throttle (no SessionStart hook needed). Diverged from
+      the parked draft: (1) registers `campaign.py` in `sys.modules` before
+      `exec_module` — `@dataclass` needs it (Py 3.14); (2) mtime throttle keyed on
+      `SESSION_MARKER` instead of a nonexistent `SESSION_DIR`; (3) emits the
+      WHOLE-REPO dry-run plan (scoping `--campaign` to the new id gave "nothing to
+      do"). `bash -n`-validated; smoke-tested (silent first-sight/unchanged/flag-off;
+      fires on campaign_id change + status→done). Dry-run only — never `--apply`,
+      never blocks. Draft retained at `docs/architecture/phase5-trigger-draft.sh`.
 - [x] **Consolidation (§2.4)** — DONE (prototype, `cl consolidate` logic).
       `.context/.engine/{consolidate,distill,prune}.py`: consequence-veto (real
       `acted_on_commit` sha + `tests_green`, never confidence/citations),
