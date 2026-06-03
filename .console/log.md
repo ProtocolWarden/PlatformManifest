@@ -1,4 +1,22 @@
 # Log
+## 2026-06-03 — Verify PreToolUse protocol + draft Phase 2-wire (still dark)
+
+Verified the Claude Code PreToolUse context-injection protocol and drafted the
+hook wire WITHOUT touching the live hook:
+- Protocol: inject via stdout JSON parsed only on exit 0 —
+  `{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"…"}}`;
+  omit `permissionDecision` to add context without altering permission flow;
+  `exit 2` blocks; 10k-char cap.
+- **Spec §4 fixed:** PostToolUse *does* support `additionalContext` (spec had
+  said it doesn't). Rewrote the bullet: both pre/post support it on exit 0; the
+  warn-only logger stays purely passive (exit 0, no output). Choice unchanged —
+  PreToolUse still right (inject before the write).
+- **`jq` absent on dev box** — live hook + draft both use the `python3` fallback.
+- Draft parked at `docs/architecture/phase2-wire-draft.sh`, validated end-to-end
+  against the real engine (abs→relative path strip, all-matches, valid JSON,
+  empty-on-no-match). Live `pre_tool_use.sh` deliberately untouched (editing it
+  mid-session is the lockout risk). Work order Phase 2-wire updated.
+
 ## 2026-06-02 — Implement context-injection engine (Phase 0–2, ships DARK)
 
 Work order: `docs/architecture/context-injection-work-order.md`. Implemented the

@@ -327,8 +327,13 @@ truncation).
   rules are seeded *from that log* once real patterns emerge. The logger is what
   makes "grow rules from data" possible *and* feeds the consequence-veto's
   "stopped a logged violation from recurring" signal (§2.4).
-- claude post-tool can only block via exit 2 + stderr (`additionalContext` JSON
-  unsupported) — logger and future rules use that path.
+- Both claude pre-tool and post-tool support context injection via
+  `additionalContext` JSON on exit 0, and both can block via exit 2 + stderr.
+  The warn-only logger records silently (it must never interrupt), so it uses
+  neither — it just appends to its log and exits 0 with no output. Seeded
+  blocking rules, when they emerge, use exit 2 + stderr. Note that *advisory*
+  surfacing of a logged violation back to the model is possible via post-tool
+  `additionalContext` if we later want it, but v1 stays purely passive.
 
 ---
 
