@@ -444,3 +444,11 @@ Manually spliced both remaining parked drafts into the live hooks, same caution 
 ## 2026-06-03 — Mark productionization DONE in the work-order
 
 Recorded ContextLifecycle PR #12 in the work-order: engine relocated to CL (src/context_lifecycle/context_engine/), `cl context init` scaffolds it into repos, hook blocks ported to CL's canonical adapters, this repo's .context/.engine/ now byte-identical to and tracking CL. Updated the resume status line; remaining spec items are Phase 4 hot-trim (OperatorConsole) and doc-reconciliation (§7c).
+
+## 2026-06-03 — Mark §7c doc-reconciliation DONE in the work-order
+
+Recorded the doc-reconciliation track complete (ProtocolWarden PR #4 + github.io PR #8). Only remaining context-injection spec item is Phase 4 hot-trim (OperatorConsole compiler, cross-repo).
+
+## 2026-06-03 — Fix B1 boundary leak in the §7c work-order entry
+
+The first §7c-done edit named a private repo (flagged by custodian B1, boundary=PrivateManifest) in the work-order while describing what's correctly excluded. Reworded to reference "repos absent from the public manifest" without naming any private repo. Re-verified custodian clean. (Note: check the github.io .console/log.md for the same leak — that entry named private repos too.)

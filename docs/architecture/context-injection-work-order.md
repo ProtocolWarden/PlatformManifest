@@ -43,8 +43,10 @@ injection LIVE. Both live-hook drafts **SPLICED** (PR #43): phase3-capture in
 `stop.sh`, phase5-trigger in `pre_tool_use.sh` (flag-gated, warn/dry-run, never
 block). **Productionized into ContextLifecycle** (CL PR #12): engine is now a CL
 package + `cl context init`; this repo's `.context/.engine/` tracks it.
-**Remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo) and
-doc-reconciliation (§7c). Platform/cross-repo tier + `~/.claude` merge stay deferred.
+Doc-reconciliation (§7c) **done** (ProtocolWarden PR #4, github.io PR #8 —
+SyncMechanism catalog entry + ContextLifecycle tiered-memory docs). **Only
+remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo).
+Platform/cross-repo tier + `~/.claude` merge stay deferred (spec §7b/§0.1).
 
 **Independent of the gate:** productionization (move the engine into ContextLifecycle)
 and the doc-reconciliation track can happen any time. Platform/cross-repo tier and
@@ -195,5 +197,16 @@ hook mid-session is the lockout risk itself).
 
 ## Doc-reconciliation track (spec §7c — independent)
 
-- [ ] Reconcile `.console/backlog.md` against repo reality; refresh
-      ProtocolWarden + protocolwarden.github.io doc surfaces.
+- [x] **DONE 2026-06-03** (ProtocolWarden PR #4, protocolwarden.github.io PR #8).
+      Ground-truthed against the manifest's 19 public repos: `.console/backlog.md`
+      is the unpopulated template (nothing to reconcile / no durable knowledge to
+      migrate). Refreshed the external doc surface for the two concrete gaps:
+      (1) **SyncMechanism** (public, `fleet_sync_mechanism`) was missing — added a
+      repo page + nav + catalog tables (github.io) and the profile README catalog
+      + diagram (ProtocolWarden); (2) **ContextLifecycle's** now-shipped
+      context-injection / tiered-memory capability was undocumented — added a
+      section + refreshed catalog lines. Boundary-checked against the manifest:
+      repos absent from the public manifest correctly stay out of the public
+      catalog (no private names introduced). A deeper page-by-page audit of the
+      ~90-doc site beyond these verified gaps is left as future doc work, not
+      part of this track's actionable scope.
