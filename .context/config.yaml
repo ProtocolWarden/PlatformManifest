@@ -1,0 +1,27 @@
+# PlatformManifest — ContextLifecycle config (manifest-wide)
+#
+# This file configures CL guard behavior for any session anchored to
+# PlatformManifest. Per-session cognition lands under .context/sessions/<sid>/.
+#
+# Consumer-repo-specific operational config (worker definitions, watchdog
+# settings) does NOT belong here — it lives in the consumer repo's .console/
+# (e.g. OperationsCenter/.console/workers.yaml).
+
+clp_version: "0.2"
+manifest_scope: "public"
+
+guard:
+  require_capsule: false    # set true to enforce capsule presence for all tool calls
+  enforce_lease: true
+  # Paths are resolved relative to .context/sessions/<CL_SESSION_ID>/
+  capsule_path: "active/"
+  checkpoint_path: "checkpoints/"
+  handoff_path: "handoffs/"
+
+# Context injection (warm tier) — PROTOTYPE, ships DARK.
+# Routing/leaf-doc engine lives at .context/.engine/route.py; routes in
+# .context/routes.yaml. While disabled the engine is never invoked from hooks,
+# so live tool-call behaviour is unchanged. Flip to true only after the
+# phase-2 validation window (see docs/architecture/context-injection-spec.md §7a).
+injection:
+  enabled: false

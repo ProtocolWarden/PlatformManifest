@@ -1,0 +1,228 @@
+# Platform Manifest — canonical public repo map.
+#
+# Authoritative source for the public platform graph instance and
+# disclosure-safe impact queries used by OperationsCenter planning +
+# SwitchBoard lane decisions.
+#
+# Trust boundary: this file is PUBLIC. Only public platform repos belong
+# here. Private project repos go in a per-project ProjectManifest, never
+# in this file.
+#
+# v1 edge vocabulary:
+#   depends_on_contracts_from   (consumer → contract repo)
+#   dispatches_to               (caller → orchestrator)
+#   routes_through              (orchestrator → router/lane selector)
+#
+# Add new edge types only when a real query needs them.
+
+manifest_kind: platform
+manifest_version: "1.0.0"
+
+# RepoGraph manifest-cognition fields (ADR 0002 P0.4, P2).
+# Public manifests are universally visible — any anchor can host cognition
+# about repos owned here without an explicit grant.
+visibility_scope: public
+also_hosts: []
+
+repos:
+
+  operator_console:
+    canonical_name: OperatorConsole
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/OperatorConsole
+    runtime_role: operator_cli
+
+  operations_center:
+    canonical_name: OperationsCenter
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/OperationsCenter
+    runtime_role: orchestration
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true              # CL shim in .claude/hooks/ (ADR 0002 P5)
+      dispatcher_integration: true # ExecutionCoordinator wraps adapter calls in cl_dispatch_wrap (ADR 0002 P4)
+      workspace_capsules: true
+      contextguard: true
+
+  switchboard:
+    canonical_name: SwitchBoard
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/SwitchBoard
+    runtime_role: lane_selection
+
+  platformdeployment:
+    canonical_name: PlatformDeployment
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/PlatformDeployment
+    runtime_role: local_runtime
+
+  cxrp:
+    canonical_name: CxRP
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/CxRP
+    runtime_role: contracts
+
+  rxp:
+    canonical_name: RxP
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/RxP
+    runtime_role: contracts
+
+  core_runner:
+    canonical_name: CoreRunner
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/CoreRunner
+    runtime_role: runtime_dispatch
+
+  source_registry:
+    canonical_name: SourceRegistry
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/SourceRegistry
+    runtime_role: fork_management
+
+  platform_manifest:
+    canonical_name: PlatformManifest
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/PlatformManifest
+    runtime_role: platform_map
+    context_lifecycle:
+      participates: true
+      cognition_host: true            # hosts .context/sessions/ for public-scope work (ADR 0002 P3)
+      manifest_scope_declared: true   # visibility_scope: public declared at top of file
+      contextguard: true
+
+  repograph:
+    canonical_name: RepoGraph
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/RepoGraph
+    runtime_role: graph_language
+
+  team_executor:
+    canonical_name: TeamExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/TeamExecutor
+    runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
+
+  dag_executor:
+    canonical_name: DAGExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/DAGExecutor
+    runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
+
+  critique_executor:
+    canonical_name: CritiqueExecutor
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/CritiqueExecutor
+    runtime_role: execution_backend
+    context_lifecycle:
+      participates: true
+      cognition_host: false
+      shim_only: true   # 9-line CL shim hook only; no local .context/ (ADR 0002 P5)
+
+  github_pages_site:
+    canonical_name: ProtocolWarden.github.io
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ProtocolWarden.github.io
+    runtime_role: documentation_surface
+
+  org_profile:
+    canonical_name: ProtocolWarden
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ProtocolWarden
+    runtime_role: documentation_surface
+
+  custodian:
+    canonical_name: Custodian
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/Custodian
+    runtime_role: audit_maintenance
+
+  warehouse:
+    canonical_name: Warehouse
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/Warehouse
+    runtime_role: context_staging
+
+  context_lifecycle_protocol:
+    canonical_name: ContextLifecycle
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/ContextLifecycle
+    runtime_role: cognition_lifecycle
+    context_lifecycle:
+      schema_owner: true
+      cli_provider: true   # ships `cl` CLI + hydrate/capture/peek API (ADR 0002 P1)
+      contextguard: true
+
+  sync_mechanism:
+    canonical_name: SyncMechanism
+    visibility: public
+    github_url: https://github.com/ProtocolWarden/SyncMechanism
+    runtime_role: fleet_sync_mechanism
+
+edges:
+
+  # OperatorConsole dispatches into OperationsCenter
+  - {from: OperatorConsole, to: OperationsCenter, type: dispatches_to}
+
+  # OperationsCenter routes through SwitchBoard for lane decisions
+  - {from: OperationsCenter, to: SwitchBoard, type: routes_through}
+
+  # Contract dependencies on CxRP
+  - {from: OperationsCenter, to: CxRP, type: depends_on_contracts_from}
+  - {from: SwitchBoard,      to: CxRP, type: depends_on_contracts_from}
+  - {from: OperatorConsole,  to: CxRP, type: depends_on_contracts_from}
+
+  # Contract dependencies on RxP — runtime invocation/result shape.
+  - {from: OperationsCenter, to: RxP, type: depends_on_contracts_from}
+  - {from: CoreRunner,  to: RxP, type: depends_on_contracts_from}
+
+  # OperationsCenter dispatches to CoreRunner for actual runtime
+  # execution and to SourceRegistry for fork-management commands.
+  - {from: OperationsCenter, to: CoreRunner, type: dispatches_to}
+  - {from: OperationsCenter, to: SourceRegistry,  type: dispatches_to}
+
+  # PlatformManifest is consumed by OC + SB + OperatorConsole as the
+  # canonical repo map. Modeled as `depends_on_contracts_from` so the
+  # impact query surfaces them when this manifest itself changes.
+  - {from: OperationsCenter, to: PlatformManifest, type: depends_on_contracts_from}
+  - {from: SwitchBoard,      to: PlatformManifest, type: depends_on_contracts_from}
+  - {from: OperatorConsole,  to: PlatformManifest, type: depends_on_contracts_from}
+
+  # PlatformManifest consumes RepoGraph for graph-semantics vocabulary
+  # (ontology, topology, projection, boundary artifact schemas).
+  - {from: PlatformManifest, to: RepoGraph, type: depends_on_contracts_from}
+
+  # OperationsCenter dispatches to the three owned execution backends (ADR 0005).
+  - {from: OperationsCenter, to: TeamExecutor,     type: dispatches_to}
+  - {from: OperationsCenter, to: DAGExecutor,      type: dispatches_to}
+  - {from: OperationsCenter, to: CritiqueExecutor, type: dispatches_to}
+
+  # Executor backends depend on RxP for the runtime invocation/result contract.
+  - {from: TeamExecutor,     to: RxP, type: depends_on_contracts_from}
+  - {from: DAGExecutor,      to: RxP, type: depends_on_contracts_from}
+  - {from: CritiqueExecutor, to: RxP, type: depends_on_contracts_from}
+
+  # Executor backends depend on CxRP for BackendName/ExecutorName vocabulary.
+  - {from: TeamExecutor,     to: CxRP, type: depends_on_contracts_from}
+  - {from: DAGExecutor,      to: CxRP, type: depends_on_contracts_from}
+  - {from: CritiqueExecutor, to: CxRP, type: depends_on_contracts_from}
+
+  # CritiqueExecutor dispatches agent/critic runs through CoreRunner.
+  - {from: CritiqueExecutor, to: CoreRunner, type: dispatches_to}
+
+  # Documentation surfaces — consume PlatformManifest as the repo catalog source.
+  - {from: "ProtocolWarden.github.io", to: PlatformManifest, type: depends_on_contracts_from}
+  - {from: ProtocolWarden,             to: PlatformManifest, type: depends_on_contracts_from}
+
+  # ContextLifecycle — consumed by OC as the cognition lifecycle runtime.
+  # Private project consumers are tracked in their respective project manifests.
+  - {from: OperationsCenter, to: ContextLifecycle, type: depends_on_contracts_from}

@@ -1,0 +1,53 @@
+{
+  "overall_status": "PASS",
+  "checks": [
+    {
+      "finding_id": "PSR-001",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "Private manifests are supersets and public manifests are safe projections.",
+      "observed": "PrivateManifest can carry private and public entities, while to_public_manifest_dict emits only public-safe nodes and relationships.",
+      "expected": "Private nodes and local-only fields stay out of public output."
+    },
+    {
+      "finding_id": "PSR-002",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "Unknown visibility and unknown projection behavior fail closed.",
+      "observed": "Visibility and projection behavior are parsed through constrained enums; unknown values are rejected at load time.",
+      "expected": "No implicit public fallback."
+    },
+    {
+      "finding_id": "PSR-003",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "Public projection should strip private URLs, internal paths, local annotations, and private-only relationships.",
+      "observed": "Projection tests and PMV detectors cover private URLs, internal paths, env files, endpoint overrides, runtime hints, and non-public relationship leakage.",
+      "expected": "No private leakage in generated public manifests."
+    },
+    {
+      "finding_id": "PSR-004",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "Public publication should not have an accidental unvalidated path.",
+      "observed": "project-public always validates; unsafe generation is isolated on project-public-unsafe and prints a warning.",
+      "expected": "No unvalidated publication path on the normal command surface."
+    },
+    {
+      "finding_id": "PSR-005",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "invariant": "Projection rules should be explicit and declarative rather than living only in procedural code.",
+      "observed": "Projection behavior now lives in explicit model and schema fields on entities and relationships.",
+      "expected": "Projection rules visible in model or schema data with fail-closed semantics."
+    },
+    {
+      "finding_id": "PSR-006",
+      "repo": "PlatformManifest",
+      "status": "NOT_APPLICABLE",
+      "invariant": "Deterministic placeholder redaction applies only if placeholder-redaction output is implemented.",
+      "observed": "The current implementation emits public-safe labels and redacted stubs but still follows a drop-first design for most private data.",
+      "expected": "Placeholder tests remain scoped to fields that actually use label or stub behavior."
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/platform_manifest.schema.json",
+  "title": "PlatformManifest",
+  "description": "Public repo map for the reusable platform. Only public nodes allowed.",
+  "type": "object",
+  "required": ["manifest_kind", "manifest_version", "repos"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_kind": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "projection_profile": {
+      "type": "string"
+    },
+    "manifest_kind": {
+      "type": "string",
+      "const": "platform"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "repos": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/$defs/PublicRepoNode"
+        }
+      },
+      "additionalProperties": false
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Edge" }
+    },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/PublicRelationship" }
+    },
+    "visibility_scope": {
+      "type": "string",
+      "enum": ["public"],
+      "description": "RepoGraph manifest-cognition scope (ADR 0002 P0.4). Platform manifests are always public."
+    },
+    "also_hosts": {
+      "type": "array",
+      "description": "Cross-private grants (ADR 0002 P0.4). Empty / absent on public manifests in practice — public manifests have no use for grants.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["manifest", "repos"],
+        "properties": {
+          "manifest": { "type": "string", "minLength": 1 },
+          "repos": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Visibility": {
+      "type": "string",
+      "enum": ["public"]
+    },
+    "ProjectionBehavior": {
+      "type": "string",
+      "enum": ["public_safe", "redacted_public_stub"]
+    },
+    "EntityKind": {
+      "type": "string",
+      "enum": [
+        "Repository",
+        "Project",
+        "ManagedProject",
+        "ManagedRepository",
+        "PublicRepository",
+        "PrivateRepository",
+        "ProtocolRepository",
+        "ArtifactProducer",
+        "DeploymentLayer",
+        "ExecutionBackend",
+        "Manifest",
+        "Artifact",
+        "Run",
+        "Audit",
+        "Evidence",
+        "Binding",
+        "VisibilityPolicy",
+        "ProjectionRule",
+        "RedactionRule",
+        "MirrorRelationship",
+        "SupersetRelationship"
+      ]
+    },
+    "PlatformPlane": {
+      "type": "string",
+      "enum": [
+        "documentation",
+        "ontology",
+        "topology",
+        "topography",
+        "governance",
+        "control",
+        "runtime",
+        "utility"
+      ]
+    },
+    "OwnerKind": {
+      "type": "string",
+      "enum": [
+        "protocol",
+        "control_plane",
+        "manifest",
+        "deployment",
+        "governance",
+        "managed_project",
+        "utility",
+        "documentation"
+      ]
+    },
+    "RelationshipKind": {
+      "type": "string",
+      "enum": [
+        "consumes_manifest",
+        "publishes_projection",
+        "reads_artifact",
+        "writes_artifact",
+        "reads_heartbeat",
+        "subscribes_to_heartbeat",
+        "dispatches_request",
+        "poll_status",
+        "indexes_output",
+        "validates_output",
+        "owns_schema",
+        "implements_adapter",
+        "invokes_runtime",
+        "produces_artifact",
+        "reports_to",
+        "projects_to",
+        "redacts_from",
+        "implements",
+        "documents",
+        "orchestrates",
+        "deploys",
+        "hosts",
+        "references_schema_from",
+        "manages",
+        "produces_artifacts_for",
+        "consumes_manifest_from",
+        "validates_with",
+        "loads_plugin_from"
+      ]
+    },
+    "PublicRepoNode": {
+      "type": "object",
+      "required": ["canonical_name", "visibility"],
+      "additionalProperties": false,
+      "properties": {
+        "canonical_name": { "type": "string", "minLength": 1 },
+        "visibility": { "$ref": "#/$defs/Visibility" },
+        "github_url": { "type": "string", "format": "uri" },
+        "runtime_role": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/EntityKind" },
+        "plane": { "$ref": "#/$defs/PlatformPlane" },
+        "owner_kind": { "$ref": "#/$defs/OwnerKind" },
+        "owner": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "projection_policy": { "type": "string", "minLength": 1 },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "public_alias": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/PublicMetadata" },
+        "context_lifecycle": { "$ref": "#/$defs/RepoContextLifecycleFlags" }
+      }
+    },
+    "RepoContextLifecycleFlags": {
+      "type": "object",
+      "description": "Per-repo CL participation declared in the public manifest catalog. See ADR 0002.",
+      "additionalProperties": false,
+      "properties": {
+        "participates": { "type": "boolean" },
+        "cognition_host": { "type": "boolean" },
+        "manifest_scope_declared": { "type": "boolean" },
+        "shim_only": { "type": "boolean" },
+        "dispatcher_integration": { "type": "boolean" },
+        "cli_provider": { "type": "boolean" },
+        "schema_owner": { "type": "boolean" },
+        "contextguard": { "type": "boolean" },
+        "workspace_capsules": { "type": "boolean" }
+      }
+    },
+    "PublicMetadata": {
+      "type": "object",
+      "description": "Public-safe descriptive metadata. Private/internal fields belong in private manifests or local manifests and must be projected/redacted before publication.",
+      "additionalProperties": {
+        "type": ["string", "integer", "number", "boolean"]
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "required": ["from", "to", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "depends_on_contracts_from",
+            "dispatches_to",
+            "routes_through",
+            "bundles_assets_from"
+          ]
+        }
+      }
+    },
+    "PublicRelationship": {
+      "type": "object",
+      "required": ["id", "source", "target", "kind", "visibility", "projection_behavior"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/RelationshipKind" },
+        "visibility": { "$ref": "#/$defs/Visibility" },
+        "projection_behavior": { "$ref": "#/$defs/ProjectionBehavior" },
+        "policy_ref": { "type": "string", "minLength": 1 },
+        "redaction_label": { "type": "string", "minLength": 1 },
+        "metadata": { "$ref": "#/$defs/PublicMetadata" }
+      }
+    }
+  }
+}

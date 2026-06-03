@@ -1,0 +1,84 @@
+{
+  "overall_status": "PASS",
+  "checks": [
+    {
+      "finding_id": "OOR-001",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "owner": "PlatformManifest",
+      "concepts": [
+        "Repository identity",
+        "Public/private/local manifest shape semantics",
+        "Visibility and projection policy",
+        "PrivateManifest superset surface",
+        "Ontology relationships"
+      ]
+    },
+    {
+      "finding_id": "OOR-002",
+      "repo": "CxRP",
+      "status": "PASS",
+      "owner": "CxRP",
+      "concepts": [
+        "TaskProposal",
+        "LaneDecision",
+        "ExecutionRequest",
+        "ExecutionResult",
+        "RuntimeBinding",
+        "CapabilitySet"
+      ]
+    },
+    {
+      "finding_id": "OOR-003",
+      "repo": "RxP",
+      "status": "PASS",
+      "owner": "RxP",
+      "concepts": [
+        "RuntimeInvocation",
+        "RuntimeResult",
+        "ArtifactDescriptor",
+        "Runtime kind and status vocabulary"
+      ]
+    },
+    {
+      "finding_id": "OOR-004",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "owner": "PlatformManifest",
+      "concepts": [
+        "First-class private-manifest ontology surface"
+      ],
+      "observed": "Docs, model, schema, validation, and composition now expose a distinct private-manifest layer."
+    },
+    {
+      "finding_id": "OOR-005",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "owner": "PlatformManifest",
+      "concepts": [
+        "Ontology relationship vocabulary"
+      ],
+      "observed": "OntologyRelationshipKind and OntologyRelationship are implemented and queryable."
+    },
+    {
+      "finding_id": "OOR-006",
+      "repo": "PlatformManifest",
+      "status": "PASS",
+      "owner": "PlatformManifest",
+      "concepts": [
+        "Projection metadata"
+      ],
+      "observed": "Projection semantics are first-class fields on entities and relationships."
+    },
+    {
+      "finding_id": "OOR-007",
+      "repo": "OperationsCenter",
+      "status": "PASS",
+      "owner": "OperationsCenter",
+      "concepts": [
+        "Internal orchestration and execution-boundary models mapped to canonical protocol contracts"
+      ],
+      "observed": "OC internal proposal, routing, and execution-boundary models are explicitly OC-owned and mapped to canonical CxRP wire contracts."
+    }
+  ]
+}

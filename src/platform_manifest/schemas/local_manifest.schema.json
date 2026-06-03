@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ProtocolWarden/PlatformManifest/schemas/local_manifest.schema.json",
+  "title": "LocalManifest",
+  "description": "One machine's wiring for one project. May only annotate existing nodes with local fields.",
+  "type": "object",
+  "required": ["manifest_kind", "manifest_version"],
+  "additionalProperties": false,
+  "properties": {
+    "manifest_kind": {
+      "type": "string",
+      "const": "local"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "repos": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/$defs/LocalAnnotation"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "LocalAnnotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "local_path": { "type": "string", "minLength": 1 },
+        "local_port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "env_file": { "type": "string", "minLength": 1 },
+        "endpoint_override": { "type": "string", "minLength": 1 },
+        "cache_path": { "type": "string", "minLength": 1 },
+        "gpu_required": { "type": "boolean" },
+        "runtime_hints": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    }
+  }
+}

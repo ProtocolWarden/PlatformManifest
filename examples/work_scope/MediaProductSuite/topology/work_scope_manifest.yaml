@@ -1,0 +1,22 @@
+# Example WorkScopeManifest composing two ProjectManifests.
+# Validate with:
+#   platform-manifest validate examples/work_scope/MediaProductSuite/topology/work_scope_manifest.yaml --expected work_scope
+
+manifest_kind: work_scope
+manifest_version: "1.0.0"
+
+platform_manifest:
+  name: PlatformManifest
+  version_constraint: ">=1.0,<2.0"
+
+includes:
+  - name: MediaProductCore
+    project_manifest_path: ../../MediaProductCore/topology/project_manifest.yaml
+  - name: MediaProductAssets
+    project_manifest_path: ../../MediaProductAssets/topology/project_manifest.yaml
+
+# Cross-suite edges declared at the work-scope layer.
+# These carry Source.WORK_SCOPE provenance, distinguishing them from
+# project-internal edges in impact analyses.
+edges:
+  - {from: MediaProductAssetsPublisher, to: MediaProductCoreAPI, type: bundles_assets_from}
