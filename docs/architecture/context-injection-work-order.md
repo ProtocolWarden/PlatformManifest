@@ -133,11 +133,26 @@ hook mid-session is the lockout risk itself).
       `docs/architecture/phase3-capture-draft.sh` (live Stop-hook splice = lockout
       risk; splice manually like Phase 2-wire). Built via workflow (failed on a
       post-impl schema hiccup; salvaged + proven by hand).
-- [ ] **Hot trim** — shrink `.console/.context` to the anchor (§5).
-- [ ] **Campaign formalization** — `task.md` front-matter (`campaign_id`/`status`,
-      §2.2b); automatic consolidation trigger (§2.3) — NOT a manual command alone.
-- [ ] **Consolidation** — `cl consolidate`: distill cold→warm under the
-      consequence-veto + usage-decay-with-pinning (§2.4); session-dir pruning.
+- [ ] **Hot trim** — shrink `.console/.context` to the anchor (§5). **NOT
+      prototyped here** — the compiled blob (currently ~139 KB) is produced by
+      **OperatorConsole's** compiler, not this repo, and the live OC loop reads
+      it. Needs a cross-repo change in OperatorConsole + a defined anchor; queued
+      for a deliberate manual pass, not an autonomous workflow.
+- [x] **Campaign formalization (§2.2b)** — DONE (prototype). `.console/task.md`
+      carries additive `campaign_id`/`status` front-matter; `.context/.engine/campaign.py`
+      `parse_task()` reads it (front-matter-less fallback intact). The boundary is
+      the campaign_id change. The **automatic trigger (§2.3)** is **PARKED** at
+      `docs/architecture/phase5-trigger-draft.sh` (SessionStart-hook splice =
+      lockout risk; splice manually).
+- [x] **Consolidation (§2.4)** — DONE (prototype, `cl consolidate` logic).
+      `.context/.engine/{consolidate,distill,prune}.py`: consequence-veto (real
+      `acted_on_commit` sha + `tests_green`, never confidence/citations),
+      usage-decay reading `last_injected` with **pinned items decay-exempt**,
+      cold→warm distill (materializes a leaf doc + routes entry, flips tier),
+      session-dir pruning. **DRY-RUN by default** — verified zero mutation on the
+      real repo by before/after checksum; `--apply` to execute. 38 tests on temp
+      fixtures. Productionizing as the real `cl consolidate` CLI belongs to the
+      ContextLifecycle move below.
 
 ## Productionization (separate, spec §1)
 
