@@ -120,9 +120,19 @@ hook mid-session is the lockout risk itself).
 
 ## Phase 3–5 (gated — only if the gate passes)
 
-- [ ] **Cold store** — `.context/knowledge/` item format (§2.6), continuous
-      capture + Stop-hook seal/forcing-function (§2.3), grep index, router
-      cold-topic surfacing so cold isn't write-only.
+- [x] **Cold store** — DONE (branch `feat/phase2-wire-context-injection`).
+      `.context/.engine/cold.py`: §2.6 parse/validate/write (fail-soft, never
+      raises), `load_index` (the grep index = on-disk frontmatter), `surface_cold`
+      (one-line `topic — path — finding`, capped). Router integration in
+      `route.py` (`_surface_cold_lines`/`load_cold_cap`, `COLD_SURFACE_CAP=5`):
+      same `build_context` pass appends "Related cold topics (pull on demand):",
+      additive (surfaces even with no warm route), bounded, double-wrapped to
+      never raise — verified under adversarial malformed cold items (exit 0, no
+      traceback). 2 fixture items + `tests/test_cold_store.py` (30 tests green).
+      Stop-hook capture forcing-function is **PARKED** at
+      `docs/architecture/phase3-capture-draft.sh` (live Stop-hook splice = lockout
+      risk; splice manually like Phase 2-wire). Built via workflow (failed on a
+      post-impl schema hiccup; salvaged + proven by hand).
 - [ ] **Hot trim** — shrink `.console/.context` to the anchor (§5).
 - [ ] **Campaign formalization** — `task.md` front-matter (`campaign_id`/`status`,
       §2.2b); automatic consolidation trigger (§2.3) — NOT a manual command alone.

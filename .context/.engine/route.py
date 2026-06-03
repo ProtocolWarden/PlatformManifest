@@ -36,6 +36,12 @@ SCHEMA_VERSION = (0, 2)
 ROUTES_FILE = "routes.yaml"
 INJECT_HEADING = "## Inject"
 
+# Separate, smaller cap for cold one-line surfacing (spec §9 "cold-surfacing
+# noise"): protects the high-attention position the warm budget already guards.
+# Conservative default; overridable via routes.yaml `budget.max_cold_surface_per_edit`
+# so all breadth tuning lives in one config surface alongside max_docs_per_edit.
+COLD_SURFACE_CAP = 5
+
 
 @dataclass(frozen=True)
 class Route:
@@ -235,52 +241,116 @@ def extract_inject(doc_path: Path) -> str:
     return "\n".join(out).strip()
 
 
+def load_cold_cap(context_dir: Path) -> int:
+    """Read `budget.max_cold_surface_per_edit` from routes.yaml, else default.
+
+    Mirrors how `load_routes` reads `max_docs_per_edit` so all breadth tuning
+    lives in one config surface. Fail-soft (spec §1): any problem — missing
+    file, parse error, missing/malformed key — returns the module default
+    COLD_SURFACE_CAP rather than raising.
+    """
+    try:
+        data = yaml.safe_load((context_dir / ROUTES_FILE).read_text()) or {}
+        budget = data.get("budget", {}) or {}
+        if "max_cold_surface_per_edit" not in budget:
+            return COLD_SURFACE_CAP
+        return int(budget.get("max_cold_surface_per_edit"))
+    except (OSError, yaml.YAMLError, TypeError, ValueError, AttributeError):
+        return COLD_SURFACE_CAP
+
+
+def _surface_cold_lines(target: str, root: Path) -> list[str]:
+    """Cold one-line surfacing for `target`, fully isolated (spec §1, §2.3).
+
+    Imports the cold module lazily (it imports `_glob_to_regex` from here, so a
+    lazy import avoids a circular import at module load) and double-wraps the
+    call so the engine NEVER raises to the hook. Returns [] on any failure.
+    """
+    try:
+        cap = load_cold_cap(root / ".context")
+        try:  # standalone load (run as a script) — match the test harness shape
+            import cold as _cold  # noqa: PLC0415
+        except ImportError:
+            import importlib.util
+
+            _cold_path = Path(__file__).resolve().parent / "cold.py"
+            _spec = importlib.util.spec_from_file_location("cl_cold", _cold_path)
+            assert _spec and _spec.loader
+            _cold = importlib.util.module_from_spec(_spec)
+            sys.modules.setdefault("cl_cold", _cold)
+            _spec.loader.exec_module(_cold)
+        return _cold.surface_cold(
+            target, root / ".context" / "knowledge", max_items=cap
+        )
+    except Exception:
+        return []
+
+
 def build_context(target: str, root: Path) -> str:
-    """Top-level: produce the injectable context block for `target`, or ''."""
+    """Top-level: produce the injectable context block for `target`, or ''.
+
+    Assembles the warm leaf-doc conventions (existing behaviour) and ALSO
+    appends a bounded one-line index of matching cold topics (spec §2.3 "cold
+    must not be write-only"). Cold surfacing is additive: it surfaces even when
+    warm produced nothing, so cold is not gated on a warm match.
+    """
     # Engine code lives in .context/.engine/; routes.yaml lives in .context/ (spec §1).
-    routes, max_docs, compatible = load_routes(root / ".context")
-    if not compatible or not routes:
-        return ""
-    docs, over_budget = select_docs_split(target, routes, max_docs)
-    if not docs:
-        return ""
-
     blocks: list[str] = []
-    empty: list[str] = []
-    missing: list[str] = []
-    for doc in docs:
-        body = extract_inject(root / doc)
-        if body == MISSING_DOC:
-            missing.append(doc)
-        elif body:
-            blocks.append(f"<!-- {doc} -->\n{body}")
-        else:
-            empty.append(doc)
-
-    # Diagnostics — surfaced even when every matched doc was unusable, so a
-    # fully broken route set is distinguishable from a no-match (which returns
-    # '' earlier). Spec §3: no silent truncation.
     notes: list[str] = []
-    if empty:
-        notes.append(f"[router: {len(empty)} matched doc(s) had no ## Inject section]")
-    if missing:
-        notes.append(
-            f"[router: {len(missing)} matched doc(s) not found (broken route): "
-            f"{', '.join(missing)}]"
-        )
-    if over_budget:
-        notes.append(
-            f"[router: dropped {len(over_budget)} over-budget doc(s): "
-            f"{', '.join(over_budget)}]"
-        )
+    routes, max_docs, compatible = load_routes(root / ".context")
+    if compatible and routes:
+        docs, over_budget = select_docs_split(target, routes, max_docs)
+
+        empty: list[str] = []
+        missing: list[str] = []
+        for doc in docs:
+            body = extract_inject(root / doc)
+            if body == MISSING_DOC:
+                missing.append(doc)
+            elif body:
+                blocks.append(f"<!-- {doc} -->\n{body}")
+            else:
+                empty.append(doc)
+
+        # Diagnostics — surfaced even when every matched doc was unusable, so a
+        # fully broken route set is distinguishable from a no-match. Spec §3: no
+        # silent truncation.
+        if empty:
+            notes.append(f"[router: {len(empty)} matched doc(s) had no ## Inject section]")
+        if missing:
+            notes.append(
+                f"[router: {len(missing)} matched doc(s) not found (broken route): "
+                f"{', '.join(missing)}]"
+            )
+        if over_budget:
+            notes.append(
+                f"[router: dropped {len(over_budget)} over-budget doc(s): "
+                f"{', '.join(over_budget)}]"
+            )
+
+    # Cold one-line surfacing — same pass, isolated, never raises (spec §1).
+    cold_lines = _surface_cold_lines(target, root)
+
+    # Early return: only '' when warm blocks AND notes AND cold are all empty.
+    # Otherwise cold can surface on a target that has no warm route at all (the
+    # common case: most code has cold knowledge but no leaf doc) — spec §2.3.
+    if not blocks and not notes and not cold_lines:
+        return ""
 
     note = ("\n\n" + "\n".join(notes)) if notes else ""
+    cold_section = ""
+    if cold_lines:
+        cold_section = (
+            "\n\nRelated cold topics (pull on demand):\n" + "\n".join(cold_lines)
+        )
+
     if not blocks:
-        # Nothing injectable, but report why if there is anything to say.
-        return note.lstrip("\n") if notes else ""
+        # No injectable warm docs. Emit any diagnostics + cold section.
+        warm_part = note.lstrip("\n") if notes else ""
+        return (warm_part + cold_section).lstrip("\n")
 
     header = f"Relevant conventions for `{target}` (injected before edit):"
-    return header + "\n\n" + "\n\n".join(blocks) + note
+    return header + "\n\n" + "\n\n".join(blocks) + note + cold_section
 
 
 def main(argv: list[str] | None = None) -> int:
