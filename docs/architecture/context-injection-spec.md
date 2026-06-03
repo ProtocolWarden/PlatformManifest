@@ -328,7 +328,9 @@ truncation).
   makes "grow rules from data" possible *and* feeds the consequence-veto's
   "stopped a logged violation from recurring" signal (§2.4).
 - Both claude pre-tool and post-tool support context injection via
-  `additionalContext` JSON on exit 0, and both can block via exit 2 + stderr.
+  `additionalContext` JSON on exit 0. PreToolUse can block via exit 2 + stderr
+  (the tool has not run yet); PostToolUse exit 2 surfaces stderr to the model
+  but cannot block (the tool has already run).
   The warn-only logger records silently (it must never interrupt), so it uses
   neither — it just appends to its log and exits 0 with no output. Seeded
   blocking rules, when they emerge, use exit 2 + stderr. Note that *advisory*
