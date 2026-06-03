@@ -111,6 +111,12 @@ audit:
       - tests/test_work_scope.py
       # Architecture-doc test exercises file structure, not Python imports.
       - tests/test_architecture_docs.py
+      # Context-injection engine lives in .context/.engine/ (its prototype home,
+      # spec §1/§7 — to be productionized into ContextLifecycle), so these tests
+      # load it via importlib spec_from_file_location, not a src import.
+      - tests/test_context_router.py
+      - tests/test_cold_store.py
+      - tests/test_consolidate.py
     # K2 has no exclude_paths support — use audit.known_values instead.
     # DC7 has no exclude_paths support — use doc_conventions.exclude_path_patterns instead.
 
