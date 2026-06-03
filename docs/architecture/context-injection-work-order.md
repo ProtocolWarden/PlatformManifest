@@ -28,12 +28,28 @@ The single risky step: invoking the engine from `pre_tool_use.sh`. Deferred here
 because a hook bug causes the "parole-officer" lockout, and it needs the exact
 PreToolUse context-injection protocol verified first.
 
-- [ ] Confirm Claude Code PreToolUse `additionalContext` JSON schema (the exact
-      `hookSpecificOutput` shape). PostToolUse does **not** support it (spec §4).
-- [ ] Add a guarded block to `pre_tool_use.sh`, AFTER all enforcement passes and
-      only for `Write|Edit`, that: reads `injection.enabled`; if true, calls
-      `route.py`; emits any output as `additionalContext`. Must be wrapped so it
-      can **never** exit non-zero (`… || true`, isolated from `set -e`).
+**Protocol verified** (Claude Code Hooks reference):
+
+- [x] PreToolUse injects via stdout JSON, parsed **only on exit 0**:
+      `{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"<str>"}}`.
+      Omitting `permissionDecision` leaves the normal permission flow intact — we
+      only add context. `exit 2` blocks (stdout ignored, stderr → model);
+      injection must never reach it. `additionalContext` is capped at 10k chars.
+- [x] **Spec §4 corrected:** PostToolUse **does** support `additionalContext`
+      (the spec had claimed otherwise — now fixed). Does not change our choice —
+      PreToolUse is still correct, since the point is to inject *before* the write.
+- [x] **`jq` is not installed on the dev box.** The live hook already falls back
+      to `python3`; the draft uses `python3` for both path-handling and JSON
+      emission, so it is consistent and needs no `jq`.
+
+**Draft, validated, parked:** `docs/architecture/phase2-wire-draft.sh` — the exact
+block to splice in just above the final `exit 0`. End-to-end tested against the
+real engine: absolute→repo-relative path strip, all-matches selection, valid
+round-trippable JSON, empty-on-no-match. **Not yet in the live hook** (editing the
+hook mid-session is the lockout risk itself).
+
+- [ ] Splice the draft block into `pre_tool_use.sh` above the final `exit 0`.
+- [ ] Smoke-test in a throwaway session (flag on) before trusting it.
 - [ ] Keep `injection.enabled: false` until validated; flip per §7a.
 
 ## Gate (spec §7a) — evaluate before building the pipeline
