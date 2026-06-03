@@ -34,6 +34,8 @@ doc_conventions:
 audit:
   known_values:
     - platform
+    # `main` is the default branch name, cited in docs/work-orders — not a src enum.
+    - main
   exclude_paths:
     C29:
       # composition.py is the platform-graph composition core — splitting

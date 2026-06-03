@@ -1,4 +1,14 @@
 # Log
+## 2026-06-03 — Add cross-machine resume section to the work order
+
+Added a "▶ Resume here" block at the top of
+`docs/architecture/context-injection-work-order.md` so the spec build can be
+picked up on another machine via `git pull`: current state (Phase 0–2 merged to
+main, engine dark), how to verify, the §7a gate fork (wire+gate before any Phase
+3–5), and the gotchas that bit us (OC bot auto-force-pushes branches; main is
+unprotected; CI needs the boundary-artifact secret). Whitelisted `main` in
+`.custodian/config.yaml` known_values (K2: branch name, not a src enum).
+
 ## 2026-06-03 — Make CI green (5 pre-existing failures, none from recent work)
 
 CI had been red on `main` and PR #39 merged over it. Root-caused and fixed all

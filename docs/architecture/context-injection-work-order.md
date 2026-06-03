@@ -1,12 +1,49 @@
 # Work Order — Context Injection & Tiered Memory
 
 > **Tracks:** `docs/architecture/context-injection-spec.md` (the design).
-> **Branch:** `docs/context-injection-spec` (PR #39).
-> **Status:** Phase 0–2 (engine prototype, dark) **implemented**; phases 3–5 gated.
+> **Status:** Phase 0–2 (engine prototype, dark) **merged to `main`**; phases 3–5 gated.
+> **Merged:** PR #39 (spec), #40 (spec §4 fix + wire draft), #41 (CI green). All on `main`.
 
 This work order turns the spec into ordered, checkable work. The build is
 deliberately **project-tier-only** and **gated after phase 2** — do not start the
 cold/consolidation pipeline until warm injection has demonstrably helped.
+
+## ▶ Resume here (operational status — read this first)
+
+Everything below "Done" is **merged to `main`**; a fresh `git pull` on any machine
+has it. The engine ships **dark** (`injection.enabled: false`), so live behaviour
+is unchanged until someone deliberately wires + flips it.
+
+**Verify you're in a good state (any machine):**
+- `git -C PlatformManifest pull` → engine at `.context/.engine/route.py`, routes at
+  `.context/routes.yaml`, leaf docs in `docs/inject/`.
+- `.venv/bin/pytest tests/test_context_router.py -q` → 21 pass (or full suite 189).
+- `grep -nA1 injection .context/config.yaml` → `enabled: false` (still dark).
+
+**The next decision is yours, and it is a fork — do NOT skip to Phase 3:**
+1. **Phase 2-wire** (the one risky step). Splice `docs/architecture/phase2-wire-draft.sh`
+   into `.claude/hooks/pre_tool_use.sh` above the final `exit 0`, flip the flag,
+   smoke-test in a throwaway session. Protocol already verified (below). Risk:
+   a hook bug = "parole-officer" lockout, so test before trusting.
+2. **Run the §7a gate.** Use warm injection live for a real window, then answer one
+   question: *did it measurably cut convention violations / rework?*
+   - **No →** STOP. Hot-trim + warm-injection may be the entire win at this scale;
+     Phases 3–5 are cost you shouldn't pay.
+   - **Yes →** build Phase 3–5 (cold store, hot-trim, campaign formalization,
+     consolidation).
+
+**Independent of the gate:** productionization (move the engine into ContextLifecycle)
+and the doc-reconciliation track can happen any time. Platform/cross-repo tier and
+the `~/.claude` merge stay deferred.
+
+**Context that bit us last time (so you don't rediscover it):**
+- An OperationsCenter "Operations Center Bot" auto-rebases/squash-force-pushes
+  feature branches. Branch off `main`, push, and merge promptly — long-lived
+  manual branches will collide with it.
+- `main` is **unprotected** (no required checks), so red CI can merge. Check CI
+  yourself before merging.
+- CI installs `repograph` + `custodian` from public git; the audit needs the
+  `REPOGRAPH_BOUNDARY_ARTIFACT_B64` repo secret (already set).
 
 ## Done in this PR (Phase 0–2 prototype, shipped DARK)
 
