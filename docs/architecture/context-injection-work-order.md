@@ -1,7 +1,8 @@
 # Work Order — Context Injection & Tiered Memory
 
 > **Tracks:** `docs/architecture/context-injection-spec.md` (the design).
-> **Status:** Phase 0–2 (engine prototype, dark) **merged to `main`**; phases 3–5 gated.
+> **Status:** Phase 0–2 (engine prototype, dark) **merged to `main`**; Phase 2-wire
+> **spliced + smoke-tested** on `feat/phase2-wire-context-injection` (still dark); phases 3–5 gated.
 > **Merged:** PR #39 (spec), #40 (spec §4 fix + wire draft), #41 (CI green). All on `main`.
 
 This work order turns the spec into ordered, checkable work. The build is
@@ -20,11 +21,16 @@ is unchanged until someone deliberately wires + flips it.
 - `.venv/bin/pytest tests/test_context_router.py -q` → 21 pass (or full suite 189).
 - `grep -nA1 injection .context/config.yaml` → `enabled: false` (still dark).
 
+**Phase 2-wire is DONE** (branch `feat/phase2-wire-context-injection`): the draft
+is spliced into `.claude/hooks/pre_tool_use.sh`, `bash -n`-validated before the
+live swap, and smoke-tested through the real hook with the flag toggled on/off.
+It is **still dark** (`injection.enabled: false`) — wiring ≠ activation.
+
 **The next decision is yours, and it is a fork — do NOT skip to Phase 3:**
-1. **Phase 2-wire** (the one risky step). Splice `docs/architecture/phase2-wire-draft.sh`
-   into `.claude/hooks/pre_tool_use.sh` above the final `exit 0`, flip the flag,
-   smoke-test in a throwaway session. Protocol already verified (below). Risk:
-   a hook bug = "parole-officer" lockout, so test before trusting.
+1. **Flip the flag** (`injection.enabled: true`) and run with warm injection live.
+   The hook is already wired and inert-safe; this is the activation step. Risk is
+   now low (a hook bug would have surfaced in the smoke test) — but watch the
+   first live session.
 2. **Run the §7a gate.** Use warm injection live for a real window, then answer one
    question: *did it measurably cut convention violations / rework?*
    - **No →** STOP. Hot-trim + warm-injection may be the entire win at this scale;
@@ -85,9 +91,18 @@ real engine: absolute→repo-relative path strip, all-matches selection, valid
 round-trippable JSON, empty-on-no-match. **Not yet in the live hook** (editing the
 hook mid-session is the lockout risk itself).
 
-- [ ] Splice the draft block into `pre_tool_use.sh` above the final `exit 0`.
-- [ ] Smoke-test in a throwaway session (flag on) before trusting it.
-- [ ] Keep `injection.enabled: false` until validated; flip per §7a.
+- [x] Splice the draft block into `pre_tool_use.sh` above the final `exit 0`.
+      Done on branch `feat/phase2-wire-context-injection` — block lands between
+      `# All checks passed` and the final `exit 0` (hook 338 → 381 lines).
+      Validated via `bash -n` in a temp copy *before* the live swap (the hook
+      governs the operator's own session, so a syntax slip = lockout).
+- [x] Smoke-test (flag on) before trusting it. Exercised the **live hook file**
+      as a subprocess (flag flipped on+restored atomically, session never hot):
+      Write→`loader.py` emits valid PreToolUse `additionalContext` JSON (944
+      chars, exit 0); Write→`README.md` (no route) emits nothing, exit 0;
+      flag-off → fully inert. Router unit tests 21/21.
+- [ ] Keep `injection.enabled: false` until validated; flip per §7a. **Still
+      dark** — the flip is the gate decision, deliberately not done here.
 
 ## Gate (spec §7a) — evaluate before building the pipeline
 

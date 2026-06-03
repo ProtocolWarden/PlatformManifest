@@ -412,3 +412,7 @@ Three e2e-verification capsules from today's RepoGraph registry + CL integration
 ## 2026-05-27 — Fix provision: wire CL_HOME into ~/.claude/settings.json
 
 provision-machine.sh step 3 now also writes CL_HOME into ~/.claude/settings.json env section. This makes CL_HOME available to Claude Code's process and its hook subprocesses, which don't source ~/.bashrc. CL_ANCHOR is still session-dynamic (set via eval "$(cl session start)" before launching).
+
+## 2026-06-03 — Phase 2-wire: splice context-injection into the live hook (dark)
+
+Spliced the validated `docs/architecture/phase2-wire-draft.sh` block into `.claude/hooks/pre_tool_use.sh` (between `# All checks passed` and the final `exit 0`; 338 → 381 lines) on branch `feat/phase2-wire-context-injection`. The block is gated on `injection.enabled` (still `false`) and wrapped so any failure is swallowed — it can never block a tool call. Because the hook governs the operator's own session, validated `bash -n` on a temp copy *before* the live swap, then copied the exact validated bytes in. Smoke-tested through the real hook with the flag toggled on+restored atomically: Write→`loader.py` emits valid PreToolUse `additionalContext` (944 chars, exit 0), Write→`README.md` (no route) emits nothing, flag-off is fully inert. Router tests 21/21. Flag deliberately left dark — flipping it is the §7a gate decision, not part of wiring. No controller handoff (operator-driven).

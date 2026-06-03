@@ -335,4 +335,47 @@ except Exception:
 fi
 
 # All checks passed
+# --- Warm context injection (Phase 2-wire, spec §4) ------------------------
+# Inert until .context/config.yaml injection.enabled: true. Emits warm leaf-doc
+# conventions as PreToolUse additionalContext (parsed on exit 0 only). Never
+# blocks: any failure is swallowed and falls through to the final `exit 0`.
+if [[ "$TOOL_NAME" == "Write" || "$TOOL_NAME" == "Edit" ]]; then
+  INJECT_ENABLED=false
+  if [[ -f "${CONFIG_FILE}" ]] && command -v python3 &>/dev/null; then
+    INJECT_ENABLED=$(python3 -c "
+try:
+    import yaml
+    with open('${CONFIG_FILE}') as f:
+        c = yaml.safe_load(f) or {}
+    print(str(c.get('injection', {}).get('enabled', False)).lower())
+except Exception:
+    print('false')
+" 2>/dev/null || echo "false")
+  fi
+
+  if [[ "$INJECT_ENABLED" == "true" ]]; then
+    # Entire emission isolated: any failure is swallowed, never blocks the call.
+    {
+      ENGINE="${REPO_ROOT}/.context/.engine/route.py"
+      # routes.yaml uses repo-relative globs; strip the anchor prefix if absolute.
+      REL_PATH="${TARGET_PATH#${REPO_ROOT}/}"
+      if [[ -n "$REL_PATH" && -f "$ENGINE" ]]; then
+        CTX="$(python3 "$ENGINE" --target "$REL_PATH" --root "$REPO_ROOT" 2>/dev/null || true)"
+        if [[ -n "$CTX" ]]; then
+          CTX="$CTX" python3 -c "
+import json, os
+ctx = os.environ.get('CTX', '')
+print(json.dumps({
+    'hookSpecificOutput': {
+        'hookEventName': 'PreToolUse',
+        'additionalContext': ctx,
+    }
+}))
+" 2>/dev/null || true
+        fi
+      fi
+    } || true
+  fi
+fi
+
 exit 0
