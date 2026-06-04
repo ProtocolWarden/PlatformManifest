@@ -13,8 +13,8 @@
 # Usage:
 #   provision.sh [--with-private] [--force-hooks]
 #
-#   --with-private   clone + register PrivateManifest repos and install their
-#                    hooks (requires PrivateManifest already cloned)
+#   --with-private   clone + register private-manifest repos and install their
+#                    hooks (requires the private-manifest repo already cloned)
 #   --force-hooks    overwrite existing hooks instead of skipping
 #
 # NOT handled here (manual, one-time, needs a GitHub PAT):

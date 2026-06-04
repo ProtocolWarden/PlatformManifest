@@ -1,7 +1,16 @@
 # Private-manifest role generalization — design
 
-> **Status:** DESIGN (approved direction; execution deferred as its own focused
-> effort). Captures the "#3" item from the `.console/` reconciliation arc.
+> **Status:** PHASES 1–5 EXECUTED (2026-06-04). Phase 6 (lexical enforcement)
+> is **blocked by design reality**: the repo *instance* is named identically to
+> the manifest *type* vocabulary (`PrivateManifest` is also the public ontology
+> class in RepoGraph/PlatformManifest and the schema title), so the instance
+> name cannot become a scrub target without banning legitimate public API
+> vocabulary. Lexical enforcement requires either renaming the private repo
+> instance to a non-type name (operator decision) or accepting architectural
+> (non-lexical) enforcement: every *binding* is now by role discovery, and the
+> remaining literal occurrences are type vocabulary, sanctioned `.console/`
+> history, or this document. Shared resolver:
+> `repograph.resolve_private_manifest()`.
 > Related: [console-reconciliation.md](./console-reconciliation.md),
 > [visibility_boundary.md](./visibility_boundary.md),
 > `PlatformDeployment/docs/architecture/adr/0003-boundary-artifact-tenancy-model.md`.
@@ -112,3 +121,35 @@ focused effort (ideally a paused-loop window, phase-by-phase with per-repo bound
 verification), not a tail-end addition to the reconciliation work. The reconciliation
 goal (close the leak, enforce R1/R2) is complete and independent of this; this
 generalization is the *next* boundary-architecture project.
+
+## 7. Execution record (2026-06-04)
+
+Executed in a paused-loop window, per the staged plan:
+
+1. **Shared resolver** — `repograph.resolve_private_manifest()` added to the
+   RepoGraph registry module (`$PRIVATE_MANIFEST_DIR` override, else registry
+   discovery by the `private_manifest*` type filename), with tests.
+   ContextLifecycle's `_discover_via_repograph` now prefers it, keeping its
+   inline discovery as a fallback for older RepoGraph installs.
+2. **Hooks** — every repo's `.hooks/pre-push` dropped the literal instance
+   candidate path; the generic `*/dist/` + `*/policy/` globs resolve the same
+   artifact (verified). CI was already role-free (B64 content secret).
+3. **Provisioning** — `clone-repos.sh` / `provision-machine.sh` /
+   `run_with_boundary.sh` (a downstream deployment repo) resolve the
+   private-manifest root via `$PRIVATE_MANIFEST_DIR` or a workspace scan for
+   the manifest-type filename. PlatformDeployment's `.custodian/config.yaml`
+   dropped its baked artifact path; absence still fails closed via its
+   required-artifact privacy setting (verified exit 1 without the env).
+4. **Source + tests** — governance-gate fix-hints and docstrings use role
+   phrasing; test fixtures' `source_graph_id` swapped to generic ids (verified:
+   no production code matches the literal).
+5. **Docs** — ~80 instance refs across the fleet rewritten to role phrasing /
+   path placeholders; manifest-*type* vocabulary (ontology class, schema title,
+   layered-stack diagrams) deliberately kept.
+6. **Enforcement** — BLOCKED, see Status note above (instance name ==
+   type-class name). Resolution options: rename the private repo instance,
+   or rest on the architectural guarantee that no binding references the
+   instance.
+
+Boundary regression checks per phase: audits clean *with* the artifact and
+fail-closed *without* it, on every touched repo.

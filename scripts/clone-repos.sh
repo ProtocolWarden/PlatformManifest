@@ -10,13 +10,34 @@
 #
 # Defaults:
 #   GITHUB_DIR   — parent of the PlatformManifest repo root (i.e. ~/Documents/GitHub)
-#   --with-private  also clone repos declared in PrivateManifest
+#   --with-private  also clone repos declared in the private manifest
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PM_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 GITHUB_DIR="$(cd "$PM_DIR/.." && pwd)"
+
+# Resolve the private-manifest repo root by ROLE: $PRIVATE_MANIFEST_DIR wins,
+# else scan GITHUB_DIR for a repo hosting a private_manifest*.yaml (the
+# manifest *type* filename — never a hardcoded repo-instance name).
+_discover_private_manifest_dir() {
+  if [[ -n "${PRIVATE_MANIFEST_DIR:-}" && -d "$PRIVATE_MANIFEST_DIR" ]]; then
+    echo "$PRIVATE_MANIFEST_DIR"
+    return 0
+  fi
+  local d
+  for d in "$GITHUB_DIR"/*/; do
+    if compgen -G "${d}private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}src/*/data/private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}manifests/private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}manifests/*/private_manifest*.yaml" >/dev/null 2>&1; then
+      echo "${d%/}"
+      return 0
+    fi
+  done
+  return 1
+}
 
 WITH_PRIVATE=false
 while [[ $# -gt 0 ]]; do
@@ -103,17 +124,17 @@ echo "▶ Public repos (PlatformManifest)"
 _process_yaml "$PM_DIR/src/platform_manifest/data/platform_manifest.yaml"
 
 if [[ "$WITH_PRIVATE" == true ]]; then
-  PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
+  PRIVM_DIR="$(_discover_private_manifest_dir || true)"
   echo ""
-  echo "▶ Private repos (PrivateManifest)"
-  if [[ -d "$PRIVM_DIR" ]]; then
+  echo "▶ Private repos (private manifest)"
+  if [[ -n "$PRIVM_DIR" && -d "$PRIVM_DIR" ]]; then
     # Discover manifest YAMLs dynamically — no private names hardcoded here.
     while IFS= read -r yaml_file; do
       _process_yaml "$yaml_file"
     done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
   else
-    echo "  skip: PrivateManifest not cloned yet at $PRIVM_DIR"
-    echo "  Hint: clone PrivateManifest first, then re-run with --with-private"
+    echo "  skip: no private-manifest repo found under $GITHUB_DIR"
+    echo "  Hint: clone your private-manifest repo first (or set PRIVATE_MANIFEST_DIR), then re-run with --with-private"
   fi
 fi
 

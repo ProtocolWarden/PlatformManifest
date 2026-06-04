@@ -9,30 +9,30 @@ without leaking private repo names into public CI.
 PlatformManifest is the public source of truth for the platform repo map —
 the public repos, their kinds, and their public-safe relationships. If you
 want to layer **private projects** (managed projects, private infrastructure,
-private aliases) on top of that public base, you create a **PrivateManifest**
+private aliases) on top of that public base, you create a **private-manifest**
 repo. It carries:
 
 - Private repo identities (canonical names, aliases, visibility flags)
 - Private-only relationships (e.g., "managed by", "deployed to")
 - Disclosure/projection rules for each entity
 
-The PrivateManifest is a *private GitHub repo*. It never appears publicly. But
+The private-manifest repo is a *private GitHub repo*. It never appears publicly. But
 public CI (Custodian audits) needs to know which names are forbidden in public
 code, without seeing the full private graph. That's the **boundary artifact**:
 a small JSON document that lists `forbidden_names` and provenance metadata,
-derived from the PrivateManifest by RepoGraph's `build_boundary_artifact()`.
+derived from the private-manifest repo by RepoGraph's `build_boundary_artifact()`.
 It exposes only the negative space ("don't write these names in public code"),
 not the relationships or descriptions.
 
 ## Step-by-step bootstrap
 
-### 1. Create your PrivateManifest repo
+### 1. Create your private-manifest repo
 
 Create a new **private** GitHub repository under your account or org. The
-layout mirrors the reference at `ProtocolWarden/PrivateManifest`:
+layout mirrors the reference private-manifest repo:
 
 ```
-PrivateManifest/
+<private-manifest-repo>/
 ├── graph/
 │   ├── repos.yaml                      # private repo identities
 │   ├── edges.yaml                      # private relationships
@@ -47,18 +47,18 @@ PrivateManifest/
     └── boundary_disclosure_artifact.json  # generated, committed
 ```
 
-The minimum viable PrivateManifest is `graph/repos.yaml` listing every private
+The minimum viable private-manifest repo is `graph/repos.yaml` listing every private
 repo (visibility=private, kind=ManagedProject or similar) and `graph/edges.yaml`
 listing private relationships. See `examples/private_repos_minimal.yaml` in
 the reference repo for the schema.
 
 ### 2. Add the publish-boundary workflow
 
-Copy `.github/workflows/publish-boundary.yml` from the reference PrivateManifest.
+Copy `.github/workflows/publish-boundary.yml` from the reference private-manifest repo.
 On every push to `main` that touches `graph/` or the generator, it:
 
 1. Installs RepoGraph from git
-2. Runs `python -m private_manifest.export_boundary_artifact --graph-root graph --out boundary/boundary_disclosure_artifact.json --source-graph-id PrivateManifest --source-ref-or-commit "$GITHUB_SHA"`
+2. Runs `python -m private_manifest.export_boundary_artifact --graph-root graph --out boundary/boundary_disclosure_artifact.json --source-graph-id <your-graph-id> --source-ref-or-commit "$GITHUB_SHA"`
 3. Commits the regenerated artifact back to `main` if it changed
 
 Required workflow permission: `contents: write`.
@@ -71,8 +71,8 @@ otherwise downstream CI 404s on the first run.
 In GitHub settings → Developer settings → Personal access tokens → Fine-grained
 tokens, create a token with:
 
-- **Resource owner**: the account/org that owns your PrivateManifest
-- **Repository access**: *Only select repositories* → your PrivateManifest, nothing else
+- **Resource owner**: the account/org that owns your private-manifest repo
+- **Repository access**: *Only select repositories* → your private-manifest repo, nothing else
 - **Repository permissions**: `Contents` → **Read-only**
 - **Expiration**: 1 year (set a calendar reminder to rotate)
 
@@ -89,7 +89,7 @@ secrets:
 | Secret name | Value |
 |---|---|
 | `PRIVATEMANIFEST_READ_TOKEN` | the fine-grained PAT from step 3 |
-| `REPOGRAPH_BOUNDARY_ARTIFACT_FILE` | `https://raw.githubusercontent.com/<owner>/<PrivateManifest-name>/main/boundary/boundary_disclosure_artifact.json` |
+| `REPOGRAPH_BOUNDARY_ARTIFACT_FILE` | `https://raw.githubusercontent.com/<owner>/<private-manifest-repo-name>/main/boundary/boundary_disclosure_artifact.json` |
 
 If you're on a **GitHub organization**, set these once as *organization
 secrets* and scope them to the consuming repos. Single source, free tier
@@ -130,7 +130,7 @@ token. Always `printf '%s'`.
 
 By default, the script targets the platform's reference list of consumer
 repos and reads the artifact from
-`<owner>/PrivateManifest/main/boundary/boundary_disclosure_artifact.json`.
+`<owner>/<private-manifest-repo-name>/main/boundary/boundary_disclosure_artifact.json`.
 Use `--private-repo`, `--branch`, `--artifact-path`, or `--repos-file` to
 point at a different layout.
 
@@ -186,7 +186,7 @@ secret unset — skipping custodian audit`, the secret didn't propagate — chec
 ## How the artifact stays fresh
 
 There is **no background sync**. Each CI run fetches the current artifact from
-your PrivateManifest's `main` branch via the raw GitHub URL. Whenever you
+your private-manifest repo's `main` branch via the raw GitHub URL. Whenever you
 update `graph/`, the `publish-boundary` workflow regenerates and commits the
 artifact within seconds; the next consumer CI run immediately sees the new
 forbidden names. No drift window, no per-repo rotation.
@@ -194,9 +194,9 @@ forbidden names. No drift window, no per-repo rotation.
 ## Multi-tenant note
 
 The boundary artifact contains the **union** of all private names in your
-PrivateManifest. If you host private overlays for multiple unrelated tenants
-in the same PrivateManifest repo, every consumer sees every tenant's
-forbidden names. If that's a concern, run **one PrivateManifest per tenant**
+private-manifest repo. If you host private overlays for multiple unrelated tenants
+in the same private-manifest repo, every consumer sees every tenant's
+forbidden names. If that's a concern, run **one private-manifest repo per tenant**
 and configure each consuming repo with the appropriate URL.
 
 The decision to ship single-tenant today and the binding migration plan to
@@ -215,7 +215,7 @@ anchoring, per-tenant secret routing in bootstrap tooling).
 | PAT leaks via compromised CI workflow | PAT is read-only, scoped to one private repo; rotate annually |
 | Boundary artifact JSON appears in public CI logs | Materialize step writes to `$RUNNER_TEMP` and only prints provenance line; secrets are masked in GitHub Actions logs |
 | Private names leak via PR diff in a public consumer repo | That's exactly what the audit gate catches — `B1` detector scans for any `forbidden_names` in tracked files |
-| PrivateManifest unavailable at fetch time | Audit fails closed (CI red); old artifact remains readable from the last commit, so transient outages don't break things |
+| private-manifest repo unavailable at fetch time | Audit fails closed (CI red); old artifact remains readable from the last commit, so transient outages don't break things |
 | Old PAT remains valid after rotation | Fine-grained PATs are independent; revoke the old one explicitly in GitHub settings |
 
 ## Reference implementation
@@ -224,7 +224,7 @@ The ProtocolWarden ecosystem is the reference implementation. The relevant
 repos are public except where noted:
 
 - `ProtocolWarden/PlatformManifest` — public base
-- `ProtocolWarden/PrivateManifest` — private overlay (private repo)
+- the private-manifest repo — private overlay (private repo)
 - `ProtocolWarden/RepoGraph` — schema + generator library
 - `ProtocolWarden/Custodian` — boundary artifact consumer (B1/B2 detectors)
 

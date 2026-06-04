@@ -151,7 +151,7 @@ From a fresh PlatformManifest clone, one entrypoint runs everything in order:
 
 ```
 scripts/provision.sh                  # public repos only
-scripts/provision.sh --with-private   # also clone/register/hook PrivateManifest repos
+scripts/provision.sh --with-private   # also clone/register/hook private-manifest repos
 ```
 
 This chains `clone-repos.sh` (clone the ecosystem; ContextLifecycle + RepoGraph

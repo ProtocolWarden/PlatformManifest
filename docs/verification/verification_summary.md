@@ -1,7 +1,7 @@
 # Verification Summary
 
 **Date:** 2026-05-11  
-**Scope:** PlatformManifest, PrivateManifest, managed private project, Custodian, OperationsCenter, CxRP, RxP  
+**Scope:** PlatformManifest, the private-manifest repo, managed private project, Custodian, OperationsCenter, CxRP, RxP  
 **Overall status:** `PASS`
 
 The ontology and visibility expansion is now complete across model, data, and
@@ -9,8 +9,8 @@ consumer boundaries.
 
 The remaining gaps from the earlier remediation cycle are closed:
 
-- `PrivateManifest` now exists as a dedicated repository for private topology data.
-- managed private project private topology now lives in `PrivateManifest`, not as a repo-local
+- The private-manifest repo now exists as a dedicated repository for private topology data.
+- managed private project private topology now lives in the private-manifest repo, not as a repo-local
   private-topology special case.
 - Platform/public, private, project, work-scope, and local manifest shapes are now
   explicit and layered.
@@ -29,7 +29,7 @@ The remaining gaps from the earlier remediation cycle are closed:
 | Phase 5 — Custodian integration | `PASS` | PMV detector ownership remains in PlatformManifest and enforcement covers first-class relationships. |
 | Phase 6 — OperationsCenter consumption notes | `PASS` | OC consumes platform/private/project/work-scope/local layers without claiming ontology ownership. |
 | Remediation A — Manifest shape taxonomy | `PASS` | Platform/public, private, project, work-scope, and local shapes are explicit and distinct. |
-| Remediation B — General private manifest | `PASS` | `PrivateManifest` is first-class in PlatformManifest and now has a dedicated data repo. |
+| Remediation B — General private manifest | `PASS` | The private manifest is first-class in PlatformManifest and now has a dedicated data repo. |
 | Remediation C — First-class relationship vocabulary | `PASS` | Ontology relationships are model-visible, schema-visible, queryable, and PMV-enforced. |
 | Remediation D — Explicit projection metadata | `PASS` | Entity and relationship projection metadata are explicit and fail closed. |
 | Remediation E — Projection validation hardening | `PASS` | `project-public` validates before final output is written; unsafe generation is isolated. |
@@ -39,18 +39,18 @@ The remaining gaps from the earlier remediation cycle are closed:
 ### `PASS` — dedicated private topology repo exists
 
 Evidence:
-- [PrivateManifest README](../../../../PrivateManifest/README.md)
-- [managed private project private manifest](../../../../PrivateManifest/manifests/managed-private-project/private_manifest.yaml)
-- [PrivateManifest validation workflow](../../../../PrivateManifest/.github/workflows/validate.yml)
+- [private-manifest repo README](<private-manifest-repo>/README.md)
+- [managed private project private manifest](<private-manifest-repo>/manifests/managed-private-project/private_manifest.yaml)
+- [private-manifest repo validation workflow](<private-manifest-repo>/.github/workflows/validate.yml)
 
-`PrivateManifest` is now a separate repository that owns private topology data
+The private-manifest repo is now a separate repository that owns private topology data
 files. PlatformManifest still owns the private-manifest shape, schema, loader,
 composition, and visibility semantics.
 
 ### `PASS` — managed private project moved under the private-manifest layer
 
 Evidence:
-- [managed private project private manifest](../../../../PrivateManifest/manifests/managed-private-project/private_manifest.yaml)
+- [managed private project private manifest](<private-manifest-repo>/manifests/managed-private-project/private_manifest.yaml)
 - [managed private project project manifest shim](../../../../managed private project/topology/project_manifest.yaml)
 - [managed private project local manifest example](../../../../managed private project/topology/local_manifest.example.yaml)
 
@@ -83,7 +83,7 @@ Evidence:
 
 OperationsCenter now supports `platform -> private -> (project xor work_scope)
 -> local` composition, including explicit `private_manifest_path` and
-conventional discovery through the `PrivateManifest` repo. It remains a consumer
+conventional discovery through the private-manifest repo. It remains a consumer
 of PlatformManifest-owned semantics.
 
 ### `PASS` — canonical wire ownership remains in CxRP
