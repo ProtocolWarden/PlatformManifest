@@ -14,6 +14,10 @@ _(idle — reconciliation + role-generalization arcs complete)_
 
 ## Done
 
+- [x] 2026-06-04 — FLEET GREEN: pre-existing red main CI fixed on all 19 public
+      repos (incl. first-ever green semantic-federation run; gate policy synced
+      to the 18-repo public set).
+
 - [x] 2026-06-04 — Phase 6 closed as not-needed (operator: the instance name is
       not secret, only contents; architectural enforcement stands). Generalization
       effort COMPLETE.
