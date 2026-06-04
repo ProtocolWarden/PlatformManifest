@@ -14,8 +14,5 @@ _Update after each meaningful chunk of progress. Keep it short and actionable._
 
 ## Done
 
-- [x] [Completed task]
+_Completed items archived._
 
----
-
-_Completed items can be archived to log.md. This is not the primary task tracker — keep it focused._
