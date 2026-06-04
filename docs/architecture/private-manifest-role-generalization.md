@@ -1,16 +1,19 @@
 # Private-manifest role generalization — design
 
-> **Status:** PHASES 1–5 EXECUTED (2026-06-04). Phase 6 (lexical enforcement)
-> is **blocked by design reality**: the repo *instance* is named identically to
-> the manifest *type* vocabulary (`PrivateManifest` is also the public ontology
-> class in RepoGraph/PlatformManifest and the schema title), so the instance
-> name cannot become a scrub target without banning legitimate public API
-> vocabulary. Lexical enforcement requires either renaming the private repo
-> instance to a non-type name (operator decision) or accepting architectural
-> (non-lexical) enforcement: every *binding* is now by role discovery, and the
-> remaining literal occurrences are type vocabulary, sanctioned `.console/`
-> history, or this document. Shared resolver:
-> `repograph.resolve_private_manifest()`.
+> **Status: COMPLETE (2026-06-04).** Phases 1–5 executed; phase 6 (lexical
+> enforcement of the instance name) is **closed as not-needed by operator
+> decision**: the instance name is not secret — only the repo's *contents*
+> are, and those names are already scrub-target-enforced via the boundary
+> artifact. The name also collides with legitimate manifest-*type* vocabulary
+> (the public ontology class and schema title), so a lexical ban was never
+> coherent. The standing guarantee is architectural: every *binding* resolves
+> the private-manifest role by discovery (`repograph.resolve_private_manifest()`,
+> hook/provisioning globs on the `private_manifest*` type filename, the CI
+> content secret) — no code path depends on the instance name. Remaining
+> literal occurrences are type vocabulary, sanctioned `.console/` history, or
+> this document. If a future project-specific private-manifest repo carries a
+> *meaningful* (secret) name, add THAT name to the boundary artifact's
+> `forbidden_names` — the enforcement machinery is already in place.
 > Related: [console-reconciliation.md](./console-reconciliation.md),
 > [visibility_boundary.md](./visibility_boundary.md),
 > `PlatformDeployment/docs/architecture/adr/0003-boundary-artifact-tenancy-model.md`.

@@ -1,4 +1,15 @@
 # Log
+## 2026-06-04 — Phase 6 closed as not-needed (operator decision)
+
+Operator ruled: the private-manifest repo's *name* is not secret — only its
+*contents* are, and those are already scrub-target-enforced. A lexical ban on
+the instance name was therefore never needed (and was incoherent anyway: the
+name collides with the public manifest-type vocabulary). The generalization
+effort is COMPLETE: the guarantee is architectural (all bindings resolve the
+role by discovery). Future project private-manifests with genuinely secret
+names go into the boundary artifact's forbidden_names instead. Design doc
+status updated.
+
 ## 2026-06-04 — Private-manifest role generalization EXECUTED (phases 1–5)
 
 Executed the role-generalization design in a paused-loop window:

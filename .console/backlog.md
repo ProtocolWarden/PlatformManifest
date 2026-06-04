@@ -9,15 +9,14 @@ _(idle — reconciliation + role-generalization arcs complete)_
 
 ## Up Next
 
-- [ ] Phase 6 of the private-manifest role generalization (lexical scrub-target
-      enforcement) — BLOCKED on an operator decision: the repo instance is named
-      identically to the manifest-type vocabulary (ontology class / schema title),
-      so the name can't be banned without renaming the instance repo first.
-      See design doc §7 / Status note.
 - [ ] Optional: converge the `.console/reconcile.yaml` worksheet format (still
       the interim schema-1 shape; works fine).
 
 ## Done
+
+- [x] 2026-06-04 — Phase 6 closed as not-needed (operator: the instance name is
+      not secret, only contents; architectural enforcement stands). Generalization
+      effort COMPLETE.
 
 - [x] 2026-06-04 — Private-manifest role generalization phases 1–5 executed
       fleet-wide (shared resolver, hooks, provisioning, source/tests, docs).
