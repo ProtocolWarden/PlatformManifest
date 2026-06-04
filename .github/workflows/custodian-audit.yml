@@ -29,26 +29,20 @@ jobs:
           fi
 
       - name: Materialize boundary artifact file
-        # The boundary disclosure artifact is produced by the private repo
-        # (PrivateManifest) and cannot live on a public runner as a filesystem
-        # path. Ship its CONTENT as the base64 secret REPOGRAPH_BOUNDARY_ARTIFACT_B64
-        # and decode it to a runner-local file here. Generate the secret with:
-        #   base64 -w0 ../PrivateManifest/dist/boundary_disclosure_artifact.json
+        # Decode the boundary disclosure artifact from the base64 CONTENT secret
+        # REPOGRAPH_BOUNDARY_ARTIFACT_B64 (a path secret cannot resolve on a CI
+        # runner) and export REPOGRAPH_BOUNDARY_ARTIFACT_FILE — the role-based
+        # resolution custodian reads; no private repo-instance path is baked in.
         env:
           REPOGRAPH_BOUNDARY_ARTIFACT_B64: ${{ secrets.REPOGRAPH_BOUNDARY_ARTIFACT_B64 }}
         run: |
           if [ -z "${REPOGRAPH_BOUNDARY_ARTIFACT_B64:-}" ]; then
-            echo "Missing REPOGRAPH_BOUNDARY_ARTIFACT_B64 secret." >&2
-            echo "Set it to the base64-encoded boundary disclosure artifact JSON:" >&2
-            echo "  base64 -w0 ../PrivateManifest/dist/boundary_disclosure_artifact.json" >&2
-            exit 1
+            echo "REPOGRAPH_BOUNDARY_ARTIFACT_B64 not set — skipping (B2 fails closed if required)."
+            exit 0
           fi
-          # custodian reads .custodian/config.yaml's boundary_artifact_file
-          # (../PrivateManifest/dist/...), resolved relative to the repo root —
-          # NOT an env var. Materialize the artifact at exactly that path.
-          dest="${GITHUB_WORKSPACE}/../PrivateManifest/dist/boundary_disclosure_artifact.json"
-          mkdir -p "$(dirname "$dest")"
+          dest="$(mktemp "${RUNNER_TEMP:-/tmp}/repograph-boundary-XXXXXX.json")"
           printf '%s' "$REPOGRAPH_BOUNDARY_ARTIFACT_B64" | base64 -d > "$dest"
+          echo "REPOGRAPH_BOUNDARY_ARTIFACT_FILE=$dest" >> "$GITHUB_ENV"
           python - "$dest" <<'PY'
           import json
           import sys
