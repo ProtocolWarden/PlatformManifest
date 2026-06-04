@@ -1,4 +1,24 @@
 # Log
+## 2026-06-04 — FLEET GREEN: pre-existing red CI cleaned up on all 19 repos
+
+Paused-loop batch (10 fixer agents + follow-ups), every workflow on every
+public repo's main now green. Root causes: (1) venv-guard vs bare-pytest CI
+mismatch (CoreRunner/SourceRegistry/RxP/SyncMechanism — workflows now create
+.venv); (2) custodian-doctor's _KNOWN_AUDIT_KEYS missed reconcile_enforce
+(fixed upstream in Custodian + plugin_audit_keys declared in 4 repos); (3)
+missing SPDX headers (PD/SwitchBoard/SyncMechanism/Custodian); (4) stale
+uv.lock pinning a renamed package (SwitchBoard); (5) OperatorConsole audit:
+11 E701 + a CI-only cross-repo plumbing false positive; (6) Custodian
+semantic-federation had NEVER run: dead *_FILE URL secret → B64 swap, then
+renamed entrypoint, then missing ripgrep, then genuinely stale gate policy —
+PUBLIC_REPOS/PUBLIC_REPO_CATALOG predated 5 public repos; lists synced to the
+18-repo set, this repo's audit workflow swapped to the canonical
+GITHUB_ENV pattern (was reconstructing a baked instance path — also dropped
+from .custodian config; fail-closed verified), DAGExecutor/TeamExecutor gained
+require_boundary_artifact, github.io dropped archival frontmatter. Federated
+gate: exit 0, no findings. SyncMechanism operator WIP committed (approved) +
+headers + headless pystray dummy backend.
+
 ## 2026-06-04 — Phase 6 closed as not-needed (operator decision)
 
 Operator ruled: the private-manifest repo's *name* is not secret — only its
