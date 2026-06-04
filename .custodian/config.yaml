@@ -32,6 +32,10 @@ doc_conventions:
 # ---------------------------------------------------------------------------
 # `platform` is a manifest-level concept / slug, not a src enum string (K2).
 audit:
+  # Reconcile detectors R1/R2 (console-reconciliation-spec.md §2) — opt-in,
+  # safe to enable now that this repo's tracked `.console/` is reconciled and
+  # leak-clean (history archived to the private side).
+  reconcile_enforce: true
   known_values:
     - platform
     # `main` is the default branch name, cited in docs/work-orders — not a src enum.

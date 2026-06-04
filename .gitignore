@@ -3,6 +3,9 @@
 !.console/backlog.md
 !.console/guidelines.md
 !.console/log.md
+# Reconciliation worksheet + local archive staging (console-reconciliation-spec.md).
+/.console/reconcile.yaml
+/.console/archive/
 CLAUDE.md
 .custodian/tmp*.yaml
 
