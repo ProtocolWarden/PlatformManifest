@@ -47,7 +47,7 @@ Private platform superset.
 
 Contains private managed projects, private repositories, and private-only
 relationships. The shape is owned by PlatformManifest; the data may live in a
-separate `PrivateManifest` repository.
+separate private-manifest repository.
 
 ## ProjectManifest
 

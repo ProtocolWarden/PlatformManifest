@@ -61,5 +61,5 @@ verification specs and design notes.
 ## Forking + private overlay
 
 - [forking-guide.md](forking-guide.md) —
-  How to fork the platform and bootstrap your own PrivateManifest, boundary
+  How to fork the platform and bootstrap your own private-manifest repo, boundary
   artifact publishing, and the secrets each consumer repo needs.

@@ -86,7 +86,7 @@ in any field fails `check`. **AC7:** cross-repo items are listed, not gated.
 ### §3.3 `cl reconcile prune` — runs only when `check` is green
 For each `done` item with `owner == repo`:
 1. Move its source history (the matching `## ` log sections / completed backlog
-   sections) → `PrivateManifest/archive/console/<repo>/<file>-<cutoff>.md`
+   sections) → `<private-manifest-repo>/archive/console/<repo>/<file>-<cutoff>.md`
    (append; create dirs). Path resolved via `$PRIVATE_MANIFEST_DIR` or discovery
    (do NOT hardcode the repo name in CL source — I2 / [[private-manifest-generalization]]).
 3. Trim the tracked source to: active sections (`In Progress`/`Up Next`/unrecognized)
@@ -111,8 +111,8 @@ as a single opaque aggregate count (never itemized). Owner fields genericized.
 **AC11:** the generated status names only public repos; private repos contribute a
 count with no identifying detail.
 
-## §4 Layer C — Archive (PrivateManifest)
-Layout `PrivateManifest/archive/console/<repo>/{log,backlog}-<cutoff>.md`. Append-only.
+## §4 Layer C — Archive (private-manifest repo)
+Layout `<private-manifest-repo>/archive/console/<repo>/{log,backlog}-<cutoff>.md`. Append-only.
 The private side may freely contain scrub-target names (they're allowed there).
 Public repo retains only the pointer + CHANGELOG summary.
 

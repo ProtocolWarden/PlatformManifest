@@ -34,7 +34,7 @@ PM is **public-scoped** (`visibility_scope: public` in `platform_manifest.yaml`)
 - Repos owned by PM (e.g. OperationsCenter, ContextLifecycle, TeamExecutor).
 - Repos in any other public manifest (none today).
 
-It **cannot** host cognition referencing private-owned repos. For those, anchor to PrivateManifest (or the relevant private project manifest) instead. Misuse is a hard error from RepoGraph at hook time, not a silent leak.
+It **cannot** host cognition referencing private-owned repos. For those, anchor to the private-manifest repo (or the relevant private project manifest) instead. Misuse is a hard error from RepoGraph at hook time, not a silent leak.
 
 ## Templates
 
@@ -44,7 +44,7 @@ The three templates here are public-safe (no private repo names, no private-scop
 
 - Per-consumer-repo operational config (worker definitions, watchdog cycle settings, relaunch commands). Those live in the consumer repo's `.console/` (e.g. `OperationsCenter/.console/workers.yaml`).
 - Per-machine state (runtime locks, schedule files). Those stay in the consumer repo's `logs/local/` or `.console/`.
-- Live cognition for private projects. Use PrivateManifest.
+- Live cognition for private projects. Use the private-manifest repo.
 
 ## Related
 

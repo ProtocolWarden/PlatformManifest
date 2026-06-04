@@ -1,4 +1,21 @@
 # Log
+## 2026-06-04 — Private-manifest role generalization EXECUTED (phases 1–5)
+
+Executed the role-generalization design in a paused-loop window:
+`repograph.resolve_private_manifest()` shared resolver (+5 tests), all 22
+repos' pre-push hooks dropped the literal instance candidate (globs verified
+to resolve the same artifact), provisioning scripts
+(clone-repos/provision-machine/run_with_boundary) discover the
+private-manifest root by the manifest-type filename or $PRIVATE_MANIFEST_DIR,
+a downstream deployment repo's custodian config dropped its baked artifact
+path (fail-closed verified), fixtures/docstrings/fix-hints generalized, ~80
+doc instance refs fleet-wide rewritten to role phrasing. Phase 6 (lexical
+scrub-target enforcement) BLOCKED: the instance repo is named identically to
+the manifest-type vocabulary (ontology class/schema title) — needs an
+operator decision (rename the instance) or stands on architectural
+enforcement (no binding references the instance). Design doc §7 has the
+execution record.
+
 ## 2026-06-04 — R2-in-CI complete fleet-wide + B64 rotation script
 
 Closed the last R2-in-CI gap: added the canonical custodian-audit workflow

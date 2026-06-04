@@ -6,15 +6,15 @@
 # What it does:
 #   1. Build/verify ContextLifecycle and RepoGraph Python venvs
 #   2. Wire CL_HOME + PATH into ~/.bashrc (once, idempotent)
-#   3. Register PlatformManifest (+ PrivateManifest if present) in the RepoGraph
-#      per-machine registry
+#   3. Register PlatformManifest (+ the private manifest if present) in the
+#      RepoGraph per-machine registry
 #   4. Install ContextLifecycle adapter hooks into repos that are missing them
 #   5. Smoke-test: verify `cl session start` resolves correctly from key repos
 #
 # Usage:
 #   provision-machine.sh [--with-private] [--force-hooks]
 #
-#   --with-private   also register PrivateManifest + install hooks in private repos
+#   --with-private   also register the private manifest + install hooks in private repos
 #   --force-hooks    overwrite existing hooks (default: skip repos that already have them)
 
 set -euo pipefail
@@ -35,6 +35,29 @@ done
 
 CL_DIR="$GITHUB_DIR/ContextLifecycle"
 RG_DIR="$GITHUB_DIR/RepoGraph"
+
+# Resolve the private-manifest repo root by ROLE: $PRIVATE_MANIFEST_DIR wins,
+# else scan GITHUB_DIR for a repo hosting a private_manifest*.yaml (the
+# manifest *type* filename — never a hardcoded repo-instance name).
+_discover_private_manifest_dir() {
+  if [[ -n "${PRIVATE_MANIFEST_DIR:-}" && -d "$PRIVATE_MANIFEST_DIR" ]]; then
+    echo "$PRIVATE_MANIFEST_DIR"
+    return 0
+  fi
+  local d
+  for d in "$GITHUB_DIR"/*/; do
+    if compgen -G "${d}private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}src/*/data/private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}manifests/private_manifest*.yaml" >/dev/null 2>&1 \
+       || compgen -G "${d}manifests/*/private_manifest*.yaml" >/dev/null 2>&1; then
+      echo "${d%/}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+PRIVM_DIR="$(_discover_private_manifest_dir || true)"
 
 # Extract canonical_name + github_url pairs from a manifest YAML.
 # Output: tab-separated "canonical_name\tgithub_url" lines.
@@ -166,15 +189,14 @@ _register_manifest() {
 _register_manifest "$PM_DIR"
 
 if [[ "$WITH_PRIVATE" == true ]]; then
-  PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
-  if [[ -d "$PRIVM_DIR/.git" ]]; then
+  if [[ -n "$PRIVM_DIR" && -d "$PRIVM_DIR/.git" ]]; then
     _register_manifest "$PRIVM_DIR"
   else
-    echo "  skip: PrivateManifest not cloned (pass --with-private after cloning it)"
+    echo "  skip: no private-manifest repo found (clone it, or set PRIVATE_MANIFEST_DIR, then pass --with-private)"
   fi
-elif [[ -d "$GITHUB_DIR/PrivateManifest/.git" ]]; then
-  # Auto-register PrivateManifest if it's already cloned — no need for flag
-  _register_manifest "$GITHUB_DIR/PrivateManifest"
+elif [[ -n "$PRIVM_DIR" && -d "$PRIVM_DIR/.git" ]]; then
+  # Auto-register the private manifest if it's already cloned — no need for flag
+  _register_manifest "$PRIVM_DIR"
 fi
 
 # ── 5. Adapter hooks ──────────────────────────────────────────────────────────
@@ -372,10 +394,9 @@ for repo in "${FULL_ADAPTER_REPOS[@]}"; do _install_full_adapter "$repo"; done
 for repo in "${SHIM_REPOS[@]}";         do _install_shim "$repo"; done
 
 if [[ "$WITH_PRIVATE" == true ]]; then
-  # Install full adapter for private repos — discover names from PrivateManifest YAML,
-  # no private repo names hardcoded in this public script.
-  PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
-  if [[ -d "$PRIVM_DIR/.git" ]]; then
+  # Install full adapter for private repos — discover names from the private
+  # manifest YAML, no private repo names hardcoded in this public script.
+  if [[ -n "$PRIVM_DIR" && -d "$PRIVM_DIR/.git" ]]; then
     while IFS= read -r yaml_file; do
       while IFS=$'\t' read -r canonical_name _url; do
         [[ -z "$canonical_name" ]] && continue
@@ -426,13 +447,12 @@ declare -A EXPECTED_ANCHORS=(
   ["OperationsCenter"]="PlatformManifest"
   ["PlatformManifest"]="PlatformManifest"
 )
-# Add private repo smoke-test entries dynamically from PrivateManifest YAML.
-PRIVM_DIR="$GITHUB_DIR/PrivateManifest"
-if [[ -d "$PRIVM_DIR/.git" ]]; then
+# Add private repo smoke-test entries dynamically from the private manifest YAML.
+if [[ -n "$PRIVM_DIR" && -d "$PRIVM_DIR/.git" ]]; then
   while IFS= read -r yaml_file; do
     while IFS=$'\t' read -r canonical_name _url; do
       [[ -z "$canonical_name" ]] && continue
-      [[ -d "$GITHUB_DIR/$canonical_name/.git" ]] && EXPECTED_ANCHORS["$canonical_name"]="PrivateManifest"
+      [[ -d "$GITHUB_DIR/$canonical_name/.git" ]] && EXPECTED_ANCHORS["$canonical_name"]="$(basename "$PRIVM_DIR")"
     done < <(_extract_names_from_yaml "$yaml_file")
   done < <(find "$PRIVM_DIR/manifests" -name "*.yaml" 2>/dev/null | sort)
 fi
