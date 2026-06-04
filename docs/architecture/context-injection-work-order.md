@@ -44,9 +44,16 @@ injection LIVE. Both live-hook drafts **SPLICED** (PR #43): phase3-capture in
 block). **Productionized into ContextLifecycle** (CL PR #12): engine is now a CL
 package + `cl context init`; this repo's `.context/.engine/` tracks it.
 Doc-reconciliation (§7c) **done** (ProtocolWarden PR #4, github.io PR #8 —
-SyncMechanism catalog entry + ContextLifecycle tiered-memory docs). **Only
-remaining:** Phase 4 hot-trim (OperatorConsole compiler — cross-repo).
-Platform/cross-repo tier + `~/.claude` merge stay deferred (spec §7b/§0.1).
+SyncMechanism catalog entry + ContextLifecycle tiered-memory docs).
+**Phase 4 hot-trim DONE** (OperatorConsole PR #62, 2026-06-03) — compile-time
+trim of the log + historical backlog sections in `bootstrap.py`; non-destructive
+(source `.console/*.md` untouched), tunable via `CONSOLE_LOG_RECENT_ENTRIES`,
+applies fleet-wide on each repo's next console launch. Public Hot-tier docs added
+(github.io contextlifecycle.md). **Remaining (separate concern):** active-backlog
+*content* reconciliation — stale `In Progress` items the compiler can't judge;
+OperationsCenter's `.console/` is live-loop-owned, so it needs a loop-paused
+window or operator input. Platform/cross-repo tier + `~/.claude` merge stay
+deferred (spec §7b/§0.1).
 
 **Independent of the gate:** productionization (move the engine into ContextLifecycle)
 and the doc-reconciliation track can happen any time. Platform/cross-repo tier and
@@ -147,11 +154,20 @@ hook mid-session is the lockout risk itself).
       flag off / no edits). Warn-only, never blocks. Draft retained at
       `docs/architecture/phase3-capture-draft.sh`. Built via workflow (failed on a
       post-impl schema hiccup; salvaged + proven by hand).
-- [ ] **Hot trim** — shrink `.console/.context` to the anchor (§5). **NOT
-      prototyped here** — the compiled blob (currently ~139 KB) is produced by
-      **OperatorConsole's** compiler, not this repo, and the live OC loop reads
-      it. Needs a cross-repo change in OperatorConsole + a defined anchor; queued
-      for a deliberate manual pass, not an autonomous workflow.
+- [x] **Hot trim** — shrink `.console/.context` to the anchor (§5). **DONE**
+      (OperatorConsole PR #62, 2026-06-03). Implemented in OperatorConsole's
+      compiler (`bootstrap.py`), not this repo, since that's what produces the
+      blob the live loop reads. `_trim_log()` keeps the preamble + most-recent N
+      log entries (newest-last) + a pointer note; `_trim_backlog()` drops sections
+      whose heading matches historical/completed patterns (Done / Recently
+      Completed / Previously In Progress / Cycle … updates / Archived), keeping
+      active (In Progress / Up Next / unrecognized) sections. Non-destructive
+      (source `.console/*.md` untouched), tunable via `CONSOLE_LOG_RECENT_ENTRIES`
+      (default 5; 0 disables), applies fleet-wide on each repo's next console
+      launch. 8 tests (`tests/test_bootstrap_trim.py`). Measured: PM 2142→138,
+      OperationsCenter ~3300→686, others ≤234. **Note:** the trim drops *historical*
+      backlog automatically, but reconciling stale *active* (`In Progress`) items
+      is a content judgment the compiler can't make — tracked separately above.
 - [x] **Campaign formalization (§2.2b)** — DONE (prototype). `.console/task.md`
       carries additive `campaign_id`/`status` front-matter; `.context/.engine/campaign.py`
       `parse_task()` reads it (front-matter-less fallback intact). The boundary is
