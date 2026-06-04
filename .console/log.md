@@ -10,7 +10,11 @@ provably runs, dry-run. Limiter is route coverage, not correctness: the
 week's heaviest convention rework (B64 audit workflow, venv-guard) lived in
 `.github/workflows/**` / `.custodian/*.yaml`, which no route matches.
 Candidate follow-up: ci-conventions leaf doc + routes. Work order updated
-(re-eval subsection + stale checkbox resolved).
+(re-eval subsection + stale checkbox resolved). Follow-up BUILT same day:
+`docs/inject/ci-conventions.md` routed on `.github/workflows/**` +
+`.custodian/*.yaml` — distills the fleet-green/R2-rollout conventions (B64
+step, venv-guard, fleet-coupled custodian@main, plugin_audit_keys,
+fail-closed config). Both routes verified live; router tests 36/36.
 
 ## 2026-06-04 — FLEET GREEN: pre-existing red CI cleaned up on all 19 repos
 

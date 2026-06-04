@@ -32,3 +32,11 @@ routes:
   - match: "scripts/provision*.sh"
     inject: ["docs/inject/provisioning.md"]
     priority: 10
+
+  - match: ".github/workflows/**"
+    inject: ["docs/inject/ci-conventions.md"]
+    priority: 10
+
+  - match: ".custodian/*.yaml"
+    inject: ["docs/inject/ci-conventions.md"]
+    priority: 10

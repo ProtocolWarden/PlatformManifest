@@ -155,8 +155,10 @@ hook mid-session is the lockout risk itself).
         convention-rework (canonical B64 audit-workflow pattern, venv-guard
         CI mismatch — re-derived repeatedly across the fleet-green batch)
         happened in `.github/workflows/**` and `.custodian/*.yaml`, which no
-        route matches. Candidate follow-up: a `ci-conventions.md` leaf doc
-        routed on those globs.
+        route matched. **DONE (same day):** `docs/inject/ci-conventions.md`
+        added and routed on both globs (B64 step, hooksPath, venv-guard,
+        fleet-coupled custodian@main, semantic workflow naming,
+        plugin_audit_keys, no-baked-paths/fail-closed, K2/DC7 exclusions).
       - **Phase 3 capture: 0 cold-store entries captured** since activation —
         `.context/knowledge/` unchanged since PR #42. The capsules the stop-hook
         nudge scans are machine-generated lease/run records, not authored
