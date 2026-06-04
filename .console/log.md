@@ -456,3 +456,22 @@ The first §7c-done edit named a private repo (flagged by custodian B1, boundary
 ## 2026-06-03 — Mark Phase 4 hot-trim DONE + close the public-doc gap
 
 Phase 4 hot-trim shipped to OperatorConsole (PR #62) but the resume doc still marked it `[ ]` not-done, and the public design docs described the engine as three tiers — omitting the Hot tier Phase 4 adds. Closed both: (1) work-order — flipped the Hot-trim checkbox to done with the `bootstrap.py` `_trim_log`/`_trim_backlog` mechanism, the `CONSOLE_LOG_RECENT_ENTRIES` knob, measured blob sizes, and a note that reconciling stale *active* backlog items is a separate content judgment (OperationsCenter `.console/` is live-loop-owned). (2) github.io contextlifecycle.md — added the **Hot** tier to the tiered-memory section (compiled-blob trim to the anchor, source files whole). Spec §5 mechanism is complete and documented; residual is active-backlog content reconciliation, which needs a loop-paused window.
+
+## 2026-06-04 — `.console/` reconciliation: spec + design + multi-repo impl
+
+PR #48 is the **PlatformManifest component** (spec + design docs) of a **multi-repo
+change** — the implementation deliberately lives in the repos that own each layer,
+all already merged: Custodian #26 (R1/R2 detectors + 7 doc gaps + pilot) and #27
+(R1/R2 made opt-in via `audit.reconcile_enforce`, default off, so the detectors
+don't break un-reconciled repos' CI); ContextLifecycle #13 (`cl reconcile`
+check/prune/index, 29 tests); PrivateManifest #9 (archive). So #48 correctly
+contains only docs — judging it in isolation as "missing implementation" misses
+the companion PRs. (An earlier auto-review on this branch asserted that; corrected
+here.) Verified by hand: Custodian 1110+23 tests green, CL 256 green, pilot gate
+GREEN, history archived to the private side, both public repos' tracked trees
+leak-clean. Discipline: consolidate-before-prune; boundary-safe (private
+identifiers scrubbed from public surfaces; `PrivateManifest` is a separate
+architecture-generalization item); archive to the private side. Surfaced en route:
+12 public repos had private names in tracked `.console/` (B1 default-excludes
+`.console/**`) — R2 closes that once a repo opts in. Next: discovery fix + per-repo
+enforce activation, then fan out.
