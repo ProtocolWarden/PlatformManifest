@@ -452,3 +452,7 @@ Recorded the doc-reconciliation track complete (ProtocolWarden PR #4 + github.io
 ## 2026-06-03 — Fix B1 boundary leak in the §7c work-order entry
 
 The first §7c-done edit named a private repo (flagged by custodian B1, boundary=PrivateManifest) in the work-order while describing what's correctly excluded. Reworded to reference "repos absent from the public manifest" without naming any private repo. Re-verified custodian clean. (Note: check the github.io .console/log.md for the same leak — that entry named private repos too.)
+
+## 2026-06-03 — Mark Phase 4 hot-trim DONE + close the public-doc gap
+
+Phase 4 hot-trim shipped to OperatorConsole (PR #62) but the resume doc still marked it `[ ]` not-done, and the public design docs described the engine as three tiers — omitting the Hot tier Phase 4 adds. Closed both: (1) work-order — flipped the Hot-trim checkbox to done with the `bootstrap.py` `_trim_log`/`_trim_backlog` mechanism, the `CONSOLE_LOG_RECENT_ENTRIES` knob, measured blob sizes, and a note that reconciling stale *active* backlog items is a separate content judgment (OperationsCenter `.console/` is live-loop-owned). (2) github.io contextlifecycle.md — added the **Hot** tier to the tiered-memory section (compiled-blob trim to the anchor, source files whole). Spec §5 mechanism is complete and documented; residual is active-backlog content reconciliation, which needs a loop-paused window.
