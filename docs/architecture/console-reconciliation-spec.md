@@ -25,6 +25,12 @@ Implementations MUST read it from that one source, never hardcode in multiple fi
 
 ## §2 Layer A — Custodian detectors
 
+**Opt-in (rollout-safe):** R1 and R2 are gated behind `audit.reconcile_enforce`
+(default **false**). Because CI installs `custodian@main`, a default-on detector
+would fail every public repo's `--fail-on-findings` the moment it merged — before
+those repos are reconciled. They ship dormant and a repo flips
+`reconcile_enforce: true` only *after* it is reconciled (§6). Custodian dogfoods it.
+
 ### R1 (advisory) — `.console/` over budget
 Fires when a tracked `.console/*.md` exceeds a configurable line budget
 (`audit.r1_line_budget`, default 400). Severity LOW/advisory. One finding per file.

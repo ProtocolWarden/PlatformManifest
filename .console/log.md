@@ -457,6 +457,21 @@ The first §7c-done edit named a private repo (flagged by custodian B1, boundary
 
 Phase 4 hot-trim shipped to OperatorConsole (PR #62) but the resume doc still marked it `[ ]` not-done, and the public design docs described the engine as three tiers — omitting the Hot tier Phase 4 adds. Closed both: (1) work-order — flipped the Hot-trim checkbox to done with the `bootstrap.py` `_trim_log`/`_trim_backlog` mechanism, the `CONSOLE_LOG_RECENT_ENTRIES` knob, measured blob sizes, and a note that reconciling stale *active* backlog items is a separate content judgment (OperationsCenter `.console/` is live-loop-owned). (2) github.io contextlifecycle.md — added the **Hot** tier to the tiered-memory section (compiled-blob trim to the anchor, source files whole). Spec §5 mechanism is complete and documented; residual is active-backlog content reconciliation, which needs a loop-paused window.
 
-## 2026-06-04 — `.console/` reconciliation: spec + design (PR #48, incomplete)
+## 2026-06-04 — `.console/` reconciliation: spec + design + multi-repo impl
 
-**INCOMPLETE SUBMISSION** — PR #48 contains specification and design documents but lacks all implementation code. Delivered: (1) `docs/architecture/console-reconciliation-spec.md` (13 acceptance criteria, all sections complete, untruncated); (2) `docs/architecture/console-reconciliation.md` (adversarial design critique, rationale, boundary analysis). Missing (all critical for AC verification): Custodian R1/R2 detector code (line-budget advisory, scrub-target leak detection) not registered in detector builder or `detector_disposition_matrix.md`; ContextLifecycle `cl reconcile` subcommands (check/prune/index) not implemented; worksheet loader, schema validation, archive mechanism not present; no test coverage for invariants I1–I3. Log entry in PR overstated completion status — the 8-agent workflow, PR references (#26, #13), and "gate GREEN" claim describe design intent, not delivered code. **Action required:** complete the PR by adding all implementation code (detectors, CLI subcommands, loaders, tests) before re-submission. Acceptance criteria AC1–AC13 currently unverifiable.
+PR #48 is the **PlatformManifest component** (spec + design docs) of a **multi-repo
+change** — the implementation deliberately lives in the repos that own each layer,
+all already merged: Custodian #26 (R1/R2 detectors + 7 doc gaps + pilot) and #27
+(R1/R2 made opt-in via `audit.reconcile_enforce`, default off, so the detectors
+don't break un-reconciled repos' CI); ContextLifecycle #13 (`cl reconcile`
+check/prune/index, 29 tests); PrivateManifest #9 (archive). So #48 correctly
+contains only docs — judging it in isolation as "missing implementation" misses
+the companion PRs. (An earlier auto-review on this branch asserted that; corrected
+here.) Verified by hand: Custodian 1110+23 tests green, CL 256 green, pilot gate
+GREEN, history archived to the private side, both public repos' tracked trees
+leak-clean. Discipline: consolidate-before-prune; boundary-safe (private
+identifiers scrubbed from public surfaces; `PrivateManifest` is a separate
+architecture-generalization item); archive to the private side. Surfaced en route:
+12 public repos had private names in tracked `.console/` (B1 default-excludes
+`.console/**`) — R2 closes that once a repo opts in. Next: discovery fix + per-repo
+enforce activation, then fan out.
