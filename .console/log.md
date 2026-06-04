@@ -1,4 +1,18 @@
 # Log
+## 2026-06-04 — R2-in-CI complete fleet-wide + B64 rotation script
+
+Closed the last R2-in-CI gap: added the canonical custodian-audit workflow
+(B64 boundary-artifact materialization) to the 6 repos that lacked one
+(ContextLifecycle #18, ProtocolWarden #6, ProtocolWarden.github.io #12,
+RepoGraph #4, SyncMechanism #3, TeamExecutor #7 — TeamExecutor's misnamed
+ruff/pytest "custodian-audit" renamed to ci.yml + 13 pre-existing ruff errors
+fixed) and set their B64 secrets. All 6 new audit jobs verified green on
+runners. All 19 public repos now enforce R2 in CI. Also modernized
+`scripts/bootstrap-boundary-secrets.sh` to set/rotate the
+REPOGRAPH_BOUNDARY_ARTIFACT_B64 content secret across all 19 repos in one
+command (org-level secrets are impossible — the owner is a User account,
+not an org; this script IS the consolidation story).
+
 ## 2026-06-04 — Design doc: private-manifest role generalization (#3)
 
 Wrote `docs/architecture/private-manifest-role-generalization.md` — the design for
