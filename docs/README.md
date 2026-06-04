@@ -22,6 +22,17 @@ verification specs and design notes.
   Classification of current manifest vocabulary as ontology-level,
   visibility-related, projection-related, implementation-specific, or owned
   elsewhere.
+- [architecture/console-reconciliation.md](architecture/console-reconciliation.md) —
+  Fleet-wide `.console/` source reconciliation: consolidate-before-prune
+  discipline, the three-layer system (detectors / `cl reconcile` / private
+  archive), and the adversarial refinement record. Implementation contract in
+  [console-reconciliation-spec.md](architecture/console-reconciliation-spec.md);
+  generated fleet status in
+  [console-reconciliation-status.md](architecture/console-reconciliation-status.md).
+- [architecture/private-manifest-role-generalization.md](architecture/private-manifest-role-generalization.md) —
+  Design for generalizing the hardcoded private-manifest *instance* to a
+  discovered *role* (N project private-manifests), with the staged,
+  regression-aware migration plan.
 
 ## Design drafts
 
