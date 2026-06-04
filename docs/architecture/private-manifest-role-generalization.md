@@ -138,8 +138,8 @@ Executed in a paused-loop window, per the staged plan:
    `run_with_boundary.sh` (a downstream deployment repo) resolve the
    private-manifest root via `$PRIVATE_MANIFEST_DIR` or a workspace scan for
    the manifest-type filename. PlatformDeployment's `.custodian/config.yaml`
-   dropped its baked artifact path; absence still fails closed via
-   `require_boundary_artifact` (verified exit 1 without the env).
+   dropped its baked artifact path; absence still fails closed via its
+   required-artifact privacy setting (verified exit 1 without the env).
 4. **Source + tests** — governance-gate fix-hints and docstrings use role
    phrasing; test fixtures' `source_graph_id` swapped to generic ids (verified:
    no production code matches the literal).
