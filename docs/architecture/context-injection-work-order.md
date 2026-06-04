@@ -49,7 +49,9 @@ SyncMechanism catalog entry + ContextLifecycle tiered-memory docs).
 trim of the log + historical backlog sections in `bootstrap.py`; non-destructive
 (source `.console/*.md` untouched), tunable via `CONSOLE_LOG_RECENT_ENTRIES`,
 applies fleet-wide on each repo's next console launch. Public Hot-tier docs added
-(github.io contextlifecycle.md). **Remaining (separate concern):** active-backlog
+(github.io contextlifecycle.md). **§7a re-evaluated 2026-06-04: KEEP** — see the
+re-evaluation subsection under the Gate; warm injection confirmed live-useful
+(direct hit on PR #53's provision-script edits), limiter is route coverage. **Remaining (separate concern):** active-backlog
 *content* reconciliation — stale `In Progress` items the compiler can't judge;
 OperationsCenter's `.console/` is live-loop-owned, so it needs a loop-paused
 window or operator input. Platform/cross-repo tier + `~/.claude` merge stay
@@ -118,8 +120,8 @@ hook mid-session is the lockout risk itself).
       Write→`loader.py` emits valid PreToolUse `additionalContext` JSON (944
       chars, exit 0); Write→`README.md` (no route) emits nothing, exit 0;
       flag-off → fully inert. Router unit tests 36/36.
-- [ ] Keep `injection.enabled: false` until validated; flip per §7a. **Still
-      dark** — the flip is the gate decision, deliberately not done here.
+- [x] Keep `injection.enabled: false` until validated; flip per §7a. Flipped
+      with the gate decision below (2026-06-03); live since.
 
 ## Gate (spec §7a) — JUDGED PASS 2026-06-03 (operator-delegated)
 
@@ -134,6 +136,34 @@ hook mid-session is the lockout risk itself).
       certifiable in one session; this is a reasoned forward judgment under the
       operator's explicit direction to build the full spec. Re-evaluate against
       real usage as it accumulates; flip the flag back if it proves noisy.
+
+### §7a re-evaluation — 2026-06-04 (empirical, post-live-window)
+
+- [x] **Verdict: KEEP — warm injection re-affirmed.** Evidence from the live
+      window (2026-06-03 → 06-04):
+      - **Engine healthy:** live run against `scripts/provision-machine.sh`
+        emits the correct provisioning conventions, exit 0; router behavior
+        unchanged.
+      - **One routed-path edit occurred** (PR #53, `scripts/provision*.sh` in
+        the private-manifest role generalization). The hook injected the
+        provisioning leaf doc pre-edit and the resulting discovery-function
+        work conformed to every injected convention (idempotent re-run safety,
+        bootstrap-safe no-hard-fail, exit-code contract). Direct positive hit.
+      - **Zero noise:** no false injections, silence on no-match, no observed
+        cost. No reason to flip the flag back.
+      - **Limiter is route COVERAGE, not correctness:** the week's heaviest
+        convention-rework (canonical B64 audit-workflow pattern, venv-guard
+        CI mismatch — re-derived repeatedly across the fleet-green batch)
+        happened in `.github/workflows/**` and `.custodian/*.yaml`, which no
+        route matches. Candidate follow-up: a `ci-conventions.md` leaf doc
+        routed on those globs.
+      - **Phase 3 capture: 0 cold-store entries captured** since activation —
+        `.context/knowledge/` unchanged since PR #42. The capsules the stop-hook
+        nudge scans are machine-generated lease/run records, not authored
+        session capsules; the stderr nudge has produced no behavior change.
+        Warn-only, so cost ≈ 0; leave as-is, but don't count it as working.
+      - **Phase 5 trigger: provably runs** (campaign-boundary markers present
+        for 3 sessions), dry-run only, harmless.
 
 ## Phase 3–5 (gated — only if the gate passes)
 

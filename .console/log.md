@@ -1,4 +1,17 @@
 # Log
+## 2026-06-04 — §7a re-evaluation: warm injection KEEP (empirical)
+
+Re-ran the context-injection §7a gate against the live window. Engine healthy
+(live run correct, exit 0); one routed edit occurred (PR #53 provision
+scripts) with the injected conventions demonstrably followed; zero noise.
+Phase-3 capture has produced 0 cold-store entries (nudge scans machine lease
+records, not authored capsules — warn-only, left as-is); phase-5 trigger
+provably runs, dry-run. Limiter is route coverage, not correctness: the
+week's heaviest convention rework (B64 audit workflow, venv-guard) lived in
+`.github/workflows/**` / `.custodian/*.yaml`, which no route matches.
+Candidate follow-up: ci-conventions leaf doc + routes. Work order updated
+(re-eval subsection + stale checkbox resolved).
+
 ## 2026-06-04 — FLEET GREEN: pre-existing red CI cleaned up on all 19 repos
 
 Paused-loop batch (10 fixer agents + follow-ups), every workflow on every
