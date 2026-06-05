@@ -159,6 +159,26 @@ hook mid-session is the lockout risk itself).
         added and routed on both globs (B64 step, hooksPath, venv-guard,
         fleet-coupled custodian@main, semantic workflow naming,
         plugin_audit_keys, no-baked-paths/fail-closed, K2/DC7 exclusions).
+
+### Targeted second-consumer rollout — 2026-06-04
+
+- [x] **Custodian** (Custodian #34): second consumer of the CL engine.
+      `cl context init` scaffold + a SLIM injection-only PreToolUse hook (no
+      ContextGuard — never blocks, always exit 0; Custodian sessions were
+      previously hook-free, so the full guard stack would have been scope
+      creep). Routes: the same two CI globs → a copy of `ci-conventions.md`
+      (THIS repo's copy is canonical — noted in the doc). `.gitignore`
+      narrowed so `.claude/` ships. Verified: match/no-match/flag-off, audit
+      clean with artifact + B2 fail-closed without.
+- [x] **OperationsCenter: SKIPPED — operator decision 2026-06-04.** OC's
+      `.context/` was deliberately removed (cognition is hosted by the
+      anchoring manifest; OC's hook resolves REPO_ROOT from `CL_ANCHOR`, and
+      OC run capsules live in the anchor's `.context/sessions/`). Repo-local
+      warm injection therefore conflicts with a recorded decision, and
+      anchor-resolved routing can't match OC-checkout paths — OC is exactly
+      the cross-repo-tier case §7b defers. Revisit only when/if that tier is
+      built. A scaffold mistakenly created during the attempt was fully
+      reverted (OC tree clean).
       - **Phase 3 capture: 0 cold-store entries captured** since activation —
         `.context/knowledge/` unchanged since PR #42. The capsules the stop-hook
         nudge scans are machine-generated lease/run records, not authored
