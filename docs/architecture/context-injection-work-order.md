@@ -184,8 +184,34 @@ hook mid-session is the lockout risk itself).
         nudge scans are machine-generated lease/run records, not authored
         session capsules; the stderr nudge has produced no behavior change.
         Warn-only, so cost ≈ 0; leave as-is, but don't count it as working.
+        **→ CLOSED AS SUPERSEDED, operator decision 2026-06-05 (see below).**
       - **Phase 5 trigger: provably runs** (campaign-boundary markers present
         for 3 sessions), dry-run only, harmless.
+
+### Phase-3 capture closure — 2026-06-05 (operator decision: superseded)
+
+The cold-store **capture path** (stop-hook nudge → authored capsule findings →
+`.context/knowledge/`) is CLOSED AS SUPERSEDED, not fixed. While it sat inert
+(0 entries), the job it was designed for got done — repeatedly, at fleet scale —
+through a surface that won on merit:
+
+    session → `.console/log.md`   (capture: tracked, synced, R1-gated)
+            → `cl reconcile` worksheet/prune   (consolidate: doc-gap gated)
+            → repo docs + `docs/inject/` leaf docs   (warm tier)
+
+Evidence: the ci-conventions leaf doc was distilled from `.console` history
+(phase-5 consolidation in everything but name); the fleet-wide reconciliation
+arc (22/22 repos) is a scheduled, enforced distillation pipeline over the same
+surface; R1 *forces* the capture→consolidate cycle by capping log size. Fixing
+the nudge would mean maintaining a second capture surface — unsynced,
+unreconciled, ungated — for the same class of insight.
+
+What changed: the inert nudge block in `.claude/hooks/stop.sh` is retired
+(replaced by a pointer comment). The cold store (`.context/knowledge/`) and its
+router surfacing remain LIVE as a **manual-only** surface — seal an entry by
+hand when a micro-insight has no natural `.console`/doc home. Phase-5
+consolidation stays dry-run over it, unchanged. Reopen only if manual sealing
+reveals real demand for automated capture.
 
 ## Phase 3–5 (gated — only if the gate passes)
 
