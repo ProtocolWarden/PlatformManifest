@@ -33,7 +33,11 @@ Key consequences:
 
 - **OperationsCenter has no `.context/` by design** (its `.gitignore` records
   the removal decision). Its hooks *block* every tool call unless `CL_ANCHOR`
-  is set, and resolve all state from the anchor. The same pattern applies on
+  is set, and resolve all state from the anchor. Its executor backends are
+  instrumented one level deeper: every dispatch is wrapped in a lineage-scoped
+  hydrate/capture (`cl_wrap.py`) that inherits the anchor from the launching
+  process and no-ops when unanchored — the source of the `l-*.yaml` lease
+  records under the anchor's sessions. The same pattern applies on
   the private side.
 - OperatorConsole resolves each pane's owning manifest dynamically
   (test-enforced — no hardcoded anchor), and its post-session shell shims
