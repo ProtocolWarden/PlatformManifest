@@ -24,3 +24,6 @@ dist/
 # (Guard: a bare `git add -A` once staged 76k lease files.)
 .context/sessions/*/
 .context/archived/*/
+
+# Claude Code local runtime state (wakeup scheduling)
+.claude/scheduled_tasks.lock

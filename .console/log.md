@@ -1,4 +1,15 @@
 # Log
+## 2026-06-05 — phase-3 capture CLOSED AS SUPERSEDED (operator decision)
+The cold-store capture path (stop-hook nudge → capsule findings → .context/knowledge/) is
+closed, not fixed. The capture/consolidate job it was designed for is done by the pipeline
+that emerged organically and won on merit: session → .console/log.md (tracked/synced/R1-gated)
+→ cl reconcile (doc-gap gated) → docs + docs/inject leaf docs. Evidence: ci-conventions leaf
+doc distilled from .console history; the 22/22 fleet reconciliation arc is that pipeline at
+scale. Retired the inert nudge block in .claude/hooks/stop.sh (it scanned a capsule layout
+that doesn't exist; 0 entries since activation). Cold store + router surfacing stay live as
+a MANUAL-ONLY surface; phase-5 consolidation unchanged (dry-run). Reopen only if manual
+sealing shows real demand for automated capture. Closure note in the work-order.
+
 ## 2026-06-04 — guard .context/ live session state from accidental commits
 `.context/sessions/*/` and `.context/archived/*/` were untracked-but-unignored — held out
 of the repo by convention only. A bare `git add -A` during today's bookkeeping staged 76k

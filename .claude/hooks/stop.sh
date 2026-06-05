@@ -121,52 +121,15 @@ except Exception:
   fi
 fi
 
-# --- Capture forcing function (Phase 3-capture, spec §2.3) -----------------
-# Gated on injection.enabled; warn-only; wrapped so any failure falls through
-# to the final `exit 0`. Reuses REPO_ROOT/CONFIG_FILE/CAPSULE_PATH from above.
-{
-  INJECT_ENABLED=false
-  if [[ -f "${CONFIG_FILE}" ]] && command -v python3 &>/dev/null; then
-    INJECT_ENABLED=$(python3 -c "
-try:
-    import yaml
-    with open('${CONFIG_FILE}') as f:
-        c = yaml.safe_load(f) or {}
-    print(str(c.get('injection', {}).get('enabled', False)).lower())
-except Exception:
-    print('false')
-" 2>/dev/null || echo "false")
-  fi
-
-  if [[ "$INJECT_ENABLED" == "true" ]]; then
-    CAPSULE_DIR="${REPO_ROOT}/${CAPSULE_PATH}"
-    if [[ -d "$CAPSULE_DIR" ]] && command -v python3 &>/dev/null; then
-      ACTIVE_CAPSULE=$(find "$CAPSULE_DIR" -name "*.yaml" -not -name ".gitkeep" | head -1)
-      if [[ -n "$ACTIVE_CAPSULE" ]]; then
-        NEEDS_CAPTURE=$(python3 -c "
-try:
-    import yaml
-    with open('${ACTIVE_CAPSULE}') as f:
-        d = yaml.safe_load(f) or {}
-    edited = bool(d.get('changed_files') or [])
-    findings = d.get('findings') or []
-    explicit_none = any(
-        isinstance(x, str) and 'no durable findings' in x.lower()
-        for x in (findings if isinstance(findings, list) else [])
-    )
-    print('true' if (edited and not findings and not explicit_none) else 'false')
-except Exception:
-    print('false')
-" 2>/dev/null || echo "false")
-
-        if [[ "$NEEDS_CAPTURE" == "true" ]]; then
-          echo "ContextGuard: this session edited files but recorded no durable findings." >&2
-          echo "  Add a one-line finding to the active capsule (findings:) or record" >&2
-          echo "  \"no durable findings\" explicitly. See docs/architecture/context-injection-spec.md §2.3." >&2
-        fi
-      fi
-    fi
-  fi
-} || true
+# --- Phase 3-capture nudge: RETIRED (2026-06-05) ---------------------------
+# CLOSED AS SUPERSEDED by operator decision. The capture/consolidation
+# pipeline that actually carries session insights is:
+#   session -> .console/log.md (capture; tracked+synced, R1-gated)
+#           -> cl reconcile worksheet/prune (consolidate; doc-gap gated)
+#           -> docs + docs/inject/ leaf docs (warm tier)
+# The cold store (.context/knowledge/) remains a MANUAL-ONLY surface.
+# The nudge that lived here never fired (it scanned a capsule layout that
+# doesn't exist) — 0 entries since activation. See
+# docs/architecture/context-injection-work-order.md (phase-3 closure note).
 
 exit 0
