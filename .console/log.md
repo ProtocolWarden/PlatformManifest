@@ -1,4 +1,15 @@
 # Log
+## 2026-06-05 — cognition & memory overview doc (the connecting document)
+Operator feedback: the last few arcs (context injection, reconciliation, anchoring, sync
+topology) each have deep per-arc specs but NO connecting overview — "no real idea how all
+the things connect." Wrote docs/architecture/cognition-memory-overview.md: the two cognition
+hosts + anchoring, the five-tier model with transport semantics, cross-machine sync (durable
+tiers via git, hot regenerated, sessions machine-local), the enforced knowledge lifecycle
+(capture → reconcile → promote → inject), injection consumers, the privacy boundary in one
+place, and the deliberately-not-built list. Companion public-safe page on github.io
+(architecture/cognition-memory.md, PR #15) — its DC2/DC7 detectors caught a dead cross-repo
+path reference and an orphan page pre-push; both fixed. Boundary-scanned clean.
+
 ## 2026-06-05 — phase-3 capture CLOSED AS SUPERSEDED (operator decision)
 The cold-store capture path (stop-hook nudge → capsule findings → .context/knowledge/) is
 closed, not fixed. The capture/consolidate job it was designed for is done by the pipeline
