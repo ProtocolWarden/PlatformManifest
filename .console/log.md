@@ -1,4 +1,11 @@
 # Log
+## 2026-06-04 — guard .context/ live session state from accidental commits
+`.context/sessions/*/` and `.context/archived/*/` were untracked-but-unignored — held out
+of the repo by convention only. A bare `git add -A` during today's bookkeeping staged 76k
+machine lease files (caught in PR review, leak-scanned clean, commit rewritten before merge).
+Now gitignored; config/engine/knowledge/templates + .gitkeeps stay tracked. Also untracked
+three stale e2e test capsules from the 2026-05-27 spec validation (left on disk).
+
 ## 2026-06-04 — fleet reconciliation COMPLETE: last two private repos done
 The two remaining light private repos are reconciled and enforcing; every repo in the
 fleet (19 public + 3 private) now has a reconciled `.console/` with `reconcile_enforce: true`.
