@@ -1,4 +1,13 @@
 # Log
+## 2026-06-05 — anchoring doc: add the OC executor-backend cl_wrap subsection
+Operator traced "how does an executor backend session end up anchored?" through the docs and
+the trail went cold one hop early: the per-dispatch hydrate/capture wrap (OC `execution/
+cl_wrap.py`, ADR 0002 P4) was implied but never named. New §3 in contextlifecycle-anchoring.md
+(consumers renumbered): lineage-scoped wrap per dispatch, capture-even-on-exception, the
+l-*.yaml lease records it produces under the anchor's sessions, and the triple-guarded no-op
+(unanchored / CL not importable / AnchorMissing). One-line mention added to the
+cognition-memory overview's OC bullet. Code-verified against cl_wrap.py + coordinator.py.
+
 ## 2026-06-05 — fix: index the cognition overview (DC7 orphan on main)
 The docs/README.md index entry for cognition-memory-overview.md was silently dropped from
 PM #65: `git commit --amend` was rejected by the pre-commit hook (no log entry staged) and

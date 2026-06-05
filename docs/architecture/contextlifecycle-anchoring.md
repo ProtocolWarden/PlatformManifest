@@ -103,7 +103,30 @@ env it passes to every spawned session, and archives the session on shutdown
 `cl context hydrate` / `cl context capture` at the session boundary; claude uses
 the per-tool hooks instead.
 
-### 3. Committed ContextGuard hooks — the enforcement point
+### 3. OC executor backends — the per-dispatch hydrate/capture wrap
+`OperationsCenter/src/operations_center/execution/cl_wrap.py` (ADR 0002 P4)
+
+The two consumers above get the anchor *into the environment*; this is the
+layer that makes executor-backend work actually use it. The execution
+coordinator wraps **each backend dispatch** in `cl_dispatch_wrap(request)`:
+it derives a lineage id from the work item (`run_id`/`proposal_id`, prefixed
+`l-`), calls `cl.hydrate()` before the adapter runs and `cl.capture()` after —
+**even on adapter exception**, so failed lineages still leave a trace under
+the anchor manifest. Those captures are the `l-*.yaml` lease records that
+accumulate in the anchoring manifest's `.context/sessions/<sid>/`.
+
+The wrap is opt-in by environment and triple-guarded no-op when:
+
+- `CL_ANCHOR` is unset (nothing anchored the launching process), or
+- `context_lifecycle` is not importable, or
+- hydrate raises `AnchorMissing` / `SessionNotStarted`.
+
+So an executor backend never resolves `cl` itself — it inherits the anchor
+from whatever launched OC (the loop controller's once-per-run anchor, or an
+OperatorConsole pane's baked prelude), and silently runs un-instrumented when
+nothing did. Unanchored tests pass unchanged for the same reason.
+
+### 4. Committed ContextGuard hooks — the enforcement point
 `<repo>/.claude/hooks/pre_tool_use.sh` + `stop.sh`, wired by `<repo>/.claude/settings.json`
 
 The 9-line executor shim resolves `cl` (`CL_HOME` → PATH) and delegates to the
@@ -117,7 +140,7 @@ OperatorConsole, TeamExecutor, CritiqueExecutor; DAGExecutor gets the shim
 installed by provisioning. Hook presence is verified each provision by the
 "Hook health" step.
 
-### 4. Provisioning — where `CL_HOME` is recorded
+### 5. Provisioning — where `CL_HOME` is recorded
 `PlatformManifest/scripts/provision-machine.sh`
 
 Writes `CL_HOME` into both `~/.bashrc` (interactive shells) and
