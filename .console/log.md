@@ -1,4 +1,11 @@
 # Log
+## 2026-06-05 — fix: index the cognition overview (DC7 orphan on main)
+The docs/README.md index entry for cognition-memory-overview.md was silently dropped from
+PM #65: `git commit --amend` was rejected by the pre-commit hook (no log entry staged) and
+the working-tree copy masked the gap from the pre-push audit — CI caught it on main (DC7).
+Same failure mode hit the github.io PR in the same train. Lesson: after any --amend, verify
+`git status` is clean before pushing; hook rejections of amends are easy to miss.
+
 ## 2026-06-05 — cognition & memory overview doc (the connecting document)
 Operator feedback: the last few arcs (context injection, reconciliation, anchoring, sync
 topology) each have deep per-arc specs but NO connecting overview — "no real idea how all

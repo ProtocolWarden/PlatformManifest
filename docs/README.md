@@ -34,6 +34,13 @@ verification specs and design notes.
   discovered *role* (N project private-manifests), with the staged,
   regression-aware migration plan.
 
+- [architecture/cognition-memory-overview.md](architecture/cognition-memory-overview.md) —
+  **the connecting document** for the cognition/memory architecture: the two
+  cognition hosts + anchoring, the five-tier memory model and its transport
+  semantics, cross-machine sync, the enforced knowledge lifecycle
+  (capture → reconcile → promote → inject), and pointers into each deep spec.
+  Start here to re-orient.
+
 ## Design drafts
 
 - [architecture/context-injection-spec.md](architecture/context-injection-spec.md) —
