@@ -18,3 +18,9 @@ __pycache__/
 .ruff_cache/
 build/
 dist/
+
+# .context/ cognition state is machine-local (capsules, leases, checkpoints) —
+# config/engine/knowledge/templates are tracked; live session state never is.
+# (Guard: a bare `git add -A` once staged 76k lease files.)
+.context/sessions/*/
+.context/archived/*/
