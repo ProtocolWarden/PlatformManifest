@@ -1,4 +1,19 @@
 # Log
+## 2026-06-04 — Targeted warm-injection rollout: Custodian YES, OC skipped
+
+Custodian became the second consumer of the CL injection engine (Custodian
+#34): cl context init scaffold + a SLIM injection-only PreToolUse hook (no
+ContextGuard; Custodian sessions were hook-free before), routes on the two CI
+globs → ci-conventions.md copy (PM's copy canonical), .gitignore narrowed so
+.claude/ ships. Verified match/no-match/flag-off + audit both ways.
+OperationsCenter SKIPPED (operator decision): OC's .context/ was deliberately
+removed — cognition is hosted by the anchoring manifest (hook resolves
+REPO_ROOT from CL_ANCHOR; OC capsules live in the anchor's sessions/), so
+repo-local injection conflicts with that recorded decision and anchor-side
+routing can't match OC paths. OC is the deferred cross-repo-tier case;
+revisit only if that tier is built. OC loops paused for the window and
+resumed (8 lanes + controller ACTIVE, HEALTHY).
+
 ## 2026-06-04 — §7a re-evaluation: warm injection KEEP (empirical)
 
 Re-ran the context-injection §7a gate against the live window. Engine healthy
