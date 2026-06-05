@@ -1,4 +1,21 @@
 # Log
+## 2026-06-04 — private-repo reconciliation: the last heavy `.console` reconciled
+The one repo the fleet reconciliation arc left untouched — a private downstream repo with a
+6.8k-line `.console/log.md` — is now reconciled. Required an upstream ContextLifecycle change
+first (CL #20): check/prune were public-repo-shaped (the scrub gate tripped on the repo's own
+name; prune would have genericized the repo's own name inside its own tree). New rule: a repo
+whose own name matches the scrub vocabulary IS a private repo → scrub gate + retained-content
+scrub + CHANGELOG genericization skipped; DOC GAP gate unchanged. Then the standard recipe:
+worksheet (43 items, 24 done/gated, 4 cross-repo routing rows, 9 open), 4 doc gaps backfilled
+in the repo's own gate/design docs, prune --apply (log 6842→~140 lines, backlog 618→~300 with
+completed [x] items moved out of active sections), archive to the private side (PrivateManifest
+#12), `reconcile_enforce: true` (R1 active; R2 no-ops on private repos by design — verified in
+Custodian's `_repo_is_public`). Mid-flight race: a session on another host pushed a gate rework
+while we reconciled — rebased the prune over it, merged its new log/backlog entries on top of
+the pruned files, and refreshed the just-written gate doc to match the reworked implementation.
+Custodian full audit 0 findings; second --apply no-op. Dashboard regenerated (1 private repo
+tracked in aggregate). The loop was not running locally before or during; nothing to resume.
+
 ## 2026-06-04 — Targeted warm-injection rollout: Custodian YES, OC skipped
 
 Custodian became the second consumer of the CL injection engine (Custodian
