@@ -24,7 +24,7 @@ first (CL #20): check/prune were public-repo-shaped (the scrub gate tripped on t
 name; prune would have genericized the repo's own name inside its own tree). New rule: a repo
 whose own name matches the scrub vocabulary IS a private repo → scrub gate + retained-content
 scrub + CHANGELOG genericization skipped; DOC GAP gate unchanged. Then the standard recipe:
-worksheet (43 items, 24 done/gated, 4 cross-repo routing rows, 9 open), 4 doc gaps backfilled
+worksheet (37 items, 24 done/gated, 4 cross-repo routing rows, 9 open), 4 doc gaps backfilled
 in the repo's own gate/design docs, prune --apply (log 6842→~140 lines, backlog 618→~300 with
 completed [x] items moved out of active sections), archive to the private side (PrivateManifest
 #12), `reconcile_enforce: true` (R1 active; R2 no-ops on private repos by design — verified in
