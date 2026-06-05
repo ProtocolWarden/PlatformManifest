@@ -1,4 +1,15 @@
 # Log
+## 2026-06-04 — fleet reconciliation COMPLETE: last two private repos done
+The two remaining light private repos are reconciled and enforcing; every repo in the
+fleet (19 public + 3 private) now has a reconciled `.console/` with `reconcile_enforce: true`.
+One of them was the private-manifest repo itself, which exposed a second CL gap (CL #21):
+the self-name private signal (CL #20) can't fire there — its name is deliberately public-safe
+— so `is_private_root()` (repo root == resolved private-manifest root) now also marks a repo
+private in check/prune. Its prune also surfaced that B1 was flagging the archived private
+history living on the private side BY DESIGN (39 findings incl. pre-existing archives);
+sanctioned `archive/console/**` + `CHANGELOG.md` via the established privacy.exclude_paths
+mechanism. Dashboard regenerated: 3 private repos tracked in aggregate.
+
 ## 2026-06-04 — private-repo reconciliation: the last heavy `.console` reconciled
 The one repo the fleet reconciliation arc left untouched — a private downstream repo with a
 6.8k-line `.console/log.md` — is now reconciled. Required an upstream ContextLifecycle change

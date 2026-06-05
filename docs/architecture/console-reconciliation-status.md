@@ -17,4 +17,4 @@ ContextLifecycle, CoreRunner, CritiqueExecutor, CxRP, DAGExecutor, PlatformDeplo
 
 ## Private repos
 
-1 private repo(s) tracked (aggregate; not itemized).
+3 private repo(s) tracked (aggregate; not itemized).
