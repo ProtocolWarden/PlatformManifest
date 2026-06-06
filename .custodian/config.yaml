@@ -17,8 +17,14 @@ privacy:
 
 # ---------------------------------------------------------------------------
 # DC2/DC5/DC7: orphan and link detection — exclude verification artifacts
+# DC9: index coverage — architecture docs must be cited from docs/README.md
+# (closes the DC7 escape hatch where a sibling-linked doc is no orphan yet
+# missing from the canonical index; how contextlifecycle-anchoring.md went
+# unindexed until #68).
 # ---------------------------------------------------------------------------
 doc_conventions:
+  dc9_index_dirs:
+    - docs/architecture
   exclude_path_patterns:
     # Defaults (must re-include when overriding)
     - "**/archive/**"
