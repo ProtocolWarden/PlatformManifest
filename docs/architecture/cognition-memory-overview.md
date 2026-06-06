@@ -29,6 +29,11 @@ sessions *anchor* to the owning manifest via ContextLifecycle
 | **PlatformManifest** | its own operator sessions; OperationsCenter pipeline lanes + loop controller; OperatorConsole panes for public repos |
 | **PrivateManifest** | the private downstream repos' hooks and loop controllers; OperatorConsole panes for private repos |
 
+The two hosts are **not symmetric**: PlatformManifest carries the full
+injection machinery (`.context/.engine/`, `routes.yaml`, `knowledge/`) in
+addition to session state; PrivateManifest hosts session/archive state only —
+no engine, no routes, no cold store. Injection consumers are listed in §5.
+
 Key consequences:
 
 - **OperationsCenter has no `.context/` by design** (its `.gitignore` records

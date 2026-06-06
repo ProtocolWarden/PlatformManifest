@@ -144,6 +144,10 @@ the private archive, tracked `.console/` slim + scrubbed, 7 detectors documented
 - No `PrivateManifest` literal added to CL source (discovery/env only).
 
 ## §7 Out of scope (tracked separately)
-- Fleet-wide prune beyond the Custodian pilot (run after pilot sign-off).
+- ~~Fleet-wide prune beyond the Custodian pilot (run after pilot sign-off).~~
+  **Shipped 2026-06-04/05** — pilot signed off and the prune ran fleet-wide
+  (archives under the private manifest's `archive/console/<repo>/`); see
+  [console-reconciliation-status.md](console-reconciliation-status.md).
 - The PrivateManifest → role-discovery generalization ([[private-manifest-generalization]]).
-- OperationsCenter prune (needs a paused-loop window).
+- ~~OperationsCenter prune (needs a paused-loop window).~~ **Shipped
+  2026-06-04** — run during a paused-loop window per the documented procedure.
