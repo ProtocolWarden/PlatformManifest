@@ -1,4 +1,18 @@
 # Log
+## 2026-06-06 — spec-audit doc fixes (5 confirmed findings from the 4-arc audit)
+Architecture audit over the last four spec arcs (cognition/anchoring, context-injection,
+reconciliation, role-generalization) via four parallel auditors + manual verification of
+every high-severity claim (two agent findings were hallucinated and dropped). Doc-side
+fixes filed here: (1) cognition overview §1 now states the PM↔PrivateManifest asymmetry
+explicitly — PrivateManifest is a session/archive host only, no engine/routes/knowledge;
+(2) contextlifecycle-anchoring.md indexed from docs/README.md (same DC7 gap #66 fixed for
+the overview); (3) reconciliation spec §7 updated — fleet-wide prune and OC prune shipped,
+no longer out-of-scope; (4) .context/knowledge/README.md updated to manual-only post
+phase-3 closure; (5) cold.py write_item docstring now says CLOSED-superseded, not PARKED.
+Remaining audit findings tracked but not filed here: prune-apply multi-host lock + status.md
+regeneration (both ContextLifecycle), resolver duplication in provisioning scripts, lease
+accumulation policy, §4 warn-only logger status.
+
 ## 2026-06-05 — anchoring doc: add the OC executor-backend cl_wrap subsection
 Operator traced "how does an executor backend session end up anchored?" through the docs and
 the trail went cold one hop early: the per-dispatch hydrate/capture wrap (OC `execution/

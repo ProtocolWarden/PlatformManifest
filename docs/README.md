@@ -40,6 +40,10 @@ verification specs and design notes.
   semantics, cross-machine sync, the enforced knowledge lifecycle
   (capture → reconcile → promote → inject), and pointers into each deep spec.
   Start here to re-orient.
+- [architecture/contextlifecycle-anchoring.md](architecture/contextlifecycle-anchoring.md) —
+  How sessions in non-cognition-host repos anchor to their owning manifest via
+  ContextLifecycle (`CL_ANCHOR`): hook enforcement tiers, the OperatorConsole
+  pane shim, and the OC executor-backend `cl_wrap` lineage capture.
 
 ## Design drafts
 
