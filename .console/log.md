@@ -12,6 +12,12 @@ Two more spec-audit findings closed (the CL-side `--check` primitive shipped in 
   provision-machine.sh (drift hazard). Extracted to scripts/lib/private-manifest.sh,
   both scripts source it; contract (caller sets GITHUB_DIR) documented in the lib.
   Resolver verified: resolves the private manifest root via the shared lib.
+- Opted in to Custodian DC9 (`doc_conventions.dc9_index_dirs: [docs/architecture]`)
+  — the new index-coverage detector (Custodian, same train) that closes the DC7
+  escape hatch where a sibling-linked doc is no orphan yet missing from
+  docs/README.md (how contextlifecycle-anchoring.md went unindexed until #68).
+  Dormant under custodian@main until the Custodian PR merges; PM validated clean
+  (count 0) against the new detector; `custodian-doctor --strict` OK.
 
 ## 2026-06-06 — spec-audit doc fixes (5 confirmed findings from the 4-arc audit)
 Architecture audit over the last four spec arcs (cognition/anchoring, context-injection,
