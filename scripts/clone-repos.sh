@@ -18,26 +18,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PM_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 GITHUB_DIR="$(cd "$PM_DIR/.." && pwd)"
 
-# Resolve the private-manifest repo root by ROLE: $PRIVATE_MANIFEST_DIR wins,
-# else scan GITHUB_DIR for a repo hosting a private_manifest*.yaml (the
-# manifest *type* filename — never a hardcoded repo-instance name).
-_discover_private_manifest_dir() {
-  if [[ -n "${PRIVATE_MANIFEST_DIR:-}" && -d "$PRIVATE_MANIFEST_DIR" ]]; then
-    echo "$PRIVATE_MANIFEST_DIR"
-    return 0
-  fi
-  local d
-  for d in "$GITHUB_DIR"/*/; do
-    if compgen -G "${d}private_manifest*.yaml" >/dev/null 2>&1 \
-       || compgen -G "${d}src/*/data/private_manifest*.yaml" >/dev/null 2>&1 \
-       || compgen -G "${d}manifests/private_manifest*.yaml" >/dev/null 2>&1 \
-       || compgen -G "${d}manifests/*/private_manifest*.yaml" >/dev/null 2>&1; then
-      echo "${d%/}"
-      return 0
-    fi
-  done
-  return 1
-}
+# Role-based private-manifest resolver — shared lib (single source of truth).
+# shellcheck source=lib/private-manifest.sh
+source "$SCRIPT_DIR/lib/private-manifest.sh"
 
 WITH_PRIVATE=false
 while [[ $# -gt 0 ]]; do

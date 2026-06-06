@@ -1,4 +1,18 @@
 # Log
+## 2026-06-06 — audit follow-ups: dashboard freshness gate + shared role resolver
+Two more spec-audit findings closed (the CL-side `--check` primitive shipped in CL #22):
+- `.hooks/pre-push` now runs `cl reconcile index --check` against the committed
+  status dashboard (clones-root = workspace, manifest = bundled
+  platform_manifest.yaml). Stale/hand-edited dashboard blocks the push with the
+  regenerate command; missing `cl` warns and continues (bootstrap-safe, per
+  provisioning conventions). Local-only by necessity — the check needs the
+  workspace clones' worksheets, which CI doesn't have. Verified both paths:
+  clean push passes, a hand-edit blocks with exit 1.
+- `_discover_private_manifest_dir()` was byte-identical in clone-repos.sh and
+  provision-machine.sh (drift hazard). Extracted to scripts/lib/private-manifest.sh,
+  both scripts source it; contract (caller sets GITHUB_DIR) documented in the lib.
+  Resolver verified: resolves the private manifest root via the shared lib.
+
 ## 2026-06-06 — spec-audit doc fixes (5 confirmed findings from the 4-arc audit)
 Architecture audit over the last four spec arcs (cognition/anchoring, context-injection,
 reconciliation, role-generalization) via four parallel auditors + manual verification of
