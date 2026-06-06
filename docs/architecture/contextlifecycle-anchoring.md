@@ -116,11 +116,24 @@ the anchor manifest. Those captures are the `l-*.yaml` lease records that
 accumulate in the anchoring manifest's `.context/sessions/<sid>/`.
 
 Retention: loop/executor sessions never call `cl session end`, so lease
-records accumulate until pruned. Policy is age-based GC via
-`cl session prune [MANIFEST] --retain-days N` (default 14; dry-run unless
-`--apply`; the current `$CL_SESSION_ID` always survives). Deletion is safe by
-the ephemeral-tier invariant — a session file must never hold the only copy
-of anything worth keeping.
+records accumulate until GC'd. The driver is **opportunistic auto-GC inside
+`cl session start`** (throttled to once per 24h per anchor) — every host that
+accumulates state eventually starts another session on the same anchor, so no
+external scheduler is needed. The action is two-stage, chosen by adversarial
+review (plain auto-delete loses still-live long-running sessions whose *id*
+is old; warn-only is inert here — loop controllers swallow stderr):
+
+1. **Move (reversible):** sessions older than 14 days move to
+   `.context/archived/` with a `.gc-moved-at` stamp. A still-live writer
+   self-heals — its next capture recreates the `sessions/` dir.
+2. **Delete (bounded):** archived dirs are deleted 30 days after the stamp,
+   bounding total session state at ~44 days. Deletion is safe by the
+   ephemeral-tier invariant — a session file must never hold the only copy
+   of anything worth keeping.
+
+Actions are logged to `sessions/.gc/log`. Manual sweeps remain available via
+`cl session prune [MANIFEST] --retain-days N` (dry-run unless `--apply`; the
+current `$CL_SESSION_ID` always survives).
 
 The wrap is opt-in by environment and triple-guarded no-op when:
 
