@@ -1,4 +1,21 @@
 # Log
+## 2026-06-06 — audit tail items closed (lease retention, §4 deferral, repo counts)
+The last three LOW findings from the four-arc audit:
+- Lease-record retention: CL gains `cl session prune` (age-based GC, dry-run
+  default, $CL_SESSION_ID survives; CL PR same train). Policy documented in
+  contextlifecycle-anchoring.md §3 — loop/executor sessions never `session end`,
+  so PM's anchor had ~69k l-*.yaml / 276 MB. Live dry-run at 7 days identifies
+  60,783 files / 50.5 MiB; default window is 14 days.
+- Spec §4 warn-only violation logger: claimed "ships in v1" but never built —
+  marked deferred-out-of-v1 in the spec (status note preserving the design) and
+  added to the work-order Deferred section with the build trigger (a real
+  recurring violation worth seeding a rule from). consolidate.py's
+  `stopped_logged_violation()` TODO already documented the reality.
+- Cognition overview repo counts: "~17 public repos with no hooks" corrected to
+  the verified 12-of-19 (counted .claude/ across all 19 manifest-public clones;
+  hooked: PM, OC, OConsole, Custodian, TeamExecutor, CritiqueExecutor,
+  DAGExecutor), dated to resist staleness.
+
 ## 2026-06-06 — audit follow-ups: dashboard freshness gate + shared role resolver
 Two more spec-audit findings closed (the CL-side `--check` primitive shipped in CL #22):
 - `.hooks/pre-push` now runs `cl reconcile index --check` against the committed

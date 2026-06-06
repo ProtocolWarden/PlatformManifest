@@ -115,6 +115,13 @@ it derives a lineage id from the work item (`run_id`/`proposal_id`, prefixed
 the anchor manifest. Those captures are the `l-*.yaml` lease records that
 accumulate in the anchoring manifest's `.context/sessions/<sid>/`.
 
+Retention: loop/executor sessions never call `cl session end`, so lease
+records accumulate until pruned. Policy is age-based GC via
+`cl session prune [MANIFEST] --retain-days N` (default 14; dry-run unless
+`--apply`; the current `$CL_SESSION_ID` always survives). Deletion is safe by
+the ephemeral-tier invariant — a session file must never hold the only copy
+of anything worth keeping.
+
 The wrap is opt-in by environment and triple-guarded no-op when:
 
 - `CL_ANCHOR` is unset (nothing anchored the launching process), or

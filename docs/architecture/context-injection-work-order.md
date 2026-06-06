@@ -288,6 +288,10 @@ reveals real demand for automated capture.
 - [ ] **Platform/cross-repo tier** — publish-down; build-deferred until a
       cross-repo sync channel exists and repo count makes manual sharing painful.
 - [ ] **`~/.claude` memory merge** — separate future sync task; untouched here.
+- [ ] **Warn-only violation logger (spec §4)** — deferred out of v1
+      (2026-06-06; spec §4 status note). Was claimed "ships in v1" but never
+      built; `stopped_logged_violation()` returns `False` until it exists.
+      Build trigger: a real recurring violation worth seeding a rule from.
 
 ## Doc-reconciliation track (spec §7c — independent)
 
