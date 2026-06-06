@@ -1,4 +1,11 @@
 # Log
+## 2026-06-06 — backlog: one-time provision run queued for the other host
+Cross-machine signal: operator memory is machine-local, so the reminder to run
+provision-machine.sh on the other host (→ pulls CL → activates session auto-GC
+there) goes through the git-tracked channel instead — an Up Next item in
+.console/backlog.md, which compiles into the startup context on any host at
+session launch. Item is self-deleting once executed.
+
 ## 2026-06-06 — provisioning: pull tool repos on re-provision (CL/RG freshness)
 A stale ContextLifecycle checkout on a host means stale `cl` semantics (no
 session auto-GC, pre-lock prune) — and `_ensure_venv`'s editable reinstall only
