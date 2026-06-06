@@ -47,7 +47,7 @@ Key consequences:
 - OperatorConsole resolves each pane's owning manifest dynamically
   (test-enforced — no hardcoded anchor), and its post-session shell shims
   `claude` so a bare re-launch re-anchors.
-- Most public repos (~17) have no hooks and no anchoring at all. Custodian is
+- Most public repos (12 of the 19, as of 2026-06) have no hooks and no anchoring at all. Custodian is
   the exception: it carries a stateless `.context/` (routing config only, no
   sessions) for warm injection — config, not cognition.
 

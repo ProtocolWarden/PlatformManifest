@@ -322,11 +322,16 @@ truncation).
 ## 4. Enforcement tier
 
 - Existing ContextGuard scope/lease/budget checks: unchanged.
-- **A passive warn-only violation logger ships in v1** (not zero
-  instrumentation). It records would-be violations without blocking; blocking
-  rules are seeded *from that log* once real patterns emerge. The logger is what
-  makes "grow rules from data" possible *and* feeds the consequence-veto's
-  "stopped a logged violation from recurring" signal (§2.4).
+- ~~**A passive warn-only violation logger ships in v1**~~ **STATUS
+  (2026-06-06): deferred out of v1 — never built.** The v1 enforcement tier is
+  the existing ContextGuard checks only; `stopped_logged_violation()` in
+  `consolidate.py` ships returning `False` (documented TODO) until this
+  exists. Design stands as written: the logger records would-be violations
+  without blocking; blocking rules are seeded *from that log* once real
+  patterns emerge. It is what makes "grow rules from data" possible *and*
+  feeds the consequence-veto's "stopped a logged violation from recurring"
+  signal (§2.4). Build trigger: a real recurring violation worth seeding a
+  rule from (same evidence bar as the §7a gate).
 - Both claude pre-tool and post-tool support context injection via
   `additionalContext` JSON on exit 0. PreToolUse can block via exit 2 + stderr
   (the tool has not run yet); PostToolUse exit 2 surfaces stderr to the model
