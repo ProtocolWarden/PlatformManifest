@@ -1,4 +1,16 @@
 # Log
+## 2026-06-06 — session retention: trigger settled (auto-GC at session start)
+The retention paragraph shipped in #70 named the mechanism but no driver. Three
+adversarial reviews settled it (CL PR, same train): plain auto-delete REJECTED
+(loop sessions with old ids can still be writing — id-date frozen at creation,
+$CL_SESSION_ID only protects the starter); warn-only REJECTED on fleet evidence
+(OC loop controller starts sessions with capture_output=True so stderr is never
+read; phase-3 nudge precedent). Surviving design: two-stage move-then-delete
+inside `cl session start` (24h throttle) — >14d sessions MOVE to archived/ with
+a stamp (reversible; live writers self-heal by recreating their dir), archived
+dirs DELETE 30d post-stamp (~44d total bound). Anchoring doc §3 updated with
+the driver + two-stage policy; gc log at sessions/.gc/log.
+
 ## 2026-06-06 — audit tail items closed (lease retention, §4 deferral, repo counts)
 The last three LOW findings from the four-arc audit:
 - Lease-record retention: CL gains `cl session prune` (age-based GC, dry-run
