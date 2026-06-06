@@ -89,6 +89,32 @@ _require_repo "$CL_DIR"  "ContextLifecycle"
 _require_repo "$RG_DIR"  "RepoGraph"
 echo "  ✓ ContextLifecycle, RepoGraph present"
 
+# Update the tool repos so re-provision picks up shipped behavior (a stale CL
+# checkout means stale `cl` semantics on this host — e.g. no session auto-GC).
+# Best-effort: skip with a note when dirty / on a feature branch / offline —
+# never fail provisioning over it.
+_update_repo() {
+  local dir="$1" name="$2"
+  local branch
+  branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+  if [[ "$branch" != "main" && "$branch" != "master" ]]; then
+    echo "  – $name: on '$branch' (not default branch) — skipping pull"
+    return 0
+  fi
+  if [[ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]]; then
+    echo "  – $name: working tree dirty — skipping pull"
+    return 0
+  fi
+  if git -C "$dir" pull --ff-only --quiet 2>/dev/null; then
+    echo "  ✓ $name up to date ($(git -C "$dir" rev-parse --short HEAD))"
+  else
+    echo "  – $name: pull failed (offline or non-ff) — continuing with local HEAD"
+  fi
+}
+
+_update_repo "$CL_DIR" "ContextLifecycle"
+_update_repo "$RG_DIR" "RepoGraph"
+
 # ── 2. Build venvs ───────────────────────────────────────────────────────────
 echo ""
 echo "▶ [2/5] Python venvs"

@@ -1,4 +1,14 @@
 # Log
+## 2026-06-06 — provisioning: pull tool repos on re-provision (CL/RG freshness)
+A stale ContextLifecycle checkout on a host means stale `cl` semantics (no
+session auto-GC, pre-lock prune) — and `_ensure_venv`'s editable reinstall only
+helps if the checkout itself moved. New `_update_repo` step in
+provision-machine.sh step 1: `git pull --ff-only` on CL + RepoGraph, skipped
+with a note when dirty / on a feature branch / offline (never fails
+provisioning); runs before _ensure_venv so a dependency-changing pull is picked
+up in the same run. Live re-run verified: CL pulled to 4cc7b45 (the retention
+audit-fix merge). Other host gets current GC behavior on its next re-provision.
+
 ## 2026-06-06 — session retention: trigger settled (auto-GC at session start)
 The retention paragraph shipped in #70 named the mechanism but no driver. Three
 adversarial reviews settled it (CL PR, same train): plain auto-delete REJECTED
