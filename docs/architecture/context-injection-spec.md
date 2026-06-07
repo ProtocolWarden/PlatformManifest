@@ -201,6 +201,12 @@ capture nor consolidation may rely on discipline alone:
 
 ### 2.4 Promotion gate — consequence + usage, not vote-counting
 
+> **STATUS (2026-06-06): operationally dormant.** The gate is built and wired
+> but has never admitted an item: no campaign has been minted (§2.2b
+> front-matter unused) and no writer populates consequence fields on cold
+> items. Manual cold-store curation is the live path. See the work-order's
+> Phase 3–5 status note for the activation conditions.
+
 Promotion (cold→warm, warm→hot) is automatic, so the gate is the only guardrail.
 There is **no ground-truth oracle** for "is this architectural fact true," so
 the gate does not try to certify truth — it gates on signals the agent **cannot

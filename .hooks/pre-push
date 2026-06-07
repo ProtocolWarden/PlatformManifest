@@ -84,3 +84,20 @@ elif [ -f "$status_md" ]; then
         exit 1
     fi
 fi
+
+# --- leaf-doc drift gate (ci-conventions PM↔Custodian) -----------------------
+# docs/inject/ci-conventions.md is duplicated into Custodian (PM canonical).
+# Each copy's trailer is repo-specific BY DESIGN; the convention BULLETS are
+# the content that must not drift. Local-only (needs the sibling clone);
+# missing clone skips, drifted bullets block.
+leaf_pm="$repo_root/docs/inject/ci-conventions.md"
+leaf_cust="$workspace_root/Custodian/docs/inject/ci-conventions.md"
+if [ -f "$leaf_pm" ] && [ -f "$leaf_cust" ]; then
+    if ! diff -q <(grep '^- ' "$leaf_pm") <(grep '^- ' "$leaf_cust") >/dev/null; then
+        echo "[leaf-drift-pre-push] ci-conventions.md bullets drifted between PM and Custodian:"
+        diff <(grep '^- ' "$leaf_pm") <(grep '^- ' "$leaf_cust") | head -10
+        echo "  PM is canonical — sync the Custodian copy's bullets, then re-push."
+        exit 1
+    fi
+    echo "[leaf-drift-pre-push] ci-conventions bullets in sync"
+fi

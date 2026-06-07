@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 _ENGINE = Path(__file__).resolve().parent.parent / ".context" / ".engine" / "route.py"
 
@@ -283,3 +284,35 @@ def test_leaf_docs_reference_real_src_symbols():
     assert RepoGraphConfigError is not None
     assert callable(default_config_path)
     assert callable(enforce_platform_public_only)
+
+
+# --- live routes.yaml freshness (audit 2026-06-06) -------------------------
+# A renamed/moved leaf doc breaks a route silently — the router reports it
+# only as an advisory comment at injection time. Gate it in CI instead.
+
+def test_live_routes_targets_exist():
+    repo_root = Path(__file__).resolve().parent.parent
+    routes_path = repo_root / ".context" / "routes.yaml"
+    assert routes_path.is_file(), "PM is an injection consumer; routes.yaml must exist"
+    data = yaml.safe_load(routes_path.read_text(encoding="utf-8"))
+    routes = data.get("routes") or []
+    assert routes, "routes.yaml has no routes — consumer misconfigured"
+    missing = [
+        doc
+        for r in routes
+        for doc in (r.get("inject") or [])
+        if not (repo_root / doc).is_file()
+    ]
+    assert not missing, f"routes.yaml points at nonexistent docs: {missing}"
+
+
+def test_live_routes_targets_have_inject_section():
+    repo_root = Path(__file__).resolve().parent.parent
+    data = yaml.safe_load((repo_root / ".context" / "routes.yaml").read_text(encoding="utf-8"))
+    broken = []
+    for r in data.get("routes") or []:
+        for doc in r.get("inject") or []:
+            p = repo_root / doc
+            if p.is_file() and "## Inject" not in p.read_text(encoding="utf-8"):
+                broken.append(doc)
+    assert not broken, f"routed docs missing an '## Inject' section: {broken}"
