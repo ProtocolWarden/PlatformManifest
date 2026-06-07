@@ -1,4 +1,27 @@
 # Log
+## 2026-06-06 — context-management completeness audit: 4 gaps closed + dormancy recorded
+The conceptual audit ("is context management done?") found the outer lifecycle
+live (capture-via-log, warm injection, cold surfacing, hot trim, session GC) and
+the consolidation middle built-but-never-fired. Closed here:
+- Injection telemetry (CL #26/#27 + engine refresh via `cl context init`):
+  route.py logs one JSONL event per surfaced injection to
+  sessions/.telemetry/injection.jsonl — the §7a KEEP verdict rested on one
+  observed edit; the next re-eval reads data. cold.py docstring fix from #68
+  ported to CL source first (init would have reverted it — engine fixes go to
+  CL first, consumers second).
+- Routes freshness CI: tests assert every routes.yaml target exists and carries
+  an ## Inject section (a renamed leaf doc now fails CI, not just an advisory
+  router comment).
+- Leaf-doc drift gate: pre-push compares ci-conventions.md convention BULLETS
+  (trailers are repo-specific by design) between PM and the Custodian copy;
+  drift blocks with PM-is-canonical instruction. Verified in sync today.
+- OC session inheritance documented (anchoring doc §2): anchored sessions get
+  session state only — NOT the anchor's hot/warm tiers (§7b deferral).
+- DORMANCY RECORDED (spec §2.4 + work-order phase 3–5 status note): the
+  cold→consolidate→promote→decay chain has never fired — no campaign ever
+  minted, no consequence writer exists. Accepted state; activation conditions
+  written down; do not fix unprompted.
+
 ## 2026-06-06 — backlog: one-time provision run queued for the other host
 Cross-machine signal: operator memory is machine-local, so the reminder to run
 provision-machine.sh on the other host (→ pulls CL → activates session auto-GC

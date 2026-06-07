@@ -215,6 +215,21 @@ reveals real demand for automated capture.
 
 ## Phase 3–5 (gated — only if the gate passes)
 
+> **STATUS NOTE — consolidation middle DORMANT (2026-06-06, completeness
+> audit).** Everything below is built, tested, and wired — and the
+> cold→consolidate→promote→decay chain has **never fired for real**, because
+> two operational preconditions have never been met: (1) no campaign has ever
+> been minted (`task.md` front-matter is still the template, so
+> `boundary_changed()` never returns True); (2) nothing writes consequence
+> fields (`acted_on_commit`/`tests_green`) onto cold items, so even a fired
+> trigger would promote nothing. This is an accepted operational state, not a
+> bug: manual cold-store curation + warm injection are the live path (same
+> logic as the phase-3 closure — the surface that wins on merit). The chain
+> activates with no code changes when (a) campaign ids are minted in `task.md`
+> at objective boundaries AND (b) a consequence writer exists (e.g. a future
+> `cl seal`). Do not "fix" the dormancy unprompted; revisit only if manual
+> curation becomes toil.
+
 - [x] **Cold store** — DONE (branch `feat/phase2-wire-context-injection`).
       `.context/.engine/cold.py`: §2.6 parse/validate/write (fail-soft, never
       raises), a load-index pass (the grep index = on-disk frontmatter) and a

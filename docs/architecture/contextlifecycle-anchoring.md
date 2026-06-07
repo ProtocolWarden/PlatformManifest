@@ -103,6 +103,15 @@ env it passes to every spawned session, and archives the session on shutdown
 `cl context hydrate` / `cl context capture` at the session boundary; claude uses
 the per-tool hooks instead.
 
+**What an anchored OC session actually inherits** (a common point of
+confusion): anchor *session state* only — checkpoints, leases, and hydrated
+work-item context from the anchor's `.context/sessions/<sid>/`. It does **not**
+receive the anchor's compiled hot tier (`.console/.context`) or warm leaf-doc
+injection — those are repo-local surfaces of the anchor's own sessions, and
+publishing them cross-repo is the deferred §7b tier
+([context-injection-spec.md](context-injection-spec.md) §2.5/§7b). An OC
+session that needs the anchor's compiled context must read it explicitly.
+
 ### 3. OC executor backends — the per-dispatch hydrate/capture wrap
 `OperationsCenter/src/operations_center/execution/cl_wrap.py` (ADR 0002 P4)
 
