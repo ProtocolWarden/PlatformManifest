@@ -73,6 +73,6 @@ capabilities:
       preferred_lane: maintenance
     invocation:
       kind: entrypoint
-      ref: context_lifecycle_protocol.session_gc
+      ref: context_lifecycle.session.retention.apply_session_prune
     visibility: public
     disclosure_mode: public
