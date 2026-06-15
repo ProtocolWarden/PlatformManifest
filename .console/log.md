@@ -1,4 +1,13 @@
 # Log
+## 2026-06-15 — Fix session_gc capability ref (CAP1 enforcement prep)
+
+The `session_gc` seed pointed at `context_lifecycle_protocol.session_gc`, but
+ContextLifecycle's package is `context_lifecycle` and its session-GC apply
+function is `apply_session_prune` in `session/retention.py`. Corrected the
+`invocation.ref` to `context_lifecycle.session.retention.apply_session_prune` so
+Custodian's CAP1 detector resolves it. Caught precisely because CAP1 is now being
+turned on in the owning repos — exactly the rot it exists to catch.
+
 ## 2026-06-15 — Capability registry: read-model instances + CLI seeds
 
 Stood up the PlatformManifest half of the fleet capability plane on top of
