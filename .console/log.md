@@ -1,4 +1,28 @@
 # Log
+## 2026-06-15 — Capability registry: read-model instances + CLI seeds
+
+Stood up the PlatformManifest half of the fleet capability plane on top of
+RepoGraph's `capabilities` schema (RepoGraph branch
+`feat/capability-registry-schema`).
+
+- `data/capabilities.yaml` — versioned `capabilities` document (schema_kind
+  capabilities @ 1.0.0) with three public seeds: `repo_health_audit` (custodian,
+  repo_set:public, read_only), `board_unblock` (operations_center, fleet,
+  mutates_fleet/maintenance), `session_gc` (context_lifecycle_protocol, fleet,
+  mutates_fleet/maintenance). No VF capability and no private-repo references —
+  deferred by operator instruction.
+- `capabilities.py` — read-model loader. Resolves `known_repo_ids` from the
+  platform repo map so owner/executes/requires/validates edges fail closed
+  against unknown repos; `invocation.ref` stays opaque (Custodian CAP1 resolves
+  it later, separate plane). v1 is read-only — no authoring/mutation API.
+- `capabilities_cli.py` + `cli.register_capability_commands` — `platform-manifest
+  capabilities` (list) and `capability <id>` (show edges). Split into its own
+  module so cli.py stays under the C29 500-line limit.
+- Tests: `tests/test_capabilities.py` (14). T1/T6 on the CLI module satisfied by
+  a genuine direct-import test of the registrar; only T7 excluded (flat tests/
+  layout, CliRunner-tested — same handling as cli.py). 288 pass; ruff clean;
+  `custodian-multi` clean (0 findings).
+
 ## 2026-06-06 — context-management completeness audit: 4 gaps closed + dormancy recorded
 The conceptual audit ("is context management done?") found the outer lifecycle
 live (capture-via-log, warm injection, cold surfacing, hot trim, session GC) and

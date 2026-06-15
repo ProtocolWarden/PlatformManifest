@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
+#
+# Platform capability registry (read-model, v1).
+#
+# Capabilities are authored here as flat ergonomic fields and compiled by
+# RepoGraph into the canonical capability node+edge graph (the graph is the
+# truth, these fields are sugar). Owner/executes/requires/validates references
+# resolve against the platform repo map; `produces` names artifacts, not repos.
+# `invocation.ref` is opaque to RepoGraph — Custodian's CAP1 detector resolves it
+# against the owning repo's code.
+schema_kind: capabilities
+schema_version: 1.0.0
+
+capabilities:
+  - action_id: repo_health_audit
+    name: Repo Health Audit
+    description: >-
+      Run the Custodian guardrail sweep across the public fleet and emit a
+      health report. Read-only — never mutates a target repo.
+    owner_repo_id: custodian
+    target_scope:
+      kind: repo_set
+      selector:
+        visibility: public
+    executes_on: custodian
+    produces:
+      - audit_report
+    category: audit
+    risk: read_only
+    invocation:
+      kind: cli
+      ref: custodian-multi
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: board_unblock
+    name: Board Unblock
+    description: >-
+      Resolve stuck Plane board patterns (orphaned in-flight slots, stale
+      Running tasks, dead remediation) across the fleet without operator
+      intervention.
+    owner_repo_id: operations_center
+    target_scope:
+      kind: fleet
+    executes_on: operations_center
+    produces:
+      - board_unblock_report
+    category: maintenance
+    risk: mutates_fleet
+    routing:
+      preferred_lane: maintenance
+    invocation:
+      kind: entrypoint
+      ref: operations_center.entrypoints.maintenance.board_unblock
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: session_gc
+    name: Session Garbage Collection
+    description: >-
+      Self-driving garbage collection of expired session and context capsules
+      across cognition hosts at session start.
+    owner_repo_id: context_lifecycle_protocol
+    target_scope:
+      kind: fleet
+    executes_on: context_lifecycle_protocol
+    produces:
+      - gc_report
+    category: maintenance
+    risk: mutates_fleet
+    routing:
+      preferred_lane: maintenance
+    invocation:
+      kind: entrypoint
+      ref: context_lifecycle_protocol.session_gc
+    visibility: public
+    disclosure_mode: public

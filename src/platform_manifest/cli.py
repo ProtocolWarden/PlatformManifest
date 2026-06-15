@@ -20,6 +20,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from .capabilities_cli import register_capability_commands
 from .loader import default_config_path, load_repo_graph
 from .models import ManifestKind, RepoGraphConfigError
 from .projection import to_public_manifest_dict
@@ -461,6 +462,11 @@ def project_public_unsafe_cmd(
 def custodian_policy_cmd() -> None:
     """Emit the PlatformManifest visibility policy descriptor for Custodian."""
     typer.echo(json.dumps(custodian_policy_manifest(), indent=2, ensure_ascii=False))
+
+
+# Capability registry read-model commands live in their own module to keep this
+# entrypoint focused; they are registered onto the shared app below.
+register_capability_commands(app, _console)
 
 
 if __name__ == "__main__":
