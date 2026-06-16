@@ -1,4 +1,17 @@
 # Log
+## 2026-06-15 — Provisioning refreshes custodian + cwd-safe ContextGuard hook
+
+`provision-machine.sh` now builds the Custodian venv and editable-installs the
+local Custodian into every managed repo venv that already carries a
+`custodian-multi` — so the pre-push audit gate runs current detectors (e.g. CAP1)
+instead of a stale pinned copy. Added `_venv_pip` which bootstraps pip via
+`ensurepip` for uv-created venvs that ship without it (caught when the new step hit
+Custodian's pip-less uv venv — the exact script bug this validation set out to
+find). Separately hardened the ContextGuard hook command to
+`bash "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/..."` so it resolves regardless of
+the shell's cwd (was a non-blocking "No such file or directory" when a tool ran
+from a non-root cwd).
+
 ## 2026-06-15 — Fix session_gc capability ref (CAP1 enforcement prep)
 
 The `session_gc` seed pointed at `context_lifecycle_protocol.session_gc`, but
