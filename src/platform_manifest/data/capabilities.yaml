@@ -76,3 +76,130 @@ capabilities:
       ref: context_lifecycle.session.retention.apply_session_prune
     visibility: public
     disclosure_mode: public
+
+  - action_id: custodian_autofix
+    name: Custodian Auto-Fix
+    description: >-
+      Apply Custodian's safe auto-remediations for audit findings (formatting,
+      mechanical fixes) across a repo. Mutates the target repo's tracked files.
+    owner_repo_id: custodian
+    target_scope:
+      kind: repo_set
+      selector:
+        visibility: public
+    executes_on: custodian
+    produces:
+      - autofix_report
+    category: maintenance
+    risk: mutates_repo
+    routing:
+      preferred_lane: maintenance
+    invocation:
+      kind: cli
+      ref: custodian-fix
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: fleet_audit_dispatch
+    name: Fleet Audit Dispatch
+    description: >-
+      Run the Custodian sweep across every managed repo and open one Plane task
+      per repo with findings — the fleet-wide audit-to-board pipeline.
+    owner_repo_id: operations_center
+    target_scope:
+      kind: fleet
+    executes_on: operations_center
+    produces:
+      - audit_dispatch
+    category: audit
+    risk: mutates_fleet
+    routing:
+      preferred_lane: maintenance
+    invocation:
+      kind: entrypoint
+      ref: operations_center.entrypoints.custodian_sweep.main
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: spec_campaign
+    name: Spec Campaign
+    description: >-
+      Detect an operator work-order drop-file (or drained board), author a spec,
+      and fan it out into coordinated multi-repo campaign tasks — the canonical
+      coordinated-work channel.
+    owner_repo_id: operations_center
+    target_scope:
+      kind: fleet
+    executes_on: operations_center
+    produces:
+      - campaign_tasks
+    category: orchestration
+    risk: mutates_fleet
+    routing:
+      preferred_lane: orchestration
+    invocation:
+      kind: entrypoint
+      ref: operations_center.entrypoints.spec_trigger.main
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: autonomous_board_execution
+    name: Autonomous Board Execution
+    description: >-
+      Claim and execute ready Plane board tasks via the autonomous board_worker
+      fleet (implement / test / review modes), recording in-flight state.
+    owner_repo_id: operations_center
+    target_scope:
+      kind: fleet
+    executes_on: operations_center
+    produces:
+      - executed_tasks
+    category: execution
+    risk: mutates_fleet
+    routing:
+      preferred_lane: build
+    invocation:
+      kind: entrypoint
+      ref: operations_center.entrypoints.board_worker.main
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: console_reconcile
+    name: Console Reconcile
+    description: >-
+      Reconcile a repo's `.console/` truth files — archive completed history to
+      the private side and trim the source back under budget.
+    owner_repo_id: context_lifecycle_protocol
+    target_scope:
+      kind: repo_set
+      selector:
+        visibility: public
+    executes_on: context_lifecycle_protocol
+    produces:
+      - reconcile_report
+    category: maintenance
+    risk: mutates_repo
+    routing:
+      preferred_lane: maintenance
+    invocation:
+      kind: entrypoint
+      ref: context_lifecycle.reconcile.prune
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: session_anchor
+    name: Session Anchor
+    description: >-
+      Resolve and anchor a cognition session at its owning manifest (CL_ANCHOR),
+      so hooks and loops read context from the manifest rather than the cwd.
+    owner_repo_id: context_lifecycle_protocol
+    target_scope:
+      kind: fleet
+    executes_on: context_lifecycle_protocol
+    category: orchestration
+    risk: read_only
+    invocation:
+      kind: entrypoint
+      ref: context_lifecycle.session.anchor
+    visibility: public
+    disclosure_mode: public

@@ -177,5 +177,11 @@ remaining roadmap to: build ONE gate (the Direction-A CAP1 venue), then populate
 **Net reshaped roadmap:** (1) ✅ DONE — Direction-A PM-side CAP1 gate shipped
 (`.github/workflows/capability-refs.yml`: on a `capabilities.yaml` change, checks
 out the 3 owning repos + runs `custodian-multi --only CAP1`; proven by clean pass
-+ negative control). → (2) Phase 2 population (NO CAP2) → CAP3 and CAP2 deferred
-behind explicit triggers above.
++ negative control). → (2) ✅ DONE (first wave) — Phase 2 population: 6 added (9
+total) covering the major fleet actions owned by the 3 gate-enforced repos
+(custodian_autofix, fleet_audit_dispatch, spec_campaign,
+autonomous_board_execution, console_reconcile, session_anchor); every ref
+gate-verified. Internal tooling excluded per the inclusion principle. Extending
+to RepoGraph/PlatformManifest/OperatorConsole-owned capabilities is a bounded
+follow-up (opt those repos into CAP1 + add to the gate's owning set). → CAP3 and
+CAP2 deferred behind explicit triggers above.

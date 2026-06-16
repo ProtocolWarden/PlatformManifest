@@ -27,7 +27,13 @@ def _strip_ansi(text: str) -> str:
     return _ANSI_RE.sub("", text)
 
 
-_SEEDED = {"repo_health_audit", "board_unblock", "session_gc"}
+_SEEDED = {
+    # original seeds
+    "repo_health_audit", "board_unblock", "session_gc",
+    # Phase 2 population (capabilities owned by the 3 gate-enforced repos)
+    "custodian_autofix", "fleet_audit_dispatch", "spec_campaign",
+    "autonomous_board_execution", "console_reconcile", "session_anchor",
+}
 
 _VALID_DOC = """\
 schema_kind: capabilities
