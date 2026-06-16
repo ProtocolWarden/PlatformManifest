@@ -4,7 +4,10 @@
 # Idempotent: safe to re-run on an already-provisioned machine.
 #
 # What it does:
-#   1. Build/verify ContextLifecycle and RepoGraph Python venvs
+#   1. Build/verify ContextLifecycle, RepoGraph and Custodian Python venvs, and
+#      refresh the local (editable) Custodian into every managed repo venv that
+#      carries a custodian-multi — so the pre-push audit gate runs current
+#      detectors (e.g. CAP1) instead of a stale pinned copy
 #   2. Wire CL_HOME + PATH into ~/.bashrc (once, idempotent)
 #   3. Register PlatformManifest (+ the private manifest if present) in the
 #      RepoGraph per-machine registry
@@ -35,6 +38,7 @@ done
 
 CL_DIR="$GITHUB_DIR/ContextLifecycle"
 RG_DIR="$GITHUB_DIR/RepoGraph"
+CUST_DIR="$GITHUB_DIR/Custodian"
 
 # Role-based private-manifest resolver — shared lib (single source of truth).
 # shellcheck source=lib/private-manifest.sh
@@ -87,7 +91,8 @@ echo ""
 echo "▶ [1/5] Checking required repos"
 _require_repo "$CL_DIR"  "ContextLifecycle"
 _require_repo "$RG_DIR"  "RepoGraph"
-echo "  ✓ ContextLifecycle, RepoGraph present"
+_require_repo "$CUST_DIR" "Custodian"
+echo "  ✓ ContextLifecycle, RepoGraph, Custodian present"
 
 # Update the tool repos so re-provision picks up shipped behavior (a stale CL
 # checkout means stale `cl` semantics on this host — e.g. no session auto-GC).
@@ -114,10 +119,22 @@ _update_repo() {
 
 _update_repo "$CL_DIR" "ContextLifecycle"
 _update_repo "$RG_DIR" "RepoGraph"
+_update_repo "$CUST_DIR" "Custodian"
 
 # ── 2. Build venvs ───────────────────────────────────────────────────────────
 echo ""
 echo "▶ [2/5] Python venvs"
+
+# Run pip inside a venv as `python -m pip`, bootstrapping pip first when it's
+# absent. uv-created venvs (e.g. Custodian's, made with `uv venv`) ship WITHOUT
+# pip, so a bare `$venv/bin/pip` would not exist — ensurepip (stdlib) installs it.
+_venv_pip() {
+  local venv="$1"; shift
+  if [[ ! -x "$venv/bin/pip" ]]; then
+    "$venv/bin/python" -m ensurepip --upgrade >/dev/null 2>&1 || true
+  fi
+  "$venv/bin/python" -m pip "$@"
+}
 
 _ensure_venv() {
   local dir="$1" name="$2"
@@ -128,13 +145,39 @@ _ensure_venv() {
   fi
   # Always (re)install editable so dependency changes from a git pull are
   # picked up on re-provision. pip is a near-no-op when nothing changed.
-  "$venv/bin/pip" install --quiet --upgrade pip
-  "$venv/bin/pip" install --quiet -e "$dir"
+  _venv_pip "$venv" install --quiet --upgrade pip
+  _venv_pip "$venv" install --quiet -e "$dir"
   echo "  ✓ $name venv ready"
 }
 
 _ensure_venv "$CL_DIR" "ContextLifecycle"
 _ensure_venv "$RG_DIR" "RepoGraph"
+# Custodian's own venv is the canonical custodian-multi — the last-resort
+# candidate the pre-push gate falls through to (Custodian/.venv/bin/custodian-multi).
+_ensure_venv "$CUST_DIR" "Custodian"
+
+# Refresh the local (editable) Custodian INTO every other managed repo venv that
+# already carries a custodian-multi. The pre-push audit gate resolves
+# custodian-multi from the repo's OWN .venv before the Custodian sibling venv, so
+# a stale per-repo copy (e.g. an old pinned SHA) silently disables newer detectors
+# like CAP1. Editable-install tracks local Custodian main and is picked up on every
+# re-provision — same idempotent contract as _ensure_venv. Only repos that already
+# have custodian-multi are touched (we don't add the dep to venvs that don't want it).
+_refresh_custodian_in() {
+  local dir="$1" name="$2"
+  local venv="$dir/.venv"
+  [[ -x "$venv/bin/custodian-multi" ]] || return 0
+  if _venv_pip "$venv" install --quiet -e "$CUST_DIR"; then
+    echo "  ✓ $name: custodian refreshed (editable → local Custodian)"
+  else
+    echo "  – $name: custodian refresh failed — continuing (pre-push falls back to Custodian/.venv)"
+  fi
+}
+for repo_dir in "$GITHUB_DIR"/*/; do
+  [[ -d "$repo_dir/.git" ]] || continue
+  [[ "$(cd "$repo_dir" && pwd)" == "$CUST_DIR" ]] && continue   # Custodian itself handled above
+  _refresh_custodian_in "$repo_dir" "$(basename "$repo_dir")"
+done
 
 # ── 3. Shell profile + Claude Code env ───────────────────────────────────────
 echo ""
