@@ -174,5 +174,8 @@ remaining roadmap to: build ONE gate (the Direction-A CAP1 venue), then populate
    graph — which will also dictate the correct vocabulary shape (enum vs. full
    registry). CAP3 stays unbuilt until then.
 
-**Net reshaped roadmap:** (1) build the Direction-A PM-side CAP1 gate → (2) Phase 2
-population (NO CAP2) → CAP3 and CAP2 deferred behind explicit triggers above.
+**Net reshaped roadmap:** (1) ✅ DONE — Direction-A PM-side CAP1 gate shipped
+(`.github/workflows/capability-refs.yml`: on a `capabilities.yaml` change, checks
+out the 3 owning repos + runs `custodian-multi --only CAP1`; proven by clean pass
++ negative control). → (2) Phase 2 population (NO CAP2) → CAP3 and CAP2 deferred
+behind explicit triggers above.

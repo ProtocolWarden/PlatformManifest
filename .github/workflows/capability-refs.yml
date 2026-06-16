@@ -1,0 +1,78 @@
+name: capability-refs
+
+# Direction-A CAP1 gate (capability-plane completion spec, Decision 1).
+#
+# A capability's invocation.ref lives in capabilities.yaml (this repo) but points
+# at code in the OWNING repo. CAP1 only resolves a ref where the owning repo AND
+# the registry are both present — which never happens in a single-repo CI runner,
+# so PlatformManifest's normal audit cannot see a broken cross-repo ref. This job
+# closes that gap: it checks out the bounded set of owning repos alongside THIS
+# PR's registry and runs CAP1 across them. A registry edit that points a ref at
+# missing/renamed owner code fails here, at the repo where the edit was authored.
+#
+# Scoped to capabilities.yaml changes (the only thing that can introduce a
+# Direction-A break). The complementary Direction-B break (an owning repo renames
+# a symbol) is already caught by that repo's own pre-push hook.
+#
+# Owning set is bounded + enumerable from owner_repo_id in the registry (3 public
+# repos today). Add a repo here only when a new owner_repo_id appears.
+
+on:
+  push:
+    paths: ["src/platform_manifest/data/capabilities.yaml"]
+  pull_request:
+    paths: ["src/platform_manifest/data/capabilities.yaml"]
+
+jobs:
+  capability-refs:
+    runs-on: ubuntu-latest
+    steps:
+      # All four repos must be siblings so each owning repo's
+      # `capabilities.registry_repo: ../PlatformManifest` (or cross_repo
+      # equivalent) resolves to THIS PR's registry checkout.
+      - name: Check out PlatformManifest (this PR — the registry under test)
+        uses: actions/checkout@v4
+        with:
+          path: _siblings/PlatformManifest
+
+      - name: Check out Custodian
+        uses: actions/checkout@v4
+        with:
+          repository: ProtocolWarden/Custodian
+          ref: main
+          path: _siblings/Custodian
+
+      - name: Check out OperationsCenter
+        uses: actions/checkout@v4
+        with:
+          repository: ProtocolWarden/OperationsCenter
+          ref: main
+          path: _siblings/OperationsCenter
+
+      - name: Check out ContextLifecycle
+        uses: actions/checkout@v4
+        with:
+          repository: ProtocolWarden/ContextLifecycle
+          ref: main
+          path: _siblings/ContextLifecycle
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Custodian (CAP1 detector)
+        run: |
+          python -m pip install --upgrade pip
+          pip install "custodian @ git+https://github.com/ProtocolWarden/Custodian.git@main"
+
+      - name: Resolve capability refs (CAP1 only, across owning repos)
+        # --only CAP1 keeps the gate scoped to ref resolution — the owning repos'
+        # other (unrelated) findings must not fail this registry gate. No boundary
+        # artifact is needed: CAP1 is not a B-class detector.
+        run: |
+          cd _siblings
+          custodian-multi \
+            --repos Custodian OperationsCenter ContextLifecycle \
+            --only CAP1 \
+            --fail-on-findings \
+            --no-color
