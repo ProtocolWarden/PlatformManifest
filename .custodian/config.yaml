@@ -48,6 +48,9 @@ audit:
     - platform
     # `main` is the default branch name, cited in docs/work-orders — not a src enum.
     - main
+    # `executor` is a CapabilityInvocationKind enum value (RepoGraph), cited in
+    # the capability-plane spec — not a PlatformManifest src string.
+    - executor
   exclude_paths:
     C29:
       # composition.py is the platform-graph composition core — splitting

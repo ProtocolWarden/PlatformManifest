@@ -55,6 +55,12 @@ verification specs and design notes.
 - [architecture/context-injection-work-order.md](architecture/context-injection-work-order.md) —
   Phased build order for the spec above. Phase 0–2 (router engine, routes, leaf
   docs, tests) implemented and shipped dark; phases 3–5 gated.
+- [architecture/capability-plane-completion-spec.md](architecture/capability-plane-completion-spec.md) —
+  Completion spec (Phases 1–6) for the capability registry beyond v1, hardened
+  against an adversarial review. Phase 1 (session-start Fleet-Capabilities
+  consumer) shipped; Phase 2 (population + CAP2 anti-omission) and Phase 3 (CAP3,
+  descoped to `produces` pending an artifact registry) specified; Phases 4–6
+  gated. Records the CAP-inert-in-single-repo-CI enforcement-venue constraint.
 
 ## Verification
 
