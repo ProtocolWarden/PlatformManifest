@@ -21,17 +21,5 @@ _(idle — reconciliation + role-generalization arcs complete)_
 
 ## Done
 
-- [x] 2026-06-04 — FLEET GREEN: pre-existing red main CI fixed on all 19 public
-      repos (incl. first-ever green semantic-federation run; gate policy synced
-      to the 18-repo public set).
+_Completed items archived._
 
-- [x] 2026-06-04 — Phase 6 closed as not-needed (operator: the instance name is
-      not secret, only contents; architectural enforcement stands). Generalization
-      effort COMPLETE.
-
-- [x] 2026-06-04 — Private-manifest role generalization phases 1–5 executed
-      fleet-wide (shared resolver, hooks, provisioning, source/tests, docs).
-- [x] 2026-06-04 — R2-in-CI on all 19 public repos (last 6 audit workflows
-      added); B64 secret rotation script (`scripts/bootstrap-boundary-secrets.sh`).
-- [x] 2026-06-04 — `.console/` reconciliation arc complete (prune + scrub +
-      enforce on all 19 public repos; status dashboard generated).

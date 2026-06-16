@@ -59,3 +59,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 2026-06-04: reconciled `repograph-registry-boundary-artifact` — Populate RepoGraph registry wire boundary artifact to custodian (history archived).
 - 2026-06-04: reconciled `ci-regression-guard` — CI regression guard custodian-audit workflow pre-push hook (history archived).
 - 2026-06-04: reconciled `relicense-agpl` — Relicense Apache to AGPL align platform (history archived).
+- 2026-06-16: reconciled `context-injection-spec` — Draft spec tiered memory context injection (history archived).
+- 2026-06-16: reconciled `context-injection-engine` — Implement context-injection engine Phase 0 1 2 router routes leaf docs (history archived).
+- 2026-06-16: reconciled `pretooluse-protocol-wire-draft` — Verify PreToolUse protocol draft Phase 2-wire splice into live hook (history archived).
+- 2026-06-16: reconciled `prove-harden-engine` — Prove-and-harden workflow refinements activate warm injection gate (history archived).
+- 2026-06-16: reconciled `phase5-consolidation` — Phase 5 consolidation engine campaign front-matter trigger draft (history archived).
+- 2026-06-16: reconciled `productionization-marked` — Mark productionization done in work-order engine relocated to ContextLifecycle (history archived).
+- 2026-06-16: reconciled `doc-reconciliation-7c` — Mark §7c doc-reconciliation done in work-order (history archived).
+- 2026-06-16: reconciled `provisioning-scripts` — Add machine provisioning scripts orchestrator venv refresh hook-health clone (history archived).
+- 2026-06-16: reconciled `provision-cl-home-settings` — Fix provision wire CL_HOME into settings.json and bashrc repograph registry (history archived).
+- 2026-06-16: reconciled `track-operatorconsole-hook-health` — Track OperatorConsole in hook-health committed hook repos (history archived).
+- 2026-06-16: reconciled `manifest-first-class-type` — Manifest locked in as first-class repo type visibility scope info-flow (history archived).
+- 2026-06-16: reconciled `register-syncmechanism` — Register SyncMechanism node fleet sync mechanism public (history archived).
