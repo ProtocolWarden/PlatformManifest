@@ -203,3 +203,60 @@ capabilities:
       ref: context_lifecycle.session.anchor
     visibility: public
     disclosure_mode: public
+
+  - action_id: repo_graph_projection
+    name: Repo Graph Projection
+    description: >-
+      Compose and project the fleet repo graph (platform + project + local layers)
+      into the effective graph and public/private projections. Read-only.
+    owner_repo_id: repograph
+    target_scope:
+      kind: fleet
+    executes_on: repograph
+    produces:
+      - effective_repo_graph
+    category: verification
+    risk: read_only
+    invocation:
+      kind: cli
+      ref: repograph
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: capability_registry_query
+    name: Capability Registry Query
+    description: >-
+      Query the fleet capability registry — what actions exist, who owns each,
+      their inputs, risk, and preferred lane. The read-model's own query surface.
+    owner_repo_id: platform_manifest
+    target_scope:
+      kind: fleet
+    executes_on: platform_manifest
+    category: verification
+    risk: read_only
+    invocation:
+      kind: cli
+      ref: platform-manifest
+    visibility: public
+    disclosure_mode: public
+
+  - action_id: context_bootstrap
+    name: Context Bootstrap
+    description: >-
+      Compile a repo's `.console/` truth files into the startup context an
+      operator/agent reads before acting (incl. the Fleet Capabilities section).
+    owner_repo_id: operator_console
+    target_scope:
+      kind: repo_set
+      selector:
+        visibility: public
+    executes_on: operator_console
+    produces:
+      - startup_context
+    category: orchestration
+    risk: read_only
+    invocation:
+      kind: entrypoint
+      ref: operator_console.bootstrap.build_resume_prompt
+    visibility: public
+    disclosure_mode: public

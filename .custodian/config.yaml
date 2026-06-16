@@ -44,6 +44,14 @@ audit:
   # safe to enable now that this repo's tracked `.console/` is reconciled and
   # leak-clean (history archived to the private side).
   reconcile_enforce: true
+
+  # CAP1 — enforce that capabilities owned by PlatformManifest (the registry host)
+  # point at invocation.ref code that resolves here. registry_path locates the
+  # in-repo registry directly (no sibling needed — this repo IS the registry).
+  capabilities:
+    enforce: true
+    registry_path: src/platform_manifest/data/capabilities.yaml
+
   known_values:
     - platform
     # `main` is the default branch name, cited in docs/work-orders — not a src enum.
