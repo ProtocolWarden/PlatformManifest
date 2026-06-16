@@ -1,4 +1,16 @@
 # Log
+## 2026-06-16 — Phase 2 population: 6 fleet capabilities (9 total)
+
+Populated `capabilities.yaml` with the major operator-facing actions owned by the
+3 gate-enforced repos: custodian_autofix (cli custodian-fix), fleet_audit_dispatch
++ spec_campaign + autonomous_board_execution (OC entrypoints), console_reconcile +
+session_anchor (CL entrypoints). Internal tooling (calibration, fixtures, replay,
+doctors, triage) excluded per the inclusion principle — fleet-meaningful actions
+only. Every new invocation.ref verified by the Direction-A gate (CAP1 across the 3
+owning repos: clean). Phase 1 consumer renders all 9 grouped by owner. Extending
+to RepoGraph/PM/OperatorConsole owners needs those repos opted into CAP1 + added to
+the gate (bounded follow-up). Updated test_capabilities seed set.
+
 ## 2026-06-16 — Decision 1 gate built: Direction-A CAP1 CI (capability plane)
 
 Added `.github/workflows/capability-refs.yml` — the Direction-A enforcement venue
