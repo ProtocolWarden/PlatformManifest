@@ -56,6 +56,20 @@ jobs:
           ref: main
           path: _siblings/ContextLifecycle
 
+      - name: Check out RepoGraph
+        uses: actions/checkout@v4
+        with:
+          repository: ProtocolWarden/RepoGraph
+          ref: main
+          path: _siblings/RepoGraph
+
+      - name: Check out OperatorConsole
+        uses: actions/checkout@v4
+        with:
+          repository: ProtocolWarden/OperatorConsole
+          ref: main
+          path: _siblings/OperatorConsole
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -72,7 +86,7 @@ jobs:
         run: |
           cd _siblings
           custodian-multi \
-            --repos Custodian OperationsCenter ContextLifecycle \
+            --repos Custodian OperationsCenter ContextLifecycle RepoGraph OperatorConsole \
             --only CAP1 \
             --fail-on-findings \
             --no-color

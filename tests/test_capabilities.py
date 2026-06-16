@@ -30,9 +30,11 @@ def _strip_ansi(text: str) -> str:
 _SEEDED = {
     # original seeds
     "repo_health_audit", "board_unblock", "session_gc",
-    # Phase 2 population (capabilities owned by the 3 gate-enforced repos)
+    # Phase 2 population — owned by the 3 originally-gate-enforced repos
     "custodian_autofix", "fleet_audit_dispatch", "spec_campaign",
     "autonomous_board_execution", "console_reconcile", "session_anchor",
+    # Phase 2 follow-up — RepoGraph / PlatformManifest / OperatorConsole owners
+    "repo_graph_projection", "capability_registry_query", "context_bootstrap",
 }
 
 _VALID_DOC = """\

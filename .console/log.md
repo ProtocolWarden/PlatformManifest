@@ -1,4 +1,17 @@
 # Log
+## 2026-06-16 — Phase 2 follow-up: 3 more owners (12 total) + gate expanded
+
+Closed the population follow-up — capabilities owned by the other public repos:
+repo_graph_projection (repograph, cli repograph), capability_registry_query
+(platform_manifest, cli platform-manifest — the registry's own query surface),
+context_bootstrap (operator_console, entrypoint
+operator_console.bootstrap.build_resume_prompt). RepoGraph + OperatorConsole opted
+into CAP1 (RepoGraph #7, OperatorConsole #69) and were added to the capability-refs
+gate's owning set (now 5 cross-repo owners). PlatformManifest self-enforces its own
+capability via registry_path (registry is in-repo; no sibling). Negative control:
+breaking the repograph/operator_console refs fails CAP1 in those repos. 12
+capabilities total; doctor --strict accepts the new `capabilities` keys.
+
 ## 2026-06-16 — Phase 2 population: 6 fleet capabilities (9 total)
 
 Populated `capabilities.yaml` with the major operator-facing actions owned by the
