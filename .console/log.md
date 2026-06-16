@@ -1,4 +1,16 @@
 # Log
+## 2026-06-16 — Capability plane completion spec (adversarially hardened)
+
+Added `docs/architecture/capability-plane-completion-spec.md` — the Phase 1–6
+completion spec beyond v1, authored directly (not via the OC spec-author campaign)
+and hardened against a 3-agent adversarial review that verified claims against
+code. Phase 1 (OperatorConsole Fleet-Capabilities consumer) shipped. Records the
+constraints the review surfaced: CAP detectors needing the cross-repo registry
+are inert in single-repo CI (enforce only locally/pre-push), so population needs
+a defined verification venue; CAP3 is descoped (validated_by/requires/owns already
+enforced at RepoGraph load; only `produces` is unchecked, pending an artifact
+registry). Linked from docs/README.md (DC7/DC9).
+
 ## 2026-06-15 — Provisioning refreshes custodian + cwd-safe ContextGuard hook
 
 `provision-machine.sh` now builds the Custodian venv and editable-installs the
