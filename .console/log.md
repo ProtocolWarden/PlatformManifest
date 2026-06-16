@@ -1,4 +1,13 @@
 # Log
+## 2026-06-16 — Resolved the 3 capability-plane open decisions (adversarial)
+
+Code-grounded adversarial analysis per decision; recorded in
+`capability-plane-completion-spec.md`. (1) CAP1 venue → SPLIT GATE: owning-repo
+pre-push already covers code-side breaks; add a PM-CI bounded multi-repo checkout
+for registry-side breaks (the real gap, prerequisite for population). (2) CAP2
+coverage detector → DON'T BUILD (3-entry registry, ~0 omissions; revisit advisory
+past ~15–20). (3) artifact registry / CAP3 produces → DEFER (zero consumers).
+
 ## 2026-06-16 — Capability plane completion spec (adversarially hardened)
 
 Added `docs/architecture/capability-plane-completion-spec.md` — the Phase 1–6
@@ -383,15 +392,6 @@ _Log significant choices here so they survive context resets._
 _Free-form scratch. Clear periodically — old entries can be deleted once no longer relevant._
 
 ---
-
-- DC4 README sections (2026-05-08, on `fix/dc4-readme-sections`): Custodian DC4 (native) flagged the README missing both Quick start and Architecture H2s. Quick start gives pip install + load_default_repo_graph + CLI examples; Architecture summarises the three-layer composition (Platform / Project / Local → EffectiveRepoGraph) and points at Edge vocabulary for the relationship taxonomy.
-
-## 2026-05-08 — M1: CHANGELOG.md stub (Keep-a-Changelog format)
-
-Added a minimal CHANGELOG.md so M1 (and M5 format check) pass.
-
-## 2026-05-08 — D11 exclusions (cli + models typology)
-
 
 ## Archived
 

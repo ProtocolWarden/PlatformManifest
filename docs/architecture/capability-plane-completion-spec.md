@@ -1,6 +1,9 @@
 # Capability Plane — Completion Spec (Phases 1–6)
 
-_Status: Phase 1 SHIPPED (OperatorConsole Fleet-Capabilities consumer). Phases 2–3 specified + hardened; Phases 4–6 documented and gated._
+_Status: Phase 1 SHIPPED (OperatorConsole Fleet-Capabilities consumer). The 3
+open decisions are RESOLVED via adversarial analysis (see "Resolved decisions"
+below) — net: build one CAP1 gate, then populate; CAP2 and CAP3 deferred behind
+explicit triggers. Phases 4–6 documented and gated._
 
 This spec completes the capability registry beyond v1 (schema + 3 seeds + CAP1).
 It was authored directly (not via the OperationsCenter spec-author/campaign
@@ -127,10 +130,49 @@ in-detector early-return on the enable flag + disposition-matrix row + positive
   with no code → flag); schema-version bump policy; artifact-kind registry (also
   unblocks Phase 3); "how to add a capability" guide.
 
-## Open decisions (need an operator call before the relevant phase)
-1. **CAP1 enforcement venue** for cross-repo refs (local sweep / OC dispatch /
-   sibling-checkout CI) — gates Phase 2 correctness claims.
-2. **CAP2 positive marker** mechanism (`[tool.capabilities]` vs. namespace) — and
-   whether CAP2 is worth its standing-CI-obligation cost at all.
-3. **Artifact-kind registry** — build it (unblocks Phase 3 `produces`) or leave
-   `produces` as descriptive free-text.
+## Resolved decisions (adversarial pass, 2026-06-16)
+Each was put through an independent code-grounded adversarial analysis. Two of
+the three "Phase 2–3 detectors" came back **don't build** — which simplifies the
+remaining roadmap to: build ONE gate (the Direction-A CAP1 venue), then populate.
+
+1. **CAP1 enforcement venue → SPLIT GATE.** Cross-repo refs break in two
+   directions, each authored in a different repo: **(B)** an owning repo
+   (OC/CL/Custodian) renames a symbol a ref points at — *already enforced for
+   free* by that repo's existing pre-push (`custodian-multi --repos $repo_root`
+   resolves the ref against the local sibling registry; CAP1 fires). **(A)** a
+   registry edit in PlatformManifest points a ref at another repo's code — the
+   real gap; PM's own pre-push owns no capability so it checks nothing. **Fix:**
+   a **PM-side gate that runs CAP1 across the bounded owning set (exactly 3
+   public repos: custodian, operations_center, context_lifecycle) with those
+   repos checked out**, implemented in **PM CI with an explicit bounded
+   multi-repo checkout** (the local pre-push is advisory pre-flight only — it
+   fails *open* on an incomplete local workspace, so it cannot be the hard gate).
+   REJECTED: all-22-repo sibling-checkout CI (cost ×22, only 3 own capabilities,
+   still validates the wrong PM ref) and an OC dispatch sweep (single-repo →
+   CAP1-inert today, and Plane-advisory → never blocks before merge). This gate
+   is the **prerequisite for Phase 2 population.**
+2. **CAP2 (coverage detector) → DON'T BUILD.** The registry holds 3 entries after
+   ~18 months; omission is ~0/quarter, low-cost, and self-announcing (an
+   unregistered capability is *invisible*, not *broken* — the operator who wants
+   to route to it notices and registers it). The fleet has ~55 `[project.scripts]`
+   (OC alone ~40, almost all internal tooling) → an enumerate-and-subtract CAP2
+   is ~37 false positives per run; the exempt-list becomes the de-facto spec —
+   exactly the "noisy check" smell Custodian's disposition matrix *retires*. A
+   positive marker just moves "forgot to register" to "forgot to annotate" (and
+   has zero fleet precedent); the "invert it" option literally *is* CAP1. **Build
+   nothing now.** Revisit a *non-blocking, fleet-side advisory report* (never in a
+   repo's single-repo CI) only if the registry crosses ~15–20 entries OR a real
+   omission incident occurs.
+3. **Artifact-kind registry / CAP3 `produces` → DEFER.** `produces` has **zero
+   consumers** (not even serialized into the node projection); validating a
+   write-only field is gold-plating — the "read-models rot silently" principle
+   has no teeth without a reader. A full producer/consumer registry is maximal
+   infra for a non-consumed field; even the cheap closed-enum option couples
+   capability authoring (data) to RepoGraph releases (code) on the vocabulary
+   *least* suited to closure (artifacts are an open, fleet-defined set). **Defer
+   until a real consumer reads `produces`** — Phase 4 routing or a dependency
+   graph — which will also dictate the correct vocabulary shape (enum vs. full
+   registry). CAP3 stays unbuilt until then.
+
+**Net reshaped roadmap:** (1) build the Direction-A PM-side CAP1 gate → (2) Phase 2
+population (NO CAP2) → CAP3 and CAP2 deferred behind explicit triggers above.
