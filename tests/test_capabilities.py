@@ -13,7 +13,6 @@ from typer.testing import CliRunner
 from platform_manifest.capabilities import (
     default_capabilities_path,
     load_capabilities,
-    load_default_capabilities,
     platform_repo_ids,
 )
 from platform_manifest import capabilities_cli
@@ -66,12 +65,12 @@ def _write(tmp_path: Path, body: str) -> Path:
 
 
 def test_default_registry_has_seeded_capabilities() -> None:
-    registry = load_default_capabilities()
+    registry = load_capabilities()
     assert {n.action_id for n in registry.list_capabilities()} == _SEEDED
 
 
 def test_seed_owners_resolve_to_real_repos() -> None:
-    registry = load_default_capabilities()
+    registry = load_capabilities()
     owners = {n.action_id: registry.owner_of(n.action_id) for n in registry.list_capabilities()}
     repo_ids = platform_repo_ids()
     assert owners["repo_health_audit"] == "custodian"
@@ -82,7 +81,7 @@ def test_seed_owners_resolve_to_real_repos() -> None:
 
 def test_fleet_mutating_seeds_declare_a_lane() -> None:
     # risk >= mutates_fleet must carry an explicit preferred_lane (RepoGraph invariant).
-    registry = load_default_capabilities()
+    registry = load_capabilities()
     for node in registry.list_capabilities():
         if node.risk.value in {"mutates_fleet", "irreversible"}:
             assert node.preferred_lane, f"{node.action_id} missing preferred_lane"
@@ -129,7 +128,7 @@ def test_register_capability_commands_attaches_both_commands() -> None:
 
 
 def test_target_label_covers_all_scope_kinds() -> None:
-    registry = load_default_capabilities()
+    registry = load_capabilities()
     labels = {n.action_id: capabilities_cli._target_label(n) for n in registry.list_capabilities()}
     assert labels["board_unblock"] == "fleet"
     assert labels["repo_health_audit"].startswith("repo_set:")

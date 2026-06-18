@@ -73,12 +73,3 @@ def load_capabilities(
     return _load_capability_registry(raw, known_repo_ids=known)
 
 
-_cached_default: Any | None = None
-
-
-def load_default_capabilities() -> Any:
-    """Cached load of the bundled capability registry."""
-    global _cached_default
-    if _cached_default is None:
-        _cached_default = load_capabilities()
-    return _cached_default
