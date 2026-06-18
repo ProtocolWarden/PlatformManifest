@@ -91,6 +91,14 @@ def load_repo_graph(
     if expected_kind is ManifestKind.PLATFORM:
         enforce_platform_public_only(nodes)
 
+    # Fail-closed on visibility at the load boundary (docs/inject/loader.md):
+    # reject a manifest whose visibility_scope is invalid, or is absent and not
+    # derivable (mixed/absent repo visibility). Runs after the platform
+    # public-only and node-visibility checks so their more specific errors fire
+    # first; this catches the remaining scope-ambiguous cases (e.g. a private/
+    # project manifest with mixed repo visibility and no declared scope).
+    parse_visibility_scope(raw, path=path)
+
     name_to_id: dict[str, str] = {}
     for node in nodes:
         name_to_id[node.canonical_name.lower()] = node.repo_id

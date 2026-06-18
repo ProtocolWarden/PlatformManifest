@@ -392,6 +392,22 @@ class TestVisibility:
         with pytest.raises(RepoGraphConfigError, match="public nodes"):
             load_repo_graph(cfg)
 
+    def test_load_rejects_invalid_visibility_scope(self, tmp_path: Path) -> None:
+        # The loader fail-closes on an invalid visibility_scope even when every
+        # repo is public (so the platform public-only check passes) — this is the
+        # parse_visibility_scope wire enforcing docs/inject/loader.md.
+        cfg = tmp_path / "g.yaml"
+        cfg.write_text(
+            _platform_yaml(
+                "visibility_scope: bogus\n"
+                "repos:\n"
+                "  oc: {canonical_name: OperationsCenter, visibility: public}\n"
+            ),
+            encoding="utf-8",
+        )
+        with pytest.raises(RepoGraphConfigError, match="visibility_scope must be"):
+            load_repo_graph(cfg)
+
 
 # ---------------------------------------------------------------------------
 # Live (bundled) manifest

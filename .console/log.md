@@ -68,3 +68,20 @@ _Free-form scratch. Clear periodically — old entries can be deleted once no lo
 
 _Archived completed history → `/home/dev/Documents/GitHub/PrivateManifest/archive/console/PlatformManifest/log-2026-06-04.md`_
 
+
+## 2026-06-18 — wire visibility_scope fail-closed; delete load_default_capabilities
+
+Ecosystem incomplete-integration remediation (combined PM change):
+- WIRE: load_repo_graph now calls parse_visibility_scope(raw, path=path) to
+  fail-closed on visibility at the load boundary (docs/inject/loader.md mandates
+  this; the function existed but was never called — the genuine #313 gap).
+  Positioned after the platform public-only + node-visibility checks so their
+  specific errors fire first; this catches the remaining scope-ambiguous /
+  invalid-scope cases. New test: load rejects an invalid visibility_scope even
+  when all repos are public. (The audit flagged this as DELETE; the loader.md
+  convention hook correctly flipped it to WIRE.)
+- DELETE: load_default_capabilities (cached convenience mirror of
+  load_capabilities, which prod uses via capabilities_cli). Rewrote the 3 seed-
+  invariant tests to call load_capabilities() directly (preserve coverage, per
+  the ToolAdapter/T1 lesson). Removed the unused _cached_default global.
+289 tests green; ruff + audit (B2 env only) + doctor clean.
