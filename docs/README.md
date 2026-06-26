@@ -16,11 +16,15 @@ verification specs and design notes.
   Platform repo topology, OperationsCenter consumption, managed-project
   participation, and execution timeline.
 - [architecture/control_plane_and_anchor.md](architecture/control_plane_and_anchor.md) —
-  The data plane / control plane / anchor distinction: the correction chain,
-  the regress argument for why the anchor cannot be a controller, the policy
-  gate that empirically reveals the anchor surface, and what to formalize
-  (lift the control plane out of OC; keep the anchor a minimal human-signed
-  discipline).
+  The data plane / control plane / anchor distinction as a single correction
+  chain grounded in **separation of powers**: why the regress *grounds* (in an
+  inert, human-signed *trust anchor* plus a small audited verifier) rather than
+  terminating at a magic non-actor; a threat model for the anchor (capture,
+  forgery, envelope creep, staleness, availability-vs-authority); the
+  enforce-vs-change rule that reconciles "no human in the correction loop" with
+  "control-plane changes need a signature"; and what to formalize (lift the
+  control plane out of OC; extract a shared harness — don't over-unify the two
+  controllers at N=2; shrink and harden the anchor, don't grow it).
 - [architecture/visibility_boundary.md](architecture/visibility_boundary.md) —
   Visibility boundary between PlatformManifest, Custodian, OperationsCenter,
   CoreRunner, and PlatformDeployment.

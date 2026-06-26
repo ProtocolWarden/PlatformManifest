@@ -1,4 +1,33 @@
 # Log
+## 2026-06-26 — Adversarial refinement: control plane vs anchor
+
+Expanded and hardened `docs/architecture/control_plane_and_anchor.md` after an
+adversarial pass (two grounding agents + one red-team). Material corrections to
+the committed sketch: (1) **Provenance fix** — the precise `require_review`
+policy log line the draft quoted was a *reconstruction*, not a real artifact;
+the locally-verifiable lease record (`.context/sessions/s-2026-06-08-af23/.../
+l-64cc79e2…yaml`) actually reads `failure_category: policy_blocked` /
+`failure_reason: 'execution blocked by policy: blocked on retry'`. Replaced the
+fabricated quote with the real one and downgraded the claim. (2) **Regress
+reframing** — dropped "the chain *terminates* at an anchor needing no corrector"
+(false: it hides the verifier+scheduler actors); replaced with "it *grounds* in
+an inert, human-signed **trust anchor** (PKI sense) leaving a small **trusted
+computing base** we audit by inspection." (3) **Reconciliation** of "no human in
+the per-correction loop" vs "control-plane changes need review" via the
+enforce-vs-change rule (the human changes the reference, not enforces it; the
+control plane self-heals drift but not its own spec). (4) Added a **threat
+model** (anchor capture, signature forgery, envelope creep + monotonicity/
+self-referential closure, staleness/dead-man's switch) and an **availability vs.
+authority** section (no-bootstrap-deadlock, degrade-never-halt). (5) Demoted
+"empirically revealed the anchor surface" (circular) to "reconfirms a
+human-drawn boundary"; promoted **separation of powers** to the thesis.
+(6) Backed off "factor the two controllers into one component, two configs"
+(wrong-abstraction at N=2) to "extract the shared harness; keep audit-monitor
+and convergence-driver as distinct policies." (7) Added a terminology warning
+disambiguating this doc's **trust anchor** from ContextLifecycle session
+*anchoring* (`CL_ANCHOR`). Updated the README index entry to match. Still a
+sketch for operator review; no control-plane code yet.
+
 ## 2026-06-26 — Design sketch: control plane vs anchor
 
 Added `docs/architecture/control_plane_and_anchor.md` (+ README index entry).
