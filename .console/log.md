@@ -1,4 +1,17 @@
 # Log
+## 2026-06-26 — Design sketch: control plane vs anchor
+
+Added `docs/architecture/control_plane_and_anchor.md` (+ README index entry).
+Fixes the vocabulary the topology discussion kept tripping on: data plane /
+control plane / anchor are a single correction chain, not layers stacked by
+altitude. Documents the regress argument (the anchor cannot be a controller
+without adding a turtle), the policy `require_review` gate that empirically
+revealed the anchor surface (the fleet's own policy refused autonomous
+self-modification of its control plane), and the two formalization moves — lift
+the control plane out of OC into one component with two instances (VF, OC); keep
+the anchor a minimal human-signed discipline, not a service. Sketch for operator
+review; no control-plane code yet.
+
 ## 2026-06-16 — Phase 2 follow-up: 3 more owners (12 total) + gate expanded
 
 Closed the population follow-up — capabilities owned by the other public repos:

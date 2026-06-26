@@ -15,6 +15,12 @@ verification specs and design notes.
 - [architecture/platform_topology.md](architecture/platform_topology.md) —
   Platform repo topology, OperationsCenter consumption, managed-project
   participation, and execution timeline.
+- [architecture/control_plane_and_anchor.md](architecture/control_plane_and_anchor.md) —
+  The data plane / control plane / anchor distinction: the correction chain,
+  the regress argument for why the anchor cannot be a controller, the policy
+  gate that empirically reveals the anchor surface, and what to formalize
+  (lift the control plane out of OC; keep the anchor a minimal human-signed
+  discipline).
 - [architecture/visibility_boundary.md](architecture/visibility_boundary.md) —
   Visibility boundary between PlatformManifest, Custodian, OperationsCenter,
   CoreRunner, and PlatformDeployment.
