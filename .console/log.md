@@ -1,4 +1,41 @@
 # Log
+## 2026-06-26 — Adversarial round 2: control plane vs anchor
+
+Second adversarial pass on `docs/architecture/control_plane_and_anchor.md`
+(three attackers: buildability, internal-consistency, framing). The first two
+*converged* on the biggest hole, which is a strong signal. Applied (triaged,
+with one adversary overclaim rejected):
+- **Named the restorer.** The rewrite said the verifier "mutates nothing" yet
+  drift was "auto-restored" — an unnamed write-capable actor (the most dangerous
+  component) absent from the role table and TCB. Added it as a role + a threat
+  bullet (re-verifies the signature, declarative-only, in the audited TCB, on the
+  dead-man's switch).
+- **Deploy-only-from-signed-reference.** The enforce-vs-change rule wasn't
+  runtime-decidable (`max_turns=50` vs `500`: identical bytes, only intent
+  differs). Fix: make the signed reference the sole writer, so "drift" can only
+  mean unauthorized divergence — no intent-classifier needed. Behavioral
+  (LLM-agent) drift has no signed artifact → degrades to quarantine-and-flag;
+  restore-rate bounded + loop detection.
+- **Per-axis monotonicity, no netting** (bundling a tighten + a loosen defeated
+  the old rule); **v0-axiom + predecessor-signs-successor** for the
+  self-referential policy (self-reference ≠ self-grounding); **public-key pinning
+  + off-infra signing key** (crypto relocates the bootstrap, doesn't remove it);
+  **dead-man's switch terminus = human attention**, alarm consumer must be
+  failure-domain-disjoint; **verifier self-repair via deploy-from-signed**
+  (resolves immutability vs degrade-never-halt); `[check: ref]` has two failure
+  modes (staleness vs silent-wrong-check) needing two mitigations.
+- **Framing:** separation of *authority*, not necessarily address space (an
+  in-process corrector with no write-path to its own reference already satisfies
+  separation of powers — keeps the deep target access the fleet's debug history
+  needs); added a property-vs-implementation caution and a trust-grounding-axis
+  disclaimer (the threat axis — untrusted-input ingestion — is the reviewer-
+  incident edge); a proportionality section (build the MVP anchor now, sequence
+  hardening). REJECTED the adversary's "the 5 blocked tasks are infra chores →
+  gate false-positive" — OAuth-refresh touches the credential anchor itself,
+  circuit-breaker/infra-robustness touch executor self-healing; the gate is
+  mostly correct, which supports the thesis. Still a sketch; no control-plane
+  code yet.
+
 ## 2026-06-26 — Adversarial refinement: control plane vs anchor
 
 Expanded and hardened `docs/architecture/control_plane_and_anchor.md` after an
