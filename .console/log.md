@@ -1,4 +1,26 @@
 # Log
+## 2026-06-26 — Custodian fixes on audit spec
+
+Replaced `VideoFoundry` (private repo name) with `VF` throughout the new spec;
+stripped backtick notation from cross-repo symbols (require_branch_protection,
+controller_liveness, checkpoint_on_stop, audit_dispatch) that custodian treated
+as local PM symbol references. No content changes.
+
+## 2026-06-26 — OC grounded audit + PseudoOperator spec
+
+Four-agent audit of OC + VF source with file:line receipts. Overturned two doc
+claims: VF is NOT an OC component (own copy-paste controller in VideoFoundry);
+the anchor already partly exists (EVAL ed25519 corpus) but only in the eval
+plane. Role mapping: ~60% relabel, ~40% genuinely new (restorer + live-plane
+signed-config invariant). Eight 🔴 defects grounded (forgeable `source:autonomy`
+label bypass at `engine.py:521`, self-merge default at `settings.py:313`,
+token-in-sandbox at `_subprocess.py:172`, triple fail-open containment, no
+executor timeout, VF 100%-prompt-side guardrails, broken VF locking,
+`audit_dispatch` timeout=None). Fleet paused (`oc-fleet.service` stopped) before
+acting. Specs committed: `oc-audit-and-pseudooperator-spec.md` (full picture +
+build sequencing A→B→C), `sandbox-token-hardening-spec.md` (token fix detail).
+Backlog updated with three tracks. No code changed yet.
+
 ## 2026-06-26 — Adversarial round 2: control plane vs anchor
 
 Second adversarial pass on `docs/architecture/control_plane_and_anchor.md`

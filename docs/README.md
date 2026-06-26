@@ -75,6 +75,19 @@ verification specs and design notes.
   descoped to `produces` pending an artifact registry) specified; Phases 4–6
   gated. Records the CAP-inert-in-single-repo-CI enforcement-venue constraint.
 
+- [architecture/oc-audit-and-pseudooperator-spec.md](architecture/oc-audit-and-pseudooperator-spec.md) —
+  Grounded audit of OC + VF controllers with file:line receipts: verified role
+  mapping (data/control/verifier/restorer/anchor vs real code), eight 🔴 defects
+  (forgeable label bypass, fail-open containment, token-in-sandbox, VF
+  timeout/locking, `audit_dispatch` gaps), PseudoOperator formalization plan
+  (de-dup copy-paste controllers, activate inert config schema, move guardrails
+  into code), restorer vs anchor distinction, and three-track build sequencing.
+- [architecture/sandbox-token-hardening-spec.md](architecture/sandbox-token-hardening-spec.md) —
+  Spec for replacing the long-lived OAuth `gho_` token forwarded into the bwrap
+  sandbox with a per-task GitHub App installation token (1h TTL, repo-scoped,
+  raw credential never in sandbox env). Covers approach, injection change,
+  fine-grained PAT fallback, and sequencing relative to other OC hardening work.
+
 ## Verification
 
 - [verification/manifest_system.md](verification/manifest_system.md) —
