@@ -15,6 +15,19 @@ verification specs and design notes.
 - [architecture/platform_topology.md](architecture/platform_topology.md) —
   Platform repo topology, OperationsCenter consumption, managed-project
   participation, and execution timeline.
+- [architecture/control_plane_and_anchor.md](architecture/control_plane_and_anchor.md) —
+  The data plane / control plane / verifier / restorer / trust-anchor distinction
+  as a single correction chain grounded in **separation of powers**: why the
+  regress *grounds* (in an inert, human-signed *trust anchor* plus a small audited
+  TCB of verifier + scheduler + restorer) rather than terminating at a magic
+  non-actor; *deploy-only-from-signed-reference* as the mechanism that makes
+  "restore vs. change" decidable without an intent-classifier; a threat model
+  (anchor capture, restorer compromise, signature forgery + the public-key
+  bootstrap, per-axis monotonicity against envelope creep, the v0 axiom for
+  self-referential policy, staleness vs. silent-wrong-check); availability vs.
+  authority; and what to formalize — separate the *authority* (not necessarily the
+  address space), extract a shared harness (don't over-unify the controllers at
+  N=2), and build the minimum anchor now, sequencing the hardening.
 - [architecture/visibility_boundary.md](architecture/visibility_boundary.md) —
   Visibility boundary between PlatformManifest, Custodian, OperationsCenter,
   CoreRunner, and PlatformDeployment.
