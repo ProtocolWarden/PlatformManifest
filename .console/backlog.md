@@ -7,20 +7,19 @@ _Update after each meaningful chunk of progress. Keep it short and actionable._
 
 _(idle — reconciliation + role-generalization arcs complete)_
 
-## In Progress (see below — Up Next reordered)
+## Up Next
 
-- [ ] **[OC/VF] Track B: PseudoOperator formalization** — de-dup the two
-      copy-paste `tools/loop/controller.py` files into one config-parameterized
-      engine; activate the inert `workers`/`watchers` config schema
-      (CLConfig.LoopConfig currently parses one field); away/lazy trigger
-      semantics. Per-repo config: VF → `.context/config.yaml`, OC-system →
-      `PlatformManifest` or `OperationsCenter/.console/`.
-      (VF guardrail caps already moved into controller code by Track A7.)
-
-- [ ] **[OC/VF] Track C: Restorer + live-plane anchor** — ed25519-signed
-      pseudo_operator config reference; restorer as the sole writer of live
-      config; no-self-rewrite invariant. Depends on Track B.
-      Spec: `docs/architecture/oc-audit-and-pseudooperator-spec.md` §5.
+- [ ] **[OPERATOR] Anchoring ceremony — the ONE human step** (anchors BOTH the
+      EVAL corpus and the loop configs with one key): (1) offline
+      `python -m operations_center.eval.sign keygen --private-out operator_priv.pem`,
+      keep the private key off-infra; (2) paste the pubkey hex into
+      `OperationsCenter/eval/constitution/operator_pubkey.ed25519`,
+      `OperationsCenter/.console/operator_pubkey.ed25519`, and
+      `VideoFoundry/.context/operator_pubkey.ed25519` (all placeholders,
+      CODEOWNERS-pinned); (3) `cl loop sign-config --config <repo cfg> --key
+      operator_priv.pem` in OC + VF, commit the `.signed.json`/`.sig`;
+      (4) add `--require-signed` to `operations-center.sh loop_start` and
+      `vf.sh loop_start`. Until then `cl loop run` runs in loud unsigned mode.
 
 - [ ] **FLEET RESTART PREREQUISITES** (when the operator resumes the fleet):
       (1) add the fleet's Plane service account to
@@ -29,7 +28,10 @@ _(idle — reconciliation + role-generalization arcs complete)_
       (2) optionally register a GitHub App + set `git.github_app_id` /
       `git.github_app_key_path` (else long-lived-token warning);
       (3) containment is now required-by-default — bwrap/pasta/proxy breakage
-      fails tasks visibly. Resume: start oc-egress-proxy, then oc-fleet.
+      fails tasks visibly;
+      (4) provisioning must install ContextLifecycle v0.4.1 into the OC venv
+      (the loop is now `cl loop run`; local venv holds an editable CL).
+      Resume: start oc-egress-proxy, then oc-fleet.
 
 - [ ] **On the OTHER host (one-time):** run `scripts/provision-machine.sh` —
       pulls ContextLifecycle to current (PM #72 added the pull step), which

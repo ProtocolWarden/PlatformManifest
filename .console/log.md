@@ -1,4 +1,23 @@
 # Log
+## 2026-07-06 — Tracks B + C COMPLETE: PseudoOperator + signed-config anchor
+
+Track B (CL #34/#35/#36, v0.4.0): `cl loop` — one config-parameterized
+session-loop engine (atomic hostname-aware lock, bounded spawn, backend
+cooldown ladder w/ verbatim-ported limit parser, ENFORCED caps, delay
+policies, pause = away/lazy trigger, hook commands for repo-specific code).
+Consumers migrated: VF #997/#998 (947-line controller -> exec shim), OC
+#428/#429 (1152-line controller -> shim + loop_bridge hooks for usage-store
+bridge + self-update watcher bounce; OC finally gets atomic locking + caps),
+OperatorConsole #70 (pane path). Track C (CL #37/#38, v0.4.1 + OC #430, VF
+#999): deploy-only-from-signed-reference — ed25519-signed pseudo_operator
+reference; drift = run the SIGNED reference (restore-by-consumption, no fleet
+write path into its own guardrails), bad signature = refuse, unsigned = loud
++ refusable via --require-signed; pubkey placeholders + CODEOWNERS pins
+staged in both repos. Remaining human step: the operator keygen+sign ceremony
+(also still pending for EVAL — same key can anchor both). Post-merge CI
+fix-forwards: OC #431 (untracked stale build/ from a git add -A), #432 (SPDX
+headers), #433 (stale T8 exclusion). The audit spec's status header updated.
+
 ## 2026-07-06 — Track A COMPLETE: all 8 audit defects fixed + merged
 
 Fleet stayed OFF throughout (operator direction). OC PRs #421–#427 + VF #996:

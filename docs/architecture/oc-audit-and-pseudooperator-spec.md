@@ -1,7 +1,7 @@
 # OC Audit Findings + PseudoOperator Spec
 
-**Status:** design checkpoint — grounded audit with file:line receipts; not yet approved for build  
-**Date:** 2026-06-26  
+**Status:** IMPLEMENTED 2026-07-06 — all three tracks built + merged (Track A: OC #421–#427 + VF #996; Track B: CL #34/#35 `cl loop` + consumers VF #997/#998, OC #428/#429, OperatorConsole #70; Track C: CL #37 signed config + anchor wiring OC #430, VF #999). Remaining human step: the operator signing ceremony (keygen + `cl loop sign-config`; the EVAL pubkey is still the placeholder too — one key can anchor both planes).  
+**Date:** 2026-06-26 (audit) / 2026-07-06 (implementation)  
 **Scope:** OperationsCenter + VF controllers; precondition for PseudoOperator formalization and restorer/anchor work
 
 ---
