@@ -1,4 +1,20 @@
 # Log
+## 2026-07-06 — Track A COMPLETE: all 8 audit defects fixed + merged
+
+Fleet stayed OFF throughout (operator direction). OC PRs #421–#427 + VF #996:
+A1 trusted-label provenance gate (task_admission.trusted_label_authors,
+fail-closed); A2 require_branch_protection defaults True; A3 containment
+default-on + required-by-default (fails the TASK, not the fleet; startup
+self-check); A4 board executor wall timeout 4500s; A5 audit_dispatch 1800s
+default timeout + refuse COMPLETED on non-terminal run_status; A6 per-task
+GitHub App installation tokens (raw long-lived token no longer forwarded when
+App configured; mint failure fails task closed); A7 VF controller atomic
+hostname-aware locking + 45min session timeout + enforced iteration/failure
+caps; A8 parent-side out-of-process scope verification of the PUSHED branch.
+Also: fleet-wide sonnet-4-6 -> sonnet-5 rename (OC #420, TE #17, VF #994).
+Merges used operator-session reviewer-verdict statuses (reviewer paused).
+Restart prerequisites recorded in backlog. Track B (PseudoOperator) next.
+
 ## 2026-06-26 — Custodian fixes on audit spec
 
 Replaced `VideoFoundry` (private repo name) with `VF` throughout the new spec;
