@@ -10,10 +10,16 @@ _Update after each meaningful chunk of progress. Keep it short and actionable._
       cold lines surface with `[<slug>]` tokens + the `Context-Used:` trailer
       note; acting sessions cite slugs in commits; then run the attribution
       plan from the CL checkout (`python -m ... attribution --root <PM>` dry-run)
-      and `consolidate --apply` when a plan looks right. Residuals: ship
-      attribution modules in ENGINE_FILES (wiring decision), P4 autonomous
-      apply (operator trust-line — HOLD until precision record), P5
-      stopped_logged_violation, model injection.enabled as real config field.
+      and `consolidate --apply` when a plan looks right.
+      **D3 build arc COMPLETE:** P0-A→P3 built + live (CL #44–#48); P4
+      autonomous-apply HELD (operator trust-line — until a precision record);
+      **P5 stopped_logged_violation = spec-DEFERRED, not built (CL #49)** — the
+      §4 warn-only violation logger it would consult was deferred out of v1
+      (context-injection-spec §4, 2026-06-06) behind an unmet build trigger ("a
+      real recurring violation worth seeding a rule from"); building it now =
+      inert machinery, so `return False` stays and the deferral is now recorded
+      in-code. Residuals: ship attribution modules in ENGINE_FILES (wiring
+      decision), model injection.enabled as a real config field.
 
 ## Up Next
 

@@ -1,5 +1,17 @@
 # Log
 
+## 2026-07-17 — D3 P5 resolved as spec-deferred (CL #49); D3 build arc complete
+
+P5 (`stopped_logged_violation`, the last D3 phase) = **decision, not build**.
+Investigated whether the §4 warn-only violation log it would consult exists: it
+does NOT (grep clean; the only `warn-only` reference rejects the concept). The
+governing spec (`docs/architecture/context-injection-spec.md` §4) settles it —
+the logger was "claimed to ship in v1 but never built," deferred 2026-06-06
+behind an unmet build trigger ("a real recurring violation worth seeding a rule
+from"). Building it now = inert machinery. Recorded the deferral-with-trigger
+in-code (CL #49, `1ccf41b`) so `return False` reads as deliberate. **D3 arc:
+P0-A→P3 built + live on PM; P4 held (operator trust-line); P5 deferred.**
+
 ## 2026-07-16 — D3 activated on PM: engine refreshed to CL 1b40ac4 (attribution substrate)
 
 `cl context init` refresh of `.context/.engine/` from CL main @1b40ac4 — the
