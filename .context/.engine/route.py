@@ -44,6 +44,17 @@ INJECT_HEADING = "## Inject"
 # so all breadth tuning lives in one config surface alongside max_docs_per_edit.
 COLD_SURFACE_CAP = 5
 
+# One-line citation protocol note appended to the cold block (D3 attribution
+# scheme A): the instruction travels WITH the injected data, so every consumer
+# learns the ``Context-Used:`` trailer protocol without per-consumer prompt
+# changes. Must NOT start with ``[`` (so `_cold_slug_from_line` returns None
+# for it) and is appended only to the rendered block — never to `cold_lines` —
+# so the `cold_surfaced` count and `cold_slugs` telemetry are unaffected.
+COLD_CITATION_NOTE = (
+    "(cite: if you act on a [slug] item above, add the git trailer "
+    '"Context-Used: <slug>" to that commit)'
+)
+
 
 @dataclass(frozen=True)
 class Route:
@@ -289,6 +300,23 @@ def _surface_cold_lines(target: str, root: Path) -> list[str]:
 
 
 
+def _cold_slug_from_line(line: str) -> str | None:
+    """Extract the leading ``[<slug>]`` citation token from a surfaced cold line.
+
+    The cold emitter (`cold.surface_cold`) prefixes every real item line with a
+    machine-parseable ``[<slug>]`` handle (D3 attribution scheme A). Return the
+    slug, or None for a line that carries no token — e.g. the
+    ``...(N more cold topic(s); ...)`` truncation note, which must not be
+    recorded as an injected slug. Never raises.
+    """
+    if not line.startswith("["):
+        return None
+    end = line.find("]")
+    if end <= 1:
+        return None
+    return line[1:end]
+
+
 def _log_injection_event(
     root: Path,
     target: str,
@@ -298,6 +326,7 @@ def _log_injection_event(
     missing: list[str],
     over_budget: list[str],
     cold_count: int,
+    cold_slugs: list[str],
 ) -> None:
     """Append one JSONL line per injection to sessions/.telemetry/injection.jsonl.
 
@@ -307,18 +336,27 @@ def _log_injection_event(
     dot-dir, machine-local, covered by the fleet's sessions gitignore) and is
     strictly best-effort: a telemetry failure must never affect injection
     (spec §1: the router never raises).
+
+    `cold_slugs` additionally records the slug of each surfaced cold item with a
+    per-slug injection timestamp (D3 attribution scheme A substrate): the ledger
+    of which cold memories were put in front of an agent, and when, so a later
+    ``Context-Used: <slug>`` citation can be matched to a real injection. This is
+    purely additive — the legacy ``cold_surfaced`` count and every existing field
+    are unchanged, so existing telemetry consumers keep working.
     """
     try:
         tel_dir = root / ".context" / "sessions" / ".telemetry"
         tel_dir.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now().isoformat(timespec="seconds")
         event = {
-            "ts": datetime.now().isoformat(timespec="seconds"),
+            "ts": ts,
             "target": target,
             "injected": injected,
             "empty": empty,
             "missing": missing,
             "over_budget": over_budget,
             "cold_surfaced": cold_count,
+            "cold_slugs": [{"slug": slug, "ts": ts} for slug in cold_slugs],
         }
         with (tel_dir / "injection.jsonl").open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(event, ensure_ascii=False) + "\n")
@@ -380,6 +418,13 @@ def build_context(target: str, root: Path) -> str:
     if not blocks and not notes and not cold_lines:
         return ""
 
+    # Recover the citation slug from each surfaced cold line (skipping the
+    # ...(N more) truncation note, which carries no token) so the telemetry can
+    # record exactly which cold items were injected — the D3 attribution substrate.
+    cold_slugs = [
+        slug for line in cold_lines if (slug := _cold_slug_from_line(line)) is not None
+    ]
+
     # Something is being surfaced — record it (best-effort, never raises).
     _log_injection_event(
         root,
@@ -389,6 +434,7 @@ def build_context(target: str, root: Path) -> str:
         missing=missing,
         over_budget=list(over_budget),
         cold_count=len(cold_lines),
+        cold_slugs=cold_slugs,
     )
 
     note = ("\n\n" + "\n".join(notes)) if notes else ""
@@ -397,6 +443,14 @@ def build_context(target: str, root: Path) -> str:
         cold_section = (
             "\n\nRelated cold topics (pull on demand):\n" + "\n".join(cold_lines)
         )
+        # Self-describing block (D3 P0-B): when at least one REAL cold item is
+        # injected (a slug-bearing line, not just the truncation note), close
+        # the block with the citation instruction so the acting agent knows the
+        # `Context-Used:` trailer protocol. Rendered-only: appended after the
+        # telemetry above was assembled, so it never counts as a surfaced line
+        # and never appears in cold_slugs.
+        if cold_slugs:
+            cold_section += "\n" + COLD_CITATION_NOTE
 
     if not blocks:
         # No injectable warm docs. Emit any diagnostics + cold section.

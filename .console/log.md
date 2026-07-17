@@ -1,4 +1,17 @@
 # Log
+
+## 2026-07-16 — D3 activated on PM: engine refreshed to CL 1b40ac4 (attribution substrate)
+
+`cl context init` refresh of `.context/.engine/` from CL main @1b40ac4 — the
+D3 self-improving-context chain (CL #44-#48): surfaced cold lines now carry a
+citable `[<slug>]` token + a self-describing `Context-Used:` trailer
+instruction; injection telemetry records injected slugs+ts; consolidate gains
+the attribution phase (degrades silently here until the attribution modules
+ship in ENGINE_FILES — planning/apply runs from the CL checkout for now).
+injection.enabled was already true on PM. Dry-run verified: gate correctly
+rejects both existing cold items (acted_on_commit=null) — the exact gap the
+attribution loop now fills. Zero state changes; engine logic only.
+
 ## 2026-07-06 — Tracks B + C COMPLETE: PseudoOperator + signed-config anchor
 
 Track B (CL #34/#35/#36, v0.4.0): `cl loop` — one config-parameterized
