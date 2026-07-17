@@ -5,7 +5,15 @@ _Update after each meaningful chunk of progress. Keep it short and actionable._
 
 ## In Progress
 
-_(idle — reconciliation + role-generalization arcs complete)_
+- [ ] **D3 self-improving-context — observe first live cycles on PM** (engine
+      refreshed to CL 1b40ac4, 2026-07-16; injection already enabled). Watch:
+      cold lines surface with `[<slug>]` tokens + the `Context-Used:` trailer
+      note; acting sessions cite slugs in commits; then run the attribution
+      plan from the CL checkout (`python -m ... attribution --root <PM>` dry-run)
+      and `consolidate --apply` when a plan looks right. Residuals: ship
+      attribution modules in ENGINE_FILES (wiring decision), P4 autonomous
+      apply (operator trust-line — HOLD until precision record), P5
+      stopped_logged_violation, model injection.enabled as real config field.
 
 ## Up Next
 
